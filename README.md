@@ -1,2 +1,2 @@
 # EasyMinerAPI
-Repositório para o back-end da aplicação EasyMiner. 
+Repositório para o back-end da aplicação EasyMiner.

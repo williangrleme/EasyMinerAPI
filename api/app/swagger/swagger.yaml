@@ -1,0 +1,215 @@
+swagger: "2.0"
+info:
+  description: "Esta é a documentação da API do EasyMiner."
+  version: "1.0.0"
+  title: "EasyMinerAPI"
+host: "https://easy-miner-api.vercel.app"
+basePath: "/api"
+schemes:
+- "http"
+
+paths:
+  /auth/csrf-token:
+    get:
+      tags:
+        - "Autenticação"
+      summary: "Obter token CSRF"
+      description: "Gera um token CSRF."
+      responses:
+        200:
+          description: "Operação bem-sucedida"
+          schema:
+            type: "object"
+            properties:
+              csrf_token:
+                type: "string"
+
+  /auth/login:
+    post:
+      tags:
+        - "Autenticação"
+      summary: "Login de usuário"
+      description: "Realiza o login de um usuário."
+      parameters:
+        - in: "body"
+          name: "body"
+          description: "Detalhes do login"
+          required: true
+          schema:
+            type: "object"
+            properties:
+              email:
+                type: "string"
+              password:
+                type: "string"
+      responses:
+        200:
+          description: "Login bem-sucedido"
+        401:
+          description: "Credenciais inválidas"
+        422:
+          description: "Dados inválidos"
+
+  /auth/logout:
+    post:
+      tags:
+        - "Autenticação"
+      summary: "Logout de usuário"
+      description: "Realiza o logout do usuário atual."
+      responses:
+        200:
+          description: "Logout bem-sucedido"
+
+  /auth/me:
+    get:
+      tags:
+        - "Autenticação"
+      summary: "Obter usuário atual"
+      description: "Retorna os detalhes do usuário atualmente logado."
+      responses:
+        200:
+          description: "Operação bem-sucedida"
+          schema:
+            type: "object"
+            properties:
+              id:
+                type: "integer"
+              name:
+                type: "string"
+              phone_number:
+                type: "string"
+              email:
+                type: "string"
+
+  /users:
+    get:
+      tags:
+        - "CRUD de Usuários"
+      summary: "Obter usuários"
+      description: "Retorna uma lista de todos os usuários."
+      responses:
+        200:
+          description: "Operação bem-sucedida"
+          schema:
+            type: "array"
+            items:
+              type: "object"
+              properties:
+                id:
+                  type: "integer"
+                name:
+                  type: "string"
+                phone_number:
+                  type: "string"
+                email:
+                  type: "string"
+    post:
+      tags:
+        - "CRUD de Usuários"
+      summary: "Criar usuário"
+      description: "Cria um novo usuário."
+      parameters:
+        - in: "body"
+          name: "body"
+          description: "Detalhes do usuário"
+          required: true
+          schema:
+            type: "object"
+            properties:
+              name:
+                type: "string"
+              phone_number:
+                type: "string"
+              email:
+                type: "string"
+              password:
+                type: "string"
+      responses:
+        201:
+          description: "Usuário criado"
+        422:
+          description: "Dados inválidos"
+
+  /users/{id}:
+    get:
+      tags:
+        - "CRUD de Usuários"
+      summary: "Obter usuário por ID"
+      description: "Retorna os detalhes de um usuário específico."
+      parameters:
+        - name: "id"
+          in: "path"
+          required: true
+          type: "integer"
+          description: "ID do usuário"
+      responses:
+        200:
+          description: "Operação bem-sucedida"
+          schema:
+            type: "object"
+            properties:
+              id:
+                type: "integer"
+              name:
+                type: "string"
+              phone_number:
+                type: "string"
+              email:
+                type: "string"
+        403:
+          description: "Não autorizado"
+        404:
+          description: "Usuário não encontrado"
+    put:
+      tags:
+        - "CRUD de Usuários"
+      summary: "Atualizar usuário por ID"
+      description: "Atualiza os detalhes de um usuário específico."
+      parameters:
+        - name: "id"
+          in: "path"
+          required: true
+          type: "integer"
+          description: "ID do usuário"
+        - in: "body"
+          name: "body"
+          description: "Detalhes do usuário atualizados"
+          required: true
+          schema:
+            type: "object"
+            properties:
+              name:
+                type: "string"
+              phone_number:
+                type: "string"
+              email:
+                type: "string"
+              password:
+                type: "string"
+      responses:
+        200:
+          description: "Usuário atualizado"
+        403:
+          description: "Não autorizado"
+        404:
+          description: "Usuário não encontrado"
+        422:
+          description: "Dados inválidos"
+    delete:
+      tags:
+        - "CRUD de Usuários"
+      summary: "Excluir usuário por ID"
+      description: "Exclui um usuário específico."
+      parameters:
+        - name: "id"
+          in: "path"
+          required: true
+          type: "integer"
+          description: "ID do usuário"
+      responses:
+        200:
+          description: "Usuário excluído"
+        403:
+          description: "Não autorizado"
+        404:
+          description: "Usuário não encontrado"
