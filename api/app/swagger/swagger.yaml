@@ -23,7 +23,6 @@ paths:
             properties:
               csrf_token:
                 type: "string"
-
   /auth/login:
     post:
       tags:
@@ -49,7 +48,6 @@ paths:
           description: "Credenciais inválidas"
         422:
           description: "Dados inválidos"
-
   /auth/logout:
     post:
       tags:
@@ -59,7 +57,6 @@ paths:
       responses:
         200:
           description: "Logout bem-sucedido"
-
   /auth/me:
     get:
       tags:
@@ -80,7 +77,6 @@ paths:
                 type: "string"
               email:
                 type: "string"
-
   /users:
     get:
       tags:
@@ -129,7 +125,6 @@ paths:
           description: "Usuário criado"
         422:
           description: "Dados inválidos"
-
   /users/{id}:
     get:
       tags:
@@ -213,3 +208,128 @@ paths:
           description: "Não autorizado"
         404:
           description: "Usuário não encontrado"
+
+  /projects:
+    get:
+      tags:
+        - "CRUD de Projetos"
+      summary: "Obter projetos"
+      description: "Retorna uma lista de todos os projetos do usuário autenticado."
+      responses:
+        200:
+          description: "Operação bem-sucedida"
+          schema:
+            type: "array"
+            items:
+              type: "object"
+              properties:
+                id:
+                  type: "integer"
+                name:
+                  type: "string"
+                description:
+                  type: "string"
+        403:
+          description: "Não autorizado"
+        404:
+          description: "Projeto não encontrado"
+    post:
+      tags:
+        - "CRUD de Projetos"
+      summary: "Criar projeto"
+      description: "Cria um novo projeto."
+      parameters:
+        - in: "body"
+          name: "body"
+          description: "Detalhes do projeto"
+          required: true
+          schema:
+            type: "object"
+            properties:
+              name:
+                type: "string"
+              description:
+                type: "string"
+      responses:
+        201:
+          description: "Projeto criado com sucesso"
+        422:
+          description: "Dados inválidos"
+
+  /projects/{id}:
+    get:
+      tags:
+        - "CRUD de Projetos"
+      summary: "Obter projeto por ID"
+      description: "Retorna os detalhes de um projeto específico do usuário autenticado."
+      parameters:
+        - name: "id"
+          in: "path"
+          required: true
+          type: "integer"
+          description: "ID do projeto"
+      responses:
+        200:
+          description: "Operação bem-sucedida"
+          schema:
+            type: "object"
+            properties:
+              id:
+                type: "integer"
+              name:
+                type: "string"
+              description:
+                type: "string"
+        403:
+          description: "Não autorizado"
+        404:
+          description: "Projeto não encontrado"
+    put:
+      tags:
+        - "CRUD de Projetos"
+      summary: "Atualizar projeto por ID"
+      description: "Atualiza os detalhes de um projeto específico do usuário autenticado."
+      parameters:
+        - name: "id"
+          in: "path"
+          required: true
+          type: "integer"
+          description: "ID do projeto"
+        - in: "body"
+          name: "body"
+          description: "Detalhes do projeto atualizados"
+          required: true
+          schema:
+            type: "object"
+            properties:
+              name:
+                type: "string"
+              description:
+                type: "string"
+      responses:
+        200:
+          description: "Projeto atualizado com sucesso"
+        403:
+          description: "Não autorizado"
+        404:
+          description: "Projeto não encontrado"
+        422:
+          description: "Dados inválidos"
+    delete:
+      tags:
+        - "CRUD de Projetos"
+      summary: "Excluir projeto por ID"
+      description: "Exclui um projeto específico do usuário autenticado."
+      parameters:
+        - name: "id"
+          in: "path"
+          required: true
+          type: "integer"
+          description: "ID do projeto"
+      responses:
+        200:
+          description: "Projeto excluído com sucesso"
+        403:
+          description: "Não autorizado"
+        404:
+          description: "Projeto não encontrado"
