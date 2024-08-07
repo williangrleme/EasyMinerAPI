@@ -4,8 +4,9 @@ from app.models import User
 from app import db
 from app.forms.user_form import UserFormCreate, UserFormUpdate
 
+
 def get_users():
-    user_master = current_app.config['USER_MASTER']
+    user_master = current_app.config["USER_MASTER"]
     if not current_user.is_authenticated or current_user.id != user_master:
         return jsonify({"mensagem": "Não autorizado!"}), 403
 
@@ -20,6 +21,7 @@ def get_users():
         for user in users
     ]
     return jsonify(users_list), 200
+
 
 def get_user(id):
     if not current_user.is_authenticated or current_user.id != id:
@@ -37,6 +39,7 @@ def get_user(id):
     }
     return jsonify(user_data), 200
 
+
 def create_user():
     form = UserFormCreate()
     if form.validate_on_submit():
@@ -50,6 +53,7 @@ def create_user():
         db.session.commit()
         return jsonify({"mensagem": "Usuário criado com sucesso!"}), 201
     return jsonify({"mensagem": "Dados inválidos!", "erros": form.errors}), 422
+
 
 def update_user(id):
     if not current_user.is_authenticated or current_user.id != id:
@@ -70,6 +74,7 @@ def update_user(id):
         return jsonify({"mensagem": "Usuário atualizado com sucesso!"}), 200
 
     return jsonify({"mensagem": "Dados inválidos!", "erros": form.errors}), 422
+
 
 def delete_user(id):
     if not current_user.is_authenticated or current_user.id != id:

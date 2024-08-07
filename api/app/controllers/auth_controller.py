@@ -6,7 +6,7 @@ from app.forms.login_form import LoginForm
 
 def login():
     form = LoginForm()
-    if  current_user.is_authenticated:
+    if current_user.is_authenticated:
         logout_user()
 
     if not form.validate_on_submit():
@@ -23,20 +23,24 @@ def login():
     login_user(user)
     return jsonify({"mensagem": "Login realizado com sucesso!"}), 200
 
+
 def logout():
     logout_user()
     return jsonify({"mensagem": "Logout realizado com sucesso!"}), 200
 
+
 def get_current_user():
     user_data = {
-        'id': current_user.id,
-        'name': current_user.name,
-        'phone_number': current_user.phone_number,
-        'email': current_user.email
+        "id": current_user.id,
+        "name": current_user.name,
+        "phone_number": current_user.phone_number,
+        "email": current_user.email,
     }
     return jsonify(user_data), 200
 
+
 def get_csrf_token():
     from flask_wtf.csrf import generate_csrf
+
     token = generate_csrf()
     return jsonify({"csrf_token": token}), 200
