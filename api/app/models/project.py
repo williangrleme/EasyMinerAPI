@@ -12,3 +12,4 @@ class Project(db.Model):
     updated_at = db.Column(db.TIMESTAMP, default=None, onupdate=datetime.utcnow, nullable=True)
 
     user = db.relationship('User', back_populates='projects')
+    datasets = db.relationship('Dataset', back_populates='project', cascade='all, delete-orphan')
