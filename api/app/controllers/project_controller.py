@@ -4,6 +4,7 @@ from app.models import Project
 from app import db
 from app.forms.project_form import ProjectFormCreate, ProjectFormUpdate
 
+
 def get_projects():
     if not current_user.is_authenticated:
         return jsonify({"mensagem": "Não autorizado!"}), 403
@@ -18,6 +19,7 @@ def get_projects():
         for project in projects
     ]
     return jsonify(projects_list), 200
+
 
 def get_project(id):
     if not current_user.is_authenticated:
@@ -34,6 +36,7 @@ def get_project(id):
     }
     return jsonify(project_data), 200
 
+
 def create_project():
     if not current_user.is_authenticated:
         return jsonify({"mensagem": "Não autorizado!"}), 403
@@ -43,12 +46,13 @@ def create_project():
         new_project = Project(
             name=form.name.data,
             description=form.description.data,
-            user_id=current_user.id
+            user_id=current_user.id,
         )
         db.session.add(new_project)
         db.session.commit()
         return jsonify({"mensagem": "Projeto criado com sucesso!"}), 201
     return jsonify({"mensagem": "Dados inválidos!", "erros": form.errors}), 422
+
 
 def update_project(id):
     if not current_user.is_authenticated:
@@ -67,6 +71,7 @@ def update_project(id):
         return jsonify({"mensagem": "Projeto atualizado com sucesso!"}), 200
 
     return jsonify({"mensagem": "Dados inválidos!", "erros": form.errors}), 422
+
 
 def delete_project(id):
     if not current_user.is_authenticated:

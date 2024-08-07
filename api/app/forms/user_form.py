@@ -4,6 +4,7 @@ from wtforms.validators import DataRequired, Email, Length, ValidationError, Opt
 
 from app.models import User
 
+
 class UserFormCreate(FlaskForm):
     def validate_phone_number(self, field):
         if User.query.filter_by(phone_number=field.data).first():
@@ -28,11 +29,7 @@ class UserFormCreate(FlaskForm):
         ],
     )
     email = StringField(
-        "Email", validators=[
-            DataRequired(),
-            Length(min=6, max=200),
-            Email()
-        ]
+        "Email", validators=[DataRequired(), Length(min=6, max=200), Email()]
     )
     password = PasswordField(
         "Password",
@@ -42,13 +39,16 @@ class UserFormCreate(FlaskForm):
         ],
     )
 
+
 class UserFormUpdate(FlaskForm):
     def __init__(self, user_id, *args, **kwargs):
         super(UserFormUpdate, self).__init__(*args, **kwargs)
         self.user_id = user_id
 
     def validate_phone_number(self, field):
-        if User.query.filter(User.phone_number == field.data, User.id != self.user_id).first():
+        if User.query.filter(
+            User.phone_number == field.data, User.id != self.user_id
+        ).first():
             raise ValidationError("Phone number already registered.")
 
     def validate_email(self, field):
@@ -67,12 +67,7 @@ class UserFormUpdate(FlaskForm):
             Length(min=11, max=20),
         ],
     )
-    email = StringField(
-        "Email", validators=[
-            Length(min=6, max=200),
-            Email()
-        ]
-    )
+    email = StringField("Email", validators=[Length(min=6, max=200), Email()])
     password = PasswordField(
         "Password",
         validators=[
