@@ -3,6 +3,7 @@ from datetime import datetime
 from app import db
 from flask_login import UserMixin
 
+
 class User(db.Model, UserMixin):
     __tablename__ = "users"
     id = db.Column(db.Integer, primary_key=True)
@@ -11,10 +12,16 @@ class User(db.Model, UserMixin):
     email = db.Column(db.String(200), nullable=False, unique=True)
     password_hash = db.Column(db.String(255), nullable=False)
     created_at = db.Column(db.TIMESTAMP, default=datetime.utcnow, nullable=False)
-    updated_at = db.Column(db.TIMESTAMP, default=None, onupdate=datetime.utcnow, nullable=False)
+    updated_at = db.Column(
+        db.TIMESTAMP, default=None, onupdate=datetime.utcnow, nullable=True
+    )
 
-
-    projects = db.relationship('Project', back_populates='user', cascade='all, delete-orphan')
+    projects = db.relationship(
+        "Project", back_populates="user", cascade="all, delete-orphan"
+    )
+    datasets = db.relationship(
+        "Dataset", back_populates="user", cascade="all, delete-orphan"
+    )
 
     def set_password(self, password):
         self.password_hash = generate_password_hash(password)
