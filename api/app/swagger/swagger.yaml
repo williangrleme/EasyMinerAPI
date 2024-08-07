@@ -333,3 +333,165 @@ paths:
           description: "Não autorizado"
         404:
           description: "Projeto não encontrado"
+
+  /datasets:
+    get:
+      tags:
+        - "CRUD de Bases de Dados"
+      summary: "Obter bases de dados"
+      description: "Retorna uma lista de todas as bases de dados do usuário autenticado."
+      responses:
+        200:
+          description: "Operação bem-sucedida"
+          schema:
+            type: "array"
+            items:
+              type: "object"
+              properties:
+                id:
+                  type: "integer"
+                name:
+                  type: "string"
+                description:
+                  type: "string"
+                target:
+                  type: "string"
+                size_file:
+                  type: "string"
+                link_file:
+                  type: "string"
+                project_id:
+                  type: "integer"
+                user_id:
+                  type: "integer"
+        403:
+          description: "Não autorizado"
+    post:
+      tags:
+        - "CRUD de Bases de Dados"
+      summary: "Criar base de dados"
+      description: "Cria uma nova base de dados."
+      parameters:
+        - in: "body"
+          name: "body"
+          description: "Detalhes da base de dados"
+          required: true
+          schema:
+            type: "object"
+            properties:
+              name:
+                type: "string"
+                example: "Dataset 1"
+              description:
+                type: "string"
+                example: "Descrição do dataset"
+              target:
+                type: "string"
+                example: "target"
+              project_id:
+                type: "integer"
+                example: 1
+              csv_file:
+                type: "string"
+                format: "binary"
+                example: "file.csv"
+      responses:
+        201:
+          description: "Base de dados criada com sucesso"
+        422:
+          description: "Dados inválidos"
+
+  /datasets/{id}:
+    get:
+      tags:
+        - "CRUD de Bases de Dados"
+      summary: "Obter base de dados por ID"
+      description: "Retorna os detalhes de uma base de dados específica do usuário autenticado."
+      parameters:
+        - name: "id"
+          in: "path"
+          required: true
+          type: "integer"
+          description: "ID da base de dados"
+      responses:
+        200:
+          description: "Operação bem-sucedida"
+          schema:
+            type: "object"
+            properties:
+              id:
+                type: "integer"
+              name:
+                type: "string"
+              description:
+                type: "string"
+              target:
+                type: "string"
+              size_file:
+                type: "string"
+              link_file:
+                type: "string"
+              project_id:
+                type: "integer"
+              user_id:
+                type: "integer"
+        403:
+          description: "Não autorizado"
+        404:
+          description: "Base de dados não encontrada"
+    put:
+      tags:
+        - "CRUD de Bases de Dados"
+      summary: "Atualizar base de dados por ID"
+      description: "Atualiza os detalhes de uma base de dados específica do usuário autenticado."
+      parameters:
+        - name: "id"
+          in: "path"
+          required: true
+          type: "integer"
+          description: "ID da base de dados"
+        - in: "body"
+          name: "body"
+          description: "Detalhes da base de dados atualizados"
+          required: true
+          schema:
+            type: "object"
+            properties:
+              name:
+                type: "string"
+              description:
+                type: "string"
+              target:
+                type: "string"
+              project_id:
+                type: "integer"
+              csv_file:
+                type: "string"
+                format: "binary"
+      responses:
+        200:
+          description: "Base de dados atualizada com sucesso"
+        403:
+          description: "Não autorizado"
+        404:
+          description: "Base de dados não encontrada"
+        422:
+          description: "Dados inválidos"
+    delete:
+      tags:
+        - "CRUD de Bases de Dados"
+      summary: "Excluir base de dados por ID"
+      description: "Exclui uma base de dados específica do usuário autenticado."
+      parameters:
+        - name: "id"
+          in: "path"
+          required: true
+          type: "integer"
+          description: "ID da base de dados"
+      responses:
+        200:
+          description: "Base de dados excluída com sucesso"
+        403:
+          description: "Não autorizado"
+        404:
+          description: "Base de dados não encontrada"
