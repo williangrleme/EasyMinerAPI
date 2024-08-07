@@ -1,3 +1,4 @@
+from flask_wtf.file import FileField, FileAllowed
 from flask_wtf import FlaskForm
 from wtforms import StringField, FloatField, IntegerField
 from wtforms.validators import DataRequired, Length, Optional, ValidationError
@@ -31,15 +32,18 @@ class DatasetFormCreate(FlaskForm):
             Length(max=100),
         ],
     )
-    size_file = FloatField(
-        "Size File",
+
+    project_id = IntegerField(
+        "Project ID",
         validators=[
             DataRequired(),
         ],
     )
-    project_id = IntegerField(
-        "Project ID",
+
+    csv_file = FileField(
+        "CSV File",
         validators=[
+            FileAllowed(["csv"], "Only CSV files are allowed."),
             DataRequired(),
         ],
     )
@@ -84,11 +88,17 @@ class DatasetFormUpdate(FlaskForm):
             Length(max=100),
         ],
     )
-    size_file = FloatField(
-        "Size File",
+
+    project_id = IntegerField(
+        "Project ID",
         validators=[
             Optional(),
         ],
+    )
+
+    csv_file = FileField(
+        "CSV File",
+        validators=[FileAllowed(["csv"], "Only CSV files are allowed."), Optional()],
     )
 
     def validate_project_id(self, field):
