@@ -22,13 +22,6 @@ class S3Service:
         self.bucket_name = current_app.config["S3_BUCKET"]
 
     def upload_file_to_s3(self, file, acl="public-read"):
-        """
-        Faz o upload de um arquivo para o bucket S3.
-
-        :param file: Arquivo a ser enviado
-        :param acl: Configuração de controle de acesso do arquivo (padrão: public-read)
-        :return: URL do arquivo no S3 ou mensagem de erro
-        """
         try:
             self.s3.upload_fileobj(
                 file,
@@ -43,12 +36,6 @@ class S3Service:
             return str(e)
 
     def delete_file_from_s3(self, file_url):
-        """
-        Deleta um arquivo do bucket S3.
-
-        :param file_url: URL completa do arquivo a ser deletado
-        :return: True se o arquivo foi deletado com sucesso, False caso contrário
-        """
         s3_key = file_url.split("/")[-1]  # Extrai a chave do arquivo a partir da URL
         try:
             self.s3.delete_object(Bucket=self.bucket_name, Key=s3_key)
@@ -59,11 +46,6 @@ class S3Service:
 
 
 def get_datasets():
-    """
-    Retorna a lista de datasets do usuário autenticado.
-
-    :return: JSON com a lista de datasets ou mensagem de erro
-    """
     if not current_user.is_authenticated:
         return jsonify({"mensagem": "Não autorizado!"}), 403
 
@@ -86,12 +68,6 @@ def get_datasets():
 
 
 def get_dataset(id):
-    """
-    Retorna os detalhes de um dataset específico.
-
-    :param id: ID do dataset
-    :return: JSON com os dados do dataset ou mensagem de erro
-    """
     if not current_user.is_authenticated:
         return jsonify({"mensagem": "Não autorizado!"}), 403
 
@@ -115,11 +91,6 @@ def get_dataset(id):
 
 
 def create_dataset():
-    """
-    Cria um novo dataset para o usuário autenticado.
-
-    :return: JSON com mensagem de sucesso ou erro
-    """
     if not current_user.is_authenticated:
         return jsonify({"mensagem": "Não autorizado!"}), 403
 
@@ -160,12 +131,6 @@ def create_dataset():
 
 
 def update_dataset(id):
-    """
-    Atualiza um dataset existente.
-
-    :param id: ID do dataset a ser atualizado
-    :return: JSON com mensagem de sucesso ou erro
-    """
     if not current_user.is_authenticated:
         return jsonify({"mensagem": "Não autorizado!"}), 403
 
@@ -209,12 +174,6 @@ def update_dataset(id):
 
 
 def delete_dataset(id):
-    """
-    Deleta um dataset existente.
-
-    :param id: ID do dataset a ser deletado
-    :return: JSON com mensagem de sucesso ou erro
-    """
     if not current_user.is_authenticated:
         return jsonify({"mensagem": "Não autorizado!"}), 403
 
