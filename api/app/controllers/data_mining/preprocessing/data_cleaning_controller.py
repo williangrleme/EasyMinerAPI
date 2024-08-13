@@ -17,7 +17,8 @@ def dataCleaning(id):
     form = DataCleaningForm(file_url=dataset.file_url)
 
     if form.validate_on_submit():
-        target = (form.target.data,)
-        features = (form.features.data,)
+        target = form.target.data
+        features = form.features.data
+        methods = form.methods.data
         return jsonify({"mensagem": "Deu bom!"}), 201
     return jsonify({"mensagem": "Dados inválidos!", "erros": form.errors}), 422
