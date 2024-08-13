@@ -3,6 +3,7 @@ from app.config import Config
 from app.extensions import db, migrate, csrf, login_manager, cors, swagger
 from dotenv import load_dotenv
 from app.routes import init_routes
+from app.controllers.s3_controller import S3Controller
 
 # Carregar variáveis do .env
 load_dotenv()
@@ -21,6 +22,9 @@ def create_app():
     login_manager.init_app(app)
     cors.init_app(app)
     swagger.init_app(app)
+
+    with app.app_context():
+        app.s3_controller = S3Controller()
 
     # Registrar blueprints das rotas
     init_routes(app)
