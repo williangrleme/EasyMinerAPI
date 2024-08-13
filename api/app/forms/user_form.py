@@ -17,24 +17,29 @@ class UserFormCreate(FlaskForm):
     name = StringField(
         "Name",
         validators=[
-            DataRequired(),
+            DataRequired(message="O campo é obrigatório."),
             Length(min=10, max=150),
         ],
     )
     phone_number = StringField(
         "Phone number",
         validators=[
-            DataRequired(),
+            DataRequired(message="O campo é obrigatório."),
             Length(min=11, max=20),
         ],
     )
     email = StringField(
-        "Email", validators=[DataRequired(), Length(min=6, max=200), Email()]
+        "Email",
+        validators=[
+            DataRequired(message="O campo é obrigatório."),
+            Length(min=6, max=200),
+            Email(),
+        ],
     )
     password = PasswordField(
         "Password",
         validators=[
-            DataRequired(),
+            DataRequired(message="O campo é obrigatório."),
             Length(min=8, max=30),
         ],
     )
