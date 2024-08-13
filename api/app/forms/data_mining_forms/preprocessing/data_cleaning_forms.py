@@ -1,5 +1,5 @@
 from flask_wtf import FlaskForm
-from wtforms import StringField, FieldList
+from wtforms import StringField, FieldList, SelectMultipleField
 from wtforms.validators import Optional, DataRequired, ValidationError
 from flask import current_app
 import pandas as pd
@@ -16,6 +16,10 @@ class DataCleaningForm(FlaskForm):
         validators=[DataRequired(message="O campo é obrigatório.")],
     )
     features = FieldList(StringField("Feature", validators=[Optional()]), min_entries=1)
+
+    methods = SelectMultipleField(
+        "Methods", choices=[("median", "mean", "mode")], validators=[DataRequired()]
+    )
 
     def get_s3_columns(self, file_url):
         s3Controller = current_app.s3_controller
