@@ -1,6 +1,6 @@
 from flask_wtf.file import FileField, FileAllowed
 from flask_wtf import FlaskForm
-from wtforms import StringField, FloatField, IntegerField
+from wtforms import StringField, IntegerField
 from wtforms.validators import DataRequired, Length, Optional, ValidationError
 from app.models import Dataset, Project
 from flask_login import current_user
@@ -9,12 +9,12 @@ from flask_login import current_user
 class DatasetFormCreate(FlaskForm):
     def validate_name(self, field):
         if Dataset.query.filter_by(name=field.data).first():
-            raise ValidationError("Dataset name already registered.")
+            raise ValidationError("O nome da base de dados já existe.")
 
     name = StringField(
         "Name",
         validators=[
-            DataRequired(),
+            DataRequired(message="O campo é obrigatório."),
             Length(min=3, max=255),
         ],
     )
@@ -28,7 +28,7 @@ class DatasetFormCreate(FlaskForm):
     target = StringField(
         "Target",
         validators=[
-            DataRequired(),
+            DataRequired(message="O campo é obrigatório."),
             Length(max=100),
         ],
     )
@@ -36,24 +36,24 @@ class DatasetFormCreate(FlaskForm):
     project_id = IntegerField(
         "Project ID",
         validators=[
-            DataRequired(),
+            DataRequired(message="O campo é obrigatório."),
         ],
     )
 
     csv_file = FileField(
         "CSV File",
         validators=[
-            FileAllowed(["csv"], "Only CSV files are allowed."),
-            DataRequired(),
+            FileAllowed(["csv"], "Apenas arquivos CSV são permitidos."),
+            DataRequired(message="O campo é obrigatório."),
         ],
     )
 
     def validate_project_id(self, field):
         project = Project.query.filter_by(id=field.data).first()
         if not project:
-            raise ValidationError("Project ID does not exist.")
+            raise ValidationError("O projeto não existe")
         if project.user_id != current_user.id:
-            raise ValidationError("You do not have permission to use this project.")
+            raise ValidationError("Você não tem permissão para acessar esse projeto")
 
 
 class DatasetFormUpdate(FlaskForm):
@@ -65,7 +65,7 @@ class DatasetFormUpdate(FlaskForm):
         if Dataset.query.filter(
             Dataset.name == field.data, Dataset.id != self.dataset_id
         ).first():
-            raise ValidationError("Dataset name already registered.")
+            raise ValidationError("O nome da base de dados já existe.")
 
     name = StringField(
         "Name",
@@ -98,12 +98,15 @@ class DatasetFormUpdate(FlaskForm):
 
     csv_file = FileField(
         "CSV File",
-        validators=[FileAllowed(["csv"], "Only CSV files are allowed."), Optional()],
+        validators=[
+            FileAllowed(["csv"], "Apenas arquivos CSV são permitidos."),
+            Optional(),
+        ],
     )
 
     def validate_project_id(self, field):
         project = Project.query.filter_by(id=field.data).first()
         if not project:
-            raise ValidationError("Project ID does not exist.")
+            raise ValidationError("O projeto não existe")
         if project.user_id != current_user.id:
-            raise ValidationError("You do not have permission to use this project.")
+            raise ValidationError("Você não tem permissão para acessar esse projeto")

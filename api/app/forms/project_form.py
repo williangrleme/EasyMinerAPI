@@ -8,12 +8,12 @@ from app.models import Project
 class ProjectFormCreate(FlaskForm):
     def validate_name(self, field):
         if Project.query.filter_by(name=field.data).first():
-            raise ValidationError("Project name already registered.")
+            raise ValidationError("O nome do projeto já existe.")
 
     name = StringField(
         "Name",
         validators=[
-            DataRequired(),
+            DataRequired(message="O campo é obrigatório."),
             Length(min=3, max=200),
         ],
     )

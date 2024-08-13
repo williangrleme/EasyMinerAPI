@@ -358,7 +358,7 @@ paths:
                   type: "string"
                 size_file:
                   type: "string"
-                link_file:
+                file_url:
                   type: "string"
                 project_id:
                   type: "integer"
@@ -429,7 +429,7 @@ paths:
                 type: "string"
               size_file:
                 type: "string"
-              link_file:
+              file_url:
                 type: "string"
               project_id:
                 type: "integer"

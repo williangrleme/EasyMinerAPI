@@ -10,7 +10,7 @@ class Dataset(db.Model):
     description = db.Column(db.String(2000), nullable=True)
     target = db.Column(db.String(100), nullable=False)
     size_file = db.Column(db.String(255), nullable=False)
-    link_file = db.Column(db.String(255), nullable=True)
+    file_url = db.Column(db.String(255), nullable=True)
     project_id = db.Column(db.Integer, db.ForeignKey("projects.id"), nullable=False)
     user_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False)
     created_at = db.Column(db.TIMESTAMP, default=datetime.utcnow, nullable=False)
