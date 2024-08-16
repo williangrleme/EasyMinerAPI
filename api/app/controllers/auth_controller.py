@@ -12,12 +12,8 @@ def login():
     if not form.validate_on_submit():
         return jsonify({"mensagem": "Dados inválidos!", "erros": form.errors}), 422
 
-    data = request.get_json()
-    email = data.get("email")
-    password = data.get("password")
-
-    user = User.query.filter_by(email=email).first()
-    if user is None or not user.check_password(password):
+    user = User.query.filter_by(email=form.email.data).first()
+    if user is None or not user.check_password(form.password.data):
         return jsonify({"mensagem": "Credenciais inválidas!"}), 401
 
     login_user(user)
@@ -30,13 +26,15 @@ def logout():
 
 
 def get_current_user():
-    user_data = {
-        "id": current_user.id,
-        "name": current_user.name,
-        "phone_number": current_user.phone_number,
-        "email": current_user.email,
-    }
-    return jsonify(user_data), 200
+    if current_user.is_authenticated:
+        user_data = {
+            "id": current_user.id,
+            "name": current_user.name,
+            "phone_number": current_user.phone_number,
+            "email": current_user.email,
+        }
+        return jsonify(user_data), 200
+    return jsonify({"mensagem": "Não autorizado!"}), 403
 
 
 def get_csrf_token():
