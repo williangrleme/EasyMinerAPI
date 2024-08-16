@@ -1,9 +1,14 @@
 from flask_wtf import FlaskForm
-from wtforms import StringField, FieldList, SelectMultipleField
+from wtforms import StringField, FieldList
 from wtforms.validators import Optional, DataRequired, ValidationError
-from flask import current_app
 import pandas as pd
-import io
+from enum import Enum
+
+
+class MethodEnum(Enum):
+    MEAN = "mean"
+    MEDIAN = "median"
+    MODE = "mode"
 
 
 class DataCleaningForm(FlaskForm):
@@ -15,31 +20,27 @@ class DataCleaningForm(FlaskForm):
         "Target",
         validators=[DataRequired(message="O campo é obrigatório.")],
     )
+
     features = FieldList(StringField("Feature", validators=[Optional()]), min_entries=1)
 
-    methods = SelectMultipleField(
-        "Methods", choices=[("median", "mean", "mode")], validators=[DataRequired()]
+    methods = StringField(
+        "Methods", validators=[DataRequired(message="O campo é obrigatório.")]
     )
 
-    def get_s3_columns(self, file_url):
-        s3Controller = current_app.s3_controller
-        try:
-            s3_key = file_url.split("/")[-1]
-            s3_object = s3Controller.s3.get_object(
-                Bucket=s3Controller.bucket_name, Key=s3_key
+    # Validação customizada para o campo 'methods'
+    def validate_methods(self, field):
+        if field.data not in MethodEnum._value2member_map_:
+            raise ValidationError(
+                f"Método inválido: {field.data}. Escolha entre 'mean', 'median' ou 'mode'."
             )
-            csv_content = s3_object["Body"].read().decode("utf-8")
-            df = pd.read_csv(io.StringIO(csv_content))
-            columns = df.columns.tolist()
-            return columns
-        except Exception as e:
-            return []  # Retorna uma lista vazia em caso de erro
 
     def validate(self, **kwargs):
         if not super().validate(**kwargs):
             return False
 
-        columns = self.get_s3_columns(self.file_url)
+        df = pd.read_csv(self.file_url, na_values="?")
+        columns = df.columns.tolist()
+
         if not columns:
             raise ValidationError(
                 "Não foi possível acessar as colunas da base de dados."
@@ -59,4 +60,5 @@ class DataCleaningForm(FlaskForm):
                     "O campo enviado não está registrado na sua base de dados."
                 )
                 return False
+
         return True
