@@ -37,7 +37,6 @@ def get_datasets():
             "size_file": ds.size_file,
             "file_url": ds.file_url,
             "project_id": ds.project_id,
-            "user_id": ds.user_id,
         }
         for ds in datasets
     ]
@@ -75,7 +74,6 @@ def get_dataset(id):
         "size_file": dataset.size_file,
         "file_url": dataset.file_url,
         "project_id": dataset.project_id,
-        "user_id": dataset.user_id,
     }
     return jsonify(dataset_data), 200
 
