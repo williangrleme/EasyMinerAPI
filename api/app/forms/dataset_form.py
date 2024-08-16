@@ -25,13 +25,6 @@ class DatasetFormCreate(FlaskForm):
             Length(min=11, max=2000),
         ],
     )
-    target = StringField(
-        "Target",
-        validators=[
-            DataRequired(message="O campo é obrigatório."),
-            Length(max=100),
-        ],
-    )
 
     project_id = IntegerField(
         "Project ID",
@@ -79,13 +72,6 @@ class DatasetFormUpdate(FlaskForm):
         validators=[
             Optional(),
             Length(min=11, max=2000),
-        ],
-    )
-    target = StringField(
-        "Target",
-        validators=[
-            Optional(),
-            Length(max=100),
         ],
     )
 
