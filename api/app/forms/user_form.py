@@ -18,21 +18,33 @@ class UserFormCreate(FlaskForm):
         "Name",
         validators=[
             DataRequired(message="O campo é obrigatório."),
-            Length(min=10, max=150),
+            Length(
+                min=10,
+                max=150,
+                message="Tamanho deve estar entre {} e {}".format(10, 150),
+            ),
         ],
     )
     phone_number = StringField(
         "Phone number",
         validators=[
             DataRequired(message="O campo é obrigatório."),
-            Length(min=11, max=20),
+            Length(
+                min=11,
+                max=20,
+                message="Tamanho deve estar entre {} e {}".format(11, 20),
+            ),
         ],
     )
     email = StringField(
         "Email",
         validators=[
             DataRequired(message="O campo é obrigatório."),
-            Length(min=6, max=200),
+            Length(
+                min=6,
+                max=200,
+                message="Tamanho deve estar entre {} e {}".format(6, 200),
+            ),
             Email(),
         ],
     )
@@ -40,7 +52,9 @@ class UserFormCreate(FlaskForm):
         "Password",
         validators=[
             DataRequired(message="O campo é obrigatório."),
-            Length(min=8, max=30),
+            Length(
+                min=8, max=30, message="Tamanho deve estar entre {} e {}".format(8, 30)
+            ),
         ],
     )
 
@@ -63,20 +77,30 @@ class UserFormUpdate(FlaskForm):
     name = StringField(
         "Name",
         validators=[
-            Length(min=10, max=150),
+            Length(
+                min=10,
+                max=150,
+                message="Tamanho deve estar entre {} e {}".format(10, 150),
+            ),
         ],
     )
     phone_number = StringField(
         "Phone number",
         validators=[
-            Length(min=11, max=20),
+            Length(
+                min=11,
+                max=20,
+                message="Tamanho deve estar entre {} e {}".format(11, 20),
+            ),
         ],
     )
     email = StringField("Email", validators=[Length(min=6, max=200), Email()])
     password = PasswordField(
         "Password",
         validators=[
-            Length(min=8, max=30),
+            Length(
+                min=8, max=30, message="Tamanho deve estar entre {} e {}".format(8, 30)
+            ),
             Optional(),
         ],
     )

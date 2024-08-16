@@ -16,11 +16,15 @@ class User(db.Model, UserMixin):
         db.TIMESTAMP, default=None, onupdate=datetime.utcnow, nullable=True
     )
 
+    # Relacionamentos
     projects = db.relationship(
         "Project", back_populates="user", cascade="all, delete-orphan"
     )
     datasets = db.relationship(
         "Dataset", back_populates="user", cascade="all, delete-orphan"
+    )
+    clean_datasets = db.relationship(
+        "CleanDataset", back_populates="user", cascade="all, delete-orphan"
     )
 
     def set_password(self, password):

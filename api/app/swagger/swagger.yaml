@@ -354,8 +354,6 @@ paths:
                   type: "string"
                 description:
                   type: "string"
-                target:
-                  type: "string"
                 size_file:
                   type: "string"
                 file_url:
@@ -385,9 +383,6 @@ paths:
               description:
                 type: "string"
                 example: "Descrição do dataset"
-              target:
-                type: "string"
-                example: "target"
               project_id:
                 type: "integer"
                 example: 1
@@ -425,8 +420,6 @@ paths:
                 type: "string"
               description:
                 type: "string"
-              target:
-                type: "string"
               size_file:
                 type: "string"
               file_url:
@@ -460,8 +453,6 @@ paths:
               name:
                 type: "string"
               description:
-                type: "string"
-              target:
                 type: "string"
               project_id:
                 type: "integer"

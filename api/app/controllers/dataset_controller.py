@@ -5,6 +5,7 @@ from app import db
 from app.models import Dataset
 from app.forms.dataset_form import DatasetFormCreate, DatasetFormUpdate
 from app.controllers.s3_controller import S3Controller
+import os
 
 
 def get_datasets():
@@ -18,7 +19,6 @@ def get_datasets():
             "id": ds.id,
             "name": ds.name,
             "description": ds.description,
-            "target": ds.target,
             "size_file": ds.size_file,
             "file_url": ds.file_url,
             "project_id": ds.project_id,
@@ -43,7 +43,6 @@ def get_dataset(id):
         "id": dataset.id,
         "name": dataset.name,
         "description": dataset.description,
-        "target": dataset.target,
         "size_file": dataset.size_file,
         "file_url": dataset.file_url,
         "project_id": dataset.project_id,
@@ -60,8 +59,9 @@ def create_dataset():
     if form.validate_on_submit():
         csv_file = form.csv_file.data
 
-        # Calcula o tamanho do arquivo em MB
-        size_file_with_unit = f"{round(csv_file.tell() / (1024 * 1024), 2)}MB"
+        # Move o ponteiro para o final do arquivo para obter o tamanho completo
+        csv_file.seek(0, os.SEEK_END)
+        size_file_with_unit = f"{round(csv_file.tell() / (1024 * 1024), 4)}MB"
         csv_file.seek(0)  # Reseta o ponteiro do arquivo para o início
 
         # Gera um nome de arquivo único usando o ID do usuário e o nome do dataset
@@ -78,7 +78,6 @@ def create_dataset():
         new_dataset = Dataset(
             name=form.name.data,
             description=form.description.data,
-            target=form.target.data,
             size_file=size_file_with_unit,
             project_id=form.project_id.data,
             user_id=current_user.id,
@@ -107,8 +106,9 @@ def update_dataset(id):
         if form.csv_file.data:
             csv_file = form.csv_file.data
 
-            # Calcula o tamanho do arquivo em MB
-            size_file_with_unit = f"{round(csv_file.tell() / (1024 * 1024), 2)}MB"
+            # Move o ponteiro para o final do arquivo para obter o tamanho completo
+            csv_file.seek(0, os.SEEK_END)
+            size_file_with_unit = f"{round(csv_file.tell() / (1024 * 1024), 4)}MB"
             csv_file.seek(0)  # Reseta o ponteiro do arquivo para o início
 
             # Gera um nome de arquivo único usando o ID do usuário e o nome do dataset
@@ -125,7 +125,6 @@ def update_dataset(id):
         # Atualiza os campos do dataset com os dados do formulário ou mantém os antigos
         dataset.name = form.name.data or dataset.name
         dataset.description = form.description.data or dataset.description
-        dataset.target = form.target.data or dataset.target
         dataset.project_id = form.project_id.data or dataset.project_id
 
         db.session.commit()
