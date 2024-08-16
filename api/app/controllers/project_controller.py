@@ -9,7 +9,11 @@ def get_projects():
     if not current_user.is_authenticated:
         return jsonify({"mensagem": "Não autorizado!"}), 403
 
-    projects = Project.query.filter_by(user_id=current_user.id).all()
+    projects = (
+        Project.query.with_entities(Project.id, Project.name, Project.description)
+        .filter_by(user_id=current_user.id)
+        .all()
+    )
     projects_list = [
         {
             "id": project.id,
@@ -25,8 +29,12 @@ def get_project(id):
     if not current_user.is_authenticated:
         return jsonify({"mensagem": "Não autorizado!"}), 403
 
-    project = Project.query.get(id)
-    if project is None or project.user_id != current_user.id:
+    project = (
+        Project.query.with_entities(Project.id, Project.name, Project.description)
+        .filter_by(id=id, user_id=current_user.id)
+        .first()
+    )
+    if project is None:
         return jsonify({"mensagem": "Projeto não encontrado!"}), 404
 
     project_data = {
@@ -64,10 +72,13 @@ def update_project(id):
 
     form = ProjectFormUpdate(project_id=id)
     if form.validate_on_submit():
+        updated = False
         for field_name, field in form._fields.items():
-            if field.data:
+            if field.data and getattr(project, field_name) != field.data:
                 setattr(project, field_name, field.data)
-        db.session.commit()
+                updated = True
+        if updated:
+            db.session.commit()
         return jsonify({"mensagem": "Projeto atualizado com sucesso!"}), 200
 
     return jsonify({"mensagem": "Dados inválidos!", "erros": form.errors}), 422
@@ -78,9 +89,7 @@ def delete_project(id):
         return jsonify({"mensagem": "Não autorizado!"}), 403
 
     project = Project.query.get(id)
-    if project is None or project.user_id != current_user.id:
-        return jsonify({"mensagem": "Projeto não encontrado!"}), 404
-
-    db.session.delete(project)
-    db.session.commit()
+    if project and project.user_id == current_user.id:
+        db.session.delete(project)
+        db.session.commit()
     return jsonify({"mensagem": "Projeto deletado com sucesso!"}), 200
