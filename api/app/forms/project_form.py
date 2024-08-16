@@ -35,19 +35,27 @@ class ProjectFormUpdate(FlaskForm):
         if Project.query.filter(
             Project.name == field.data, Project.id != self.project_id
         ).first():
-            raise ValidationError("Project name already registered.")
+            raise ValidationError("O nome do projeto já existe.")
 
     name = StringField(
         "Name",
         validators=[
             Optional(),
-            Length(min=3, max=200),
+            Length(
+                min=3,
+                max=200,
+                message="Tamanho deve estar entre {} e {}".format(3, 200),
+            ),
         ],
     )
     description = StringField(
         "Description",
         validators=[
             Optional(),
-            Length(min=11, max=2000),
+            Length(
+                min=11,
+                max=2000,
+                message="Tamanho deve estar entre {} e {}".format(11, 2000),
+            ),
         ],
     )
