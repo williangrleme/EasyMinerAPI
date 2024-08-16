@@ -1,10 +1,9 @@
 from flask import current_app
 import boto3
-from botocore.exceptions import NoCredentialsError
+from botocore.exceptions import NoCredentialsError, ClientError
 
 
 class S3Controller:
-    # Inializa o s3 no construtor
     def __init__(self):
         self.s3 = boto3.client(
             "s3",
@@ -22,16 +21,17 @@ class S3Controller:
                 ExtraArgs={"ACL": acl, "ContentType": file.content_type},
             )
             return f"https://{self.bucket_name}.s3.amazonaws.com/{file.filename}"
-        except Exception as e:
-            # Loga o erro em caso de falha no upload
+        except ClientError as e:
             current_app.logger.error(f"falha ao realizar upload para o S3: {e}")
             return str(e)
 
     def delete_file_from_s3(self, file_url):
-        s3_key = file_url.split("/")[-1]  # Extrai a chave do arquivo a partir da URL
+        s3_key = file_url.split("/")[-1]
         try:
             self.s3.delete_object(Bucket=self.bucket_name, Key=s3_key)
         except NoCredentialsError:
-            # Retorna False se houver erro de credenciais
+            return False
+        except ClientError as e:
+            current_app.logger.error(f"falha ao deletar arquivo no S3: {e}")
             return False
         return True

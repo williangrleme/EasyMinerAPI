@@ -10,7 +10,9 @@ def get_users():
     if not current_user.is_authenticated or current_user.id != user_master:
         return jsonify({"mensagem": "Não autorizado!"}), 403
 
-    users = User.query.all()
+    users = User.query.with_entities(
+        User.id, User.name, User.phone_number, User.email
+    ).all()
     users_list = [
         {
             "id": user.id,
@@ -27,7 +29,11 @@ def get_user(id):
     if not current_user.is_authenticated or current_user.id != id:
         return jsonify({"mensagem": "Não autorizado!"}), 403
 
-    user = User.query.get(id)
+    user = (
+        User.query.with_entities(User.id, User.name, User.phone_number, User.email)
+        .filter_by(id=id)
+        .first()
+    )
     if user is None:
         return jsonify({"mensagem": "Usuário não encontrado!"}), 404
 
@@ -65,12 +71,16 @@ def update_user(id):
 
     form = UserFormUpdate(user_id=id, obj=user)
     if form.validate_on_submit():
+        updated = False
         for field_name, field in form._fields.items():
-            if field.data:
+            if field.data and getattr(user, field_name) != field.data:
                 setattr(user, field_name, field.data)
-        if form.password.data:
+                updated = True
+        if form.password.data and not user.check_password(form.password.data):
             user.set_password(form.password.data)
-        db.session.commit()
+            updated = True
+        if updated:
+            db.session.commit()
         return jsonify({"mensagem": "Usuário atualizado com sucesso!"}), 200
 
     return jsonify({"mensagem": "Dados inválidos!", "erros": form.errors}), 422
@@ -81,6 +91,7 @@ def delete_user(id):
         return jsonify({"mensagem": "Não autorizado!"}), 403
 
     user = User.query.get(id)
-    db.session.delete(user)
-    db.session.commit()
+    if user:
+        db.session.delete(user)
+        db.session.commit()
     return jsonify({"mensagem": "Usuário deletado com sucesso!"}), 200
