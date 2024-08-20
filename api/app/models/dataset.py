@@ -15,13 +15,16 @@ class Dataset(db.Model):
         db.TIMESTAMP, default=None, onupdate=datetime.utcnow, nullable=True
     )
 
-    # Chaves estrangeiras
+    # Foreign keys
     project_id = db.Column(db.Integer, db.ForeignKey("projects.id"), nullable=False)
     user_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False)
 
-    # Relacionamentos
+    # Relationships
     project = db.relationship("Project", back_populates="datasets")
     user = db.relationship("User", back_populates="datasets")
     clean_dataset = db.relationship(
-        "CleanDataset", uselist=False, back_populates="dataset"
+        "CleanDataset",
+        uselist=False,
+        back_populates="dataset",
+        cascade="all, delete-orphan",
     )
