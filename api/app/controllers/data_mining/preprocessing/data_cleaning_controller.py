@@ -74,7 +74,7 @@ def dataCleaning(id):
         # Cria uma nova entrada no banco de dados para o dataset limpo
         clean_dataset = CleanDataset(
             size_file=size_file_with_unit,
-            link_file=file_url,
+            file_url=file_url,
             dataset_id=dataset.id,
             user_id=current_user.id,
         )

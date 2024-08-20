@@ -6,6 +6,7 @@ from app.models import Dataset
 from app.forms.dataset_form import DatasetFormCreate, DatasetFormUpdate
 from app.controllers.s3_controller import S3Controller
 import os
+from sqlalchemy.orm import subqueryload
 
 
 def get_datasets():
@@ -13,34 +14,40 @@ def get_datasets():
     if not current_user.is_authenticated:
         return jsonify({"mensagem": "Não autorizado!"}), 403
 
-    # Consulta os datasets do usuário autenticado
+    # Consulta os datasets do usuário autenticado com o relacionamento clean_dataset
     datasets = (
-        Dataset.query.with_entities(
-            Dataset.id,
-            Dataset.name,
-            Dataset.description,
-            Dataset.size_file,
-            Dataset.file_url,
-            Dataset.project_id,
-            Dataset.user_id,
+        Dataset.query.options(
+            subqueryload(Dataset.clean_dataset)  # Carrega a relação com CleanDataset
         )
         .filter_by(user_id=current_user.id)
         .all()
     )
 
     # Constrói uma lista de dicionários contendo as informações dos datasets
-    datasets_list = [
-        {
+    datasets_list = []
+    for ds in datasets:
+        clean_data = None
+        if ds.clean_dataset and (
+            ds.clean_dataset.size_file
+            or ds.clean_dataset.name
+            or ds.clean_dataset.file_url
+        ):
+            clean_data = {
+                "size_file": ds.clean_dataset.size_file,
+                "file_url": ds.clean_dataset.file_url,
+            }
+
+        dataset_info = {
             "id": ds.id,
             "name": ds.name,
             "description": ds.description,
             "size_file": ds.size_file,
             "file_url": ds.file_url,
-            "project_id": ds.project_id,
-            "user_id": ds.user_id,
+            "clean_dataset": clean_data,
         }
-        for ds in datasets
-    ]
+
+        datasets_list.append(dataset_info)
+
     return jsonify(datasets_list), 200
 
 
@@ -49,16 +56,10 @@ def get_dataset(id):
     if not current_user.is_authenticated:
         return jsonify({"mensagem": "Não autorizado!"}), 403
 
-    # Consulta um dataset específico pelo id
+    # Consulta um dataset específico pelo id com o relacionamento clean_dataset
     dataset = (
-        Dataset.query.with_entities(
-            Dataset.id,
-            Dataset.name,
-            Dataset.description,
-            Dataset.size_file,
-            Dataset.file_url,
-            Dataset.project_id,
-            Dataset.user_id,
+        Dataset.query.options(
+            subqueryload(Dataset.clean_dataset)  # Carrega a relação com CleanDataset
         )
         .filter_by(id=id, user_id=current_user.id)
         .first()
@@ -67,6 +68,18 @@ def get_dataset(id):
     if dataset is None:
         return jsonify({"mensagem": "Base de dados não encontrada!"}), 404
 
+    # Verifica se o clean_dataset possui dados relevantes
+    clean_data = None
+    if dataset.clean_dataset and (
+        dataset.clean_dataset.size_file
+        or dataset.clean_dataset.name
+        or dataset.clean_dataset.file_url
+    ):
+        clean_data = {
+            "size_file": dataset.clean_dataset.size_file,
+            "file_url": dataset.clean_dataset.file_url,
+        }
+
     # Constrói o dicionário com as informações do dataset
     dataset_data = {
         "id": dataset.id,
@@ -74,9 +87,9 @@ def get_dataset(id):
         "description": dataset.description,
         "size_file": dataset.size_file,
         "file_url": dataset.file_url,
-        "project_id": dataset.project_id,
-        "user_id": dataset.user_id,
+        "clean_dataset": clean_data,  # Inclui clean_dataset apenas se houver dados válidos
     }
+
     return jsonify(dataset_data), 200
 
 
