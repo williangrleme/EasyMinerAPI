@@ -610,7 +610,7 @@ paths:
   /preprocessing/data-cleaning/{id}:
     post:
       tags:
-        - "Preprocessing"
+        - "Pré-processamento"
       summary: "Realizar limpeza de dados"
       description: >
         Realiza a limpeza de dados em um dataset específico. O usuário deve
@@ -630,14 +630,9 @@ paths:
           schema:
             type: object
             required:
-              - target
               - features
               - methods
             properties:
-              target:
-                type: string
-                description: "Coluna alvo que será utilizada na limpeza."
-                example: "coluna_alvo"
               features:
                 type: array
                 items:
@@ -648,8 +643,8 @@ paths:
                 type: string
                 description: >
                   Método de substituição de valores faltantes.
-                  Pode ser 'mean', 'median' ou 'mode'.
-                example: "mean"
+                  Pode ser 'media', 'mediana' ou 'moda'.
+                example: "media"
       responses:
         201:
           description: "Limpeza de dados realizada com sucesso!"
@@ -684,5 +679,13 @@ paths:
                 type: string
                 example: "Dados inválidos!"
               erros:
-                type: object
-                description: "Erros de validação."
+                  type: object
+                  properties:
+                    features:
+                      type: array
+                      items:
+                        type: string
+                      example: [
+                        "O campo enviado não está registrado na sua base de dados."
+                      ]
+                  description: "Erros de validação."
