@@ -38,44 +38,19 @@ def dataCleaning(id):
         df_features = df_original[features].copy()
 
         # Identifica colunas com valores faltantes ou específicos para tratamento
-        columns_missing_value = [
-            c
-            for c in df_features.columns
-            if df_features[c].isnull().any()
-            or (df_features[c] == "").any()
-            or (df_features[c] == "?").any()
-            or (df_features[c] == 0).any()
-        ]
+        columns_missing_value = identify_columns_with_missing_values(df_features)
 
         # Aplica os métodos de substituição de valores faltantes em cada coluna
-        for c in columns_missing_value:
-            updateMissingValues(df_features, c, methods)
+        for column in columns_missing_value:
+            update_missing_values(df_features, column, methods)
 
         # Atualiza o DataFrame original com os dados limpos
         df_original.update(df_features)
 
-        # Gera um nome de arquivo único para o dataset limpo usando o hash do arquivo original
-        file_hash = dataset.file_url.split("/")[-1].replace(".csv", "")
-        clean_file_name = f"{file_hash}_clean.csv"
-
-        # Converte o DataFrame limpo para CSV em memória para upload
-        csv_buffer = BytesIO()
-        df_original.to_csv(csv_buffer, header=True, index=False)
-        csv_buffer.seek(0)  # Reseta o ponteiro do buffer para o início
-
-        # Calcula o tamanho do arquivo CSV limpo para armazenamento no banco de dados
-        size_file_with_unit = (
-            f"{round(csv_buffer.getbuffer().nbytes / (1024 * 1024), 4)}MB"
+        # Gera o nome do arquivo limpo e salva no S3
+        file_url, size_file_with_unit = save_clean_dataset(
+            df_original, dataset.file_url
         )
-
-        # Prepara o buffer para upload ao S3 e define metadados
-        csv_file = BytesIO(csv_buffer.read())
-        csv_file.filename = clean_file_name
-        csv_file.content_type = "text/csv"
-
-        # Faz o upload do arquivo limpo para o S3
-        s3Controller = S3Controller()
-        file_url = s3Controller.upload_file_to_s3(csv_file)
 
         # Cria uma nova entrada no banco de dados para o dataset limpo
         clean_dataset = CleanDataset(
@@ -92,16 +67,50 @@ def dataCleaning(id):
     return jsonify({"mensagem": "Dados inválidos!", "erros": form.errors}), 422
 
 
-def updateMissingValues(df, column, method="mode"):
+def identify_columns_with_missing_values(df):
+    return [
+        column
+        for column in df.columns
+        if df[column].isnull().any()
+        or (df[column] == "").any()
+        or (df[column] == "?").any()
+        or (df[column] == 0).any()
+    ]
+
+
+def update_missing_values(df, column, method):
     # Converte valores específicos para NaN
     df[column].replace(["", "?", 0], pd.NA, inplace=True)
 
-    # Preenche valores faltantes com a mediana
+    # Preenche valores faltantes com a estratégia escolhida
     if method == "mediana":
         df[column] = df[column].fillna(df[column].median())
-    # Preenche valores faltantes com a média
     elif method == "media":
         df[column] = df[column].fillna(df[column].mean())
-    # Preenche valores faltantes com a moda
     elif method == "moda":
         df[column] = df[column].fillna(df[column].mode()[0])
+
+
+def save_clean_dataset(df, original_file_url):
+    # Gera um nome de arquivo único para o dataset limpo usando o hash do arquivo original
+    file_hash = original_file_url.split("/")[-1].replace(".csv", "")
+    clean_file_name = f"{file_hash}_clean.csv"
+
+    # Converte o DataFrame limpo para CSV em memória para upload
+    csv_buffer = BytesIO()
+    df.to_csv(csv_buffer, header=True, index=False)
+    csv_buffer.seek(0)  # Reseta o ponteiro do buffer para o início
+
+    # Calcula o tamanho do arquivo CSV limpo para armazenamento no banco de dados
+    size_file_with_unit = f"{round(csv_buffer.getbuffer().nbytes / (1024 * 1024), 4)}MB"
+
+    # Prepara o buffer para upload ao S3 e define metadados
+    csv_file = BytesIO(csv_buffer.read())
+    csv_file.filename = clean_file_name
+    csv_file.content_type = "text/csv"
+
+    # Faz o upload do arquivo limpo para o S3
+    s3Controller = S3Controller()
+    file_url = s3Controller.upload_file_to_s3(csv_file)
+
+    return file_url, size_file_with_unit
