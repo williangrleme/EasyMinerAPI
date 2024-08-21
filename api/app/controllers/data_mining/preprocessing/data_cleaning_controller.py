@@ -1,5 +1,5 @@
 import pandas as pd
-import hashlib
+import numpy as np
 from io import BytesIO
 from app.models import Dataset, CleanDataset
 from flask_login import current_user
@@ -28,18 +28,24 @@ def dataCleaning(id):
 
     form = DataCleaningForm(file_url=dataset.file_url)
     if form.validate_on_submit():
-        target = form.target.data
         features = form.features.data
         methods = form.methods.data
 
-        # Carrega o arquivo CSV original no DataFrame, tratando '?' como valores faltantes
-        df_original = pd.read_csv(dataset.file_url, na_values="?")
+        # Carrega o arquivo CSV original no DataFrame
+        df_original = pd.read_csv(dataset.file_url)
 
         # Cria uma cópia apenas das colunas selecionadas (features) para limpeza
         df_features = df_original[features].copy()
 
-        # Identifica colunas com valores faltantes
-        columns_missing_value = df_features.columns[df_features.isnull().any()]
+        # Identifica colunas com valores faltantes ou específicos para tratamento
+        columns_missing_value = [
+            c
+            for c in df_features.columns
+            if df_features[c].isnull().any()
+            or (df_features[c] == "").any()
+            or (df_features[c] == "?").any()
+            or (df_features[c] == 0).any()
+        ]
 
         # Aplica os métodos de substituição de valores faltantes em cada coluna
         for c in columns_missing_value:
@@ -87,12 +93,15 @@ def dataCleaning(id):
 
 
 def updateMissingValues(df, column, method="mode"):
+    # Converte valores específicos para NaN
+    df[column].replace(["", "?", 0], pd.NA, inplace=True)
+
     # Preenche valores faltantes com a mediana
-    if method == "median":
+    if method == "mediana":
         df[column] = df[column].fillna(df[column].median())
     # Preenche valores faltantes com a média
-    elif method == "mean":
+    elif method == "media":
         df[column] = df[column].fillna(df[column].mean())
     # Preenche valores faltantes com a moda
-    elif method == "mode":
+    elif method == "moda":
         df[column] = df[column].fillna(df[column].mode()[0])
