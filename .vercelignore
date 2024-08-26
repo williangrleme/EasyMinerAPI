@@ -1,0 +1,8 @@
+__pycache__/
+migrations/
+.venv/
+.env
+.git/
+.gitignore
+.pre-commit-config.yaml
+*.log
