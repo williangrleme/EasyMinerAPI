@@ -8,8 +8,7 @@ from api.app.forms.data_mining_forms.preprocessing.data_normalization_forms impo
 )
 from app.controllers.s3_controller import S3Controller
 from app import db
-
-# from sklearn.preprocessing import MinMaxScaler, StandardScaler
+from sklearn.preprocessing import MinMaxScaler, StandardScaler
 
 
 def dataNormalization(id):

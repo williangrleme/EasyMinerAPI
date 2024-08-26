@@ -1,4 +1,4 @@
-from flask import request, jsonify
+from flask import jsonify
 from flask_login import login_user, logout_user, current_user
 from app.models import User
 from app.forms.login_form import LoginForm
