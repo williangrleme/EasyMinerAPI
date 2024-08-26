@@ -1,5 +1,4 @@
 import pandas as pd
-import numpy as np
 from io import BytesIO
 from app.models import Dataset, CleanDataset
 from flask_login import current_user
