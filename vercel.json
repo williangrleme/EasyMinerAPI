@@ -3,10 +3,7 @@
     "builds": [
       {
         "src": "wsgi.py",
-        "use": "@vercel/python",
-        "config": {
-        "excludeFiles": "/{.next,*.cache,node_modules,public,app}/**"
-        }
+        "use": "@vercel/python"
       }
     ],
     "routes": [
