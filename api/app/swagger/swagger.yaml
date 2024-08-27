@@ -689,3 +689,86 @@ paths:
                         "O campo enviado não está registrado na sua base de dados."
                       ]
                   description: "Erros de validação."
+
+  /preprocessing/data-normalization/{id}:
+    post:
+      tags:
+        - "Pré-processamento"
+      summary: "Realizar normalização de dados"
+      description: >
+        Aplica a normalização de dados em um dataset específico. O usuário deve
+        fornecer os métodos de normalização a serem aplicados nas features escolhidas.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          type: integer
+          description: "ID do dataset a ser normalizado."
+        - in: body
+          name: body
+          description: >
+            Parâmetros necessários para realizar a normalização dos dados, incluindo
+            as colunas alvo (features) e o método de normalização a ser aplicado.
+          required: true
+          schema:
+            type: object
+            required:
+              - features
+              - methods
+            properties:
+              features:
+                type: array
+                items:
+                  type: string
+                description: "Lista de features (colunas) para realizar a normalização."
+                example: ["coluna1", "coluna2"]
+              methods:
+                type: string
+                description: >
+                  Método de normalização a ser aplicado.
+                  Pode ser 'minmax' ou 'zscore'.
+                example: "minmax"
+      responses:
+        201:
+          description: "Normalização de dados realizada com sucesso!"
+          schema:
+            type: object
+            properties:
+              mensagem:
+                type: string
+                example: "Normalização de dados realizada com sucesso!"
+        403:
+          description: "Não autorizado"
+          schema:
+            type: object
+            properties:
+              mensagem:
+                type: string
+                example: "Não autorizado!"
+        404:
+          description: "Base de dados não encontrada!"
+          schema:
+            type: object
+            properties:
+              mensagem:
+                type: string
+                example: "Base de dados não encontrada!"
+        422:
+          description: "Dados inválidos!"
+          schema:
+            type: object
+            properties:
+              mensagem:
+                type: string
+                example: "Dados inválidos!"
+              erros:
+                  type: object
+                  properties:
+                    features:
+                      type: array
+                      items:
+                        type: string
+                      example: [
+                        "O campo enviado não está registrado na sua base de dados."
+                      ]
+                  description: "Erros de validação."
