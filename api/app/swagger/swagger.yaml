@@ -772,3 +772,97 @@ paths:
                         "O campo enviado não está registrado na sua base de dados."
                       ]
                   description: "Erros de validação."
+
+  /preprocessing/data-reduction/{id}:
+    post:
+      tags:
+        - "Pré-processamento"
+      summary: "Realizar redução de dados"
+      description: >
+        Aplica técnicas de redução de dados em um dataset específico. O usuário deve
+        fornecer as features e o método de redução de dados a ser aplicado.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          type: integer
+          description: "ID do dataset a ser reduzido."
+        - in: body
+          name: body
+          description: >
+            Parâmetros necessários para realizar a redução de dados, incluindo
+            as colunas alvo (features) e o método de redução de dados a ser aplicado.
+          required: true
+          schema:
+            type: object
+            required:
+              - features
+              - methods
+            properties:
+              features:
+                type: array
+                items:
+                  type: string
+                description: "Lista de features (colunas) para realizar a redução de dados."
+                example: ["coluna1", "coluna2"]
+              methods:
+                type: string
+                description: >
+                  Método de redução de dados a ser aplicado.
+                  Pode ser 'pca', 'amostragem_aleatoria', ou 'amostragem_sistematica'.
+                example: "amostragem_sistematica"
+              systematic_records:
+                type: integer
+                description: >
+                  Número de registros a serem extraídos em uma amostragem sistemática.
+                  Obrigatório se o método escolhido for 'amostragem_sistematica'.
+                example: 50
+              systematic_method:
+                type: string
+                description: >
+                  Método sistemático a ser aplicado na amostragem.
+                  Pode ser 'maiores' ou 'menores'.
+                example: "maiores"
+      responses:
+        201:
+          description: "Redução de dados realizada com sucesso!"
+          schema:
+            type: object
+            properties:
+              mensagem:
+                type: string
+                example: "Redução de dados realizada com sucesso!"
+        403:
+          description: "Não autorizado"
+          schema:
+            type: object
+            properties:
+              mensagem:
+                type: string
+                example: "Não autorizado!"
+        404:
+          description: "Base de dados não encontrada!"
+          schema:
+            type: object
+            properties:
+              mensagem:
+                type: string
+                example: "Base de dados não encontrada!"
+        422:
+          description: "Dados inválidos!"
+          schema:
+            type: object
+            properties:
+              mensagem:
+                type: string
+                example: "Dados inválidos!"
+              erros:
+                type: object
+                properties:
+                  features:
+                    type: array
+                    items:
+                      type: string
+                    example: [
+                      "O campo enviado não está registrado na sua base de dados."
+                    ]
