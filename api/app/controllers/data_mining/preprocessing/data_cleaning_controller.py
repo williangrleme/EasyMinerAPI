@@ -8,7 +8,6 @@ from app.forms.data_mining_forms.preprocessing.data_cleaning_forms import (
 )
 from app.controllers.s3_controller import S3Controller
 from app import db
-import os
 
 
 def dataCleaning(id):
@@ -79,7 +78,7 @@ def identify_columns_with_missing_values(df):
 
 def update_missing_values(df, column, method):
     # Converte valores específicos para NaN
-    df[column].replace(["", "?", 0], pd.NA, inplace=True)
+    df[column].replace(["", "?"], pd.NA, inplace=True)
 
     # Preenche valores faltantes com a estratégia escolhida
     if method == "mediana":
