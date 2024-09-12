@@ -1,7 +1,7 @@
 import pandas as pd
 from io import BytesIO
 from flask_login import current_user
-from flask import jsonify, current_app
+from flask import jsonify
 from app.models import Dataset
 from api.app.forms.data_mining_forms.preprocessing.data_normalization_forms import (
     DataNormalizationForm,
@@ -23,7 +23,6 @@ def dataNormalization(id):
 
     # Obtém o dataset limpo
     clean_dataset = dataset.clean_dataset
-    current_app.logger.info("clean dataset: %s", clean_dataset)
 
     # Inicializa o formulário de normalização de dados com a URL do arquivo
     form = DataNormalizationForm(file_url=clean_dataset.file_url)
@@ -40,7 +39,7 @@ def dataNormalization(id):
         df_original[feature] = normalize_data(df_original[feature], methods)
 
     # Salva o dataset normalizado e atualiza a URL e o tamanho do arquivo no banco de dados
-    file_url, size_file_with_unit = save_clean_dataset(
+    file_url, size_file_with_unit = save_normalized_dataset(
         df_original, clean_dataset.file_url
     )
 
@@ -65,10 +64,12 @@ def normalize_data(column, method):
     return pd.Series(normalized_column.flatten(), index=column.index)
 
 
-def save_clean_dataset(df, original_file_url):
+def save_normalized_dataset(df, original_file_url):
     # Extrai o hash do nome do arquivo original e cria um novo nome para o arquivo normalizado
-    file_hash = original_file_url.split("/")[-1].replace(".csv", "")
-    clean_file_name = f"{file_hash}.csv"
+    file_hash = (
+        original_file_url.split("/")[-1].replace(".csv", "").replace("_clean", "")
+    )
+    normalized_file_name = f"{file_hash}_normalized.csv"
 
     # Salva o DataFrame normalizado em um buffer de memória como um arquivo CSV
     csv_buffer = BytesIO()
@@ -80,7 +81,7 @@ def save_clean_dataset(df, original_file_url):
 
     # Cria um novo buffer para o arquivo CSV e define o nome e tipo do conteúdo
     csv_file = BytesIO(csv_buffer.read())
-    csv_file.filename = clean_file_name
+    csv_file.filename = normalized_file_name
     csv_file.content_type = "text/csv"
 
     # Inicializa o controller S3, remove o arquivo antigo e faz o upload do novo arquivo
