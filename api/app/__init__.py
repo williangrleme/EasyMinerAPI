@@ -18,7 +18,7 @@ def create_app():
     # Inicialize as extensões
     db.init_app(app)
     migrate.init_app(app, db)
-    csrf.init_app(app)
+    cors.init_app(app, resources=app.config["CORS_RESOURCES"])
     login_manager.init_app(app)
     cors.init_app(app)
     swagger.init_app(app)
