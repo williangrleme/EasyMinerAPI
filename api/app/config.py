@@ -10,4 +10,5 @@ class Config:
     MAX_CONTENT_LENGTH = 16 * 1024 * 1024  # Limite de 16MB
     S3_KEY = os.getenv("S3_KEY")
     S3_BUCKET = os.getenv("S3_BUCKET")
+    S3_SECRET = os.getenv("S3_SECRET")
     CORS_RESOURCES = {r"/*": {"origins": "*"}}
