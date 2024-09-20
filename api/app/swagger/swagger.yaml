@@ -3,7 +3,7 @@ info:
   description: "Esta é a documentação da API do EasyMiner."
   version: "1.0.0"
   title: "EasyMinerAPI"
-host: "https://easy-miner-api.vercel.app"
+host: "https://easyminerapi.fly.dev"
 basePath: "/api"
 schemes:
   - "http"
