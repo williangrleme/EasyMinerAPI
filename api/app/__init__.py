@@ -15,19 +15,19 @@ def create_app():
     # Carregar configurações
     app.config.from_object(Config)
 
+    # Registrar blueprints das rotas
+    init_routes(app)
+
     # Inicialize as extensões
     db.init_app(app)
     migrate.init_app(app, db)
-    cors.init_app(app, resources=app.config["CORS_RESOURCES"])
+    cors.init_app(app, resources={r"/*": app.config["CORS_RESOURCES"]})
     login_manager.init_app(app)
-    cors.init_app(app)
     swagger.init_app(app)
+    csrf.init_app(app)
 
     with app.app_context():
         app.s3_controller = S3Controller()
-
-    # Registrar blueprints das rotas
-    init_routes(app)
 
     # Mensagem na raiz da API
     @app.route("/", methods=["GET"])

@@ -12,15 +12,11 @@ class Config:
     S3_BUCKET = os.getenv("S3_BUCKET")
     S3_SECRET = os.getenv("S3_SECRET")
     CORS_RESOURCES = {
-        r"/*": {
-            "origins": "*",  # Permitir qualquer origem, ou definir uma origem específica
-            "methods": [
-                "OPTIONS",
-                "GET",
-                "POST",
-                "PUT",
-                "DELETE",
-            ],  # Métodos permitidos
-            "supports_credentials": True,  # Permitir envio de cookies/credenciais
-        }
+        "origins": "*",
+        "methods": ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+        "supports_credentials": True,
+        "allow_headers": [
+            "Content-Type",
+            "X-CSRF-Token",
+        ],
     }
