@@ -2,12 +2,12 @@ import pandas as pd
 from io import BytesIO
 from flask_login import current_user
 from flask import jsonify
-from app.models import Dataset
+from api.app.models import Dataset
 from api.app.forms.data_mining_forms.preprocessing.data_normalization_forms import (
     DataNormalizationForm,
 )
-from app.controllers.s3_controller import S3Controller
-from app import db
+from api.app.controllers.s3_controller import S3Controller
+from api.app import db
 from sklearn.preprocessing import MinMaxScaler, StandardScaler
 
 

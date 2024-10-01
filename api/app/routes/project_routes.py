@@ -1,6 +1,6 @@
 from flask import Blueprint
 from flask_login import login_required
-from app.controllers.project_controller import (
+from api.app.controllers.project_controller import (
     get_projects,
     get_project,
     create_project,

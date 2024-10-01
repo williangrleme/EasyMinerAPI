@@ -1,10 +1,10 @@
 import hashlib
 from flask import jsonify
 from flask_login import current_user
-from app import db
-from app.models import Dataset
-from app.forms.dataset_form import DatasetFormCreate, DatasetFormUpdate
-from app.controllers.s3_controller import S3Controller
+from api.app import db
+from api.app.models import Dataset
+from api.app.forms.dataset_form import DatasetFormCreate, DatasetFormUpdate
+from api.app.controllers.s3_controller import S3Controller
 import os
 from sqlalchemy.orm import subqueryload
 
