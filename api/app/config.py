@@ -20,3 +20,4 @@ class Config:
             "X-CSRF-Token",
         ],
     }
+    WTF_CSRF_ENABLED = False  # TODO: Tratar CSRF futuramente
