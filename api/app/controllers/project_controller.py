@@ -1,8 +1,8 @@
 from flask import jsonify
 from flask_login import current_user
-from api.app.models import Project
-from api.app import db
-from api.app.forms.project_form import ProjectFormCreate, ProjectFormUpdate
+from app.models import Project
+from app import db
+from app.forms.project_form import ProjectFormCreate, ProjectFormUpdate
 
 
 def get_projects():
