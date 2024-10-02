@@ -1,6 +1,6 @@
 from flask import Blueprint
 from flask_login import login_required
-from api.app.controllers.auth_controller import (
+from app.controllers.auth_controller import (
     login,
     logout,
     get_csrf_token,

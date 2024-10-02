@@ -1,7 +1,7 @@
 from flask import jsonify
 from flask_login import login_user, logout_user, current_user
-from api.app.models import User
-from api.app.forms.login_form import LoginForm
+from app.models import User
+from app.forms.login_form import LoginForm
 
 
 def login():

@@ -1,13 +1,13 @@
 import pandas as pd
 from io import BytesIO
-from api.app.models import Dataset, CleanDataset
+from app.models import Dataset, CleanDataset
 from flask_login import current_user
 from flask import jsonify
-from api.app.forms.data_mining_forms.preprocessing.data_cleaning_forms import (
+from app.forms.data_mining_forms.preprocessing.data_cleaning_forms import (
     DataCleaningForm,
 )
-from api.app.controllers.s3_controller import S3Controller
-from api.app import db
+from app.controllers.s3_controller import S3Controller
+from app import db
 
 
 def dataCleaning(id):
