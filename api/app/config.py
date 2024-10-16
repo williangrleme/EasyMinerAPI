@@ -21,3 +21,5 @@ class Config:
         ],
     }
     WTF_CSRF_ENABLED = False  # TODO: Tratar CSRF futuramente
+    SESSION_COOKIE_SAMESITE = "None"
+    SESSION_COOKIE_SECURE = True
