@@ -6,9 +6,6 @@ from app.forms.project_form import ProjectFormCreate, ProjectFormUpdate
 
 
 def get_projects():
-    if not current_user.is_authenticated:
-        return jsonify({"mensagem": "Não autorizado!"}), 403
-
     projects = (
         Project.query.with_entities(Project.id, Project.name, Project.description)
         .filter_by(user_id=current_user.id)
@@ -22,33 +19,50 @@ def get_projects():
         }
         for project in projects
     ]
-    return jsonify(projects_list), 200
+    return (
+        jsonify(
+            {
+                "message": "Projetos recuperados com sucesso!",
+                "success": True,
+                "data": projects_list,
+            }
+        ),
+        200,
+    )
 
 
 def get_project(id):
-    if not current_user.is_authenticated:
-        return jsonify({"mensagem": "Não autorizado!"}), 403
-
     project = (
         Project.query.with_entities(Project.id, Project.name, Project.description)
         .filter_by(id=id, user_id=current_user.id)
         .first()
     )
     if project is None:
-        return jsonify({"mensagem": "Projeto não encontrado!"}), 404
+        return (
+            jsonify(
+                {"message": "Projeto não encontrado!", "success": False, "data": None}
+            ),
+            404,
+        )
 
     project_data = {
         "id": project.id,
         "name": project.name,
         "description": project.description,
     }
-    return jsonify(project_data), 200
+    return (
+        jsonify(
+            {
+                "message": "Projeto recuperado com sucesso!",
+                "success": True,
+                "data": project_data,
+            }
+        ),
+        200,
+    )
 
 
 def create_project():
-    if not current_user.is_authenticated:
-        return jsonify({"mensagem": "Não autorizado!"}), 403
-
     form = ProjectFormCreate()
     if form.validate_on_submit():
         new_project = Project(
@@ -58,38 +72,89 @@ def create_project():
         )
         db.session.add(new_project)
         db.session.commit()
-        return jsonify({"mensagem": "Projeto criado com sucesso!"}), 201
-    return jsonify({"mensagem": "Dados inválidos!", "erros": form.errors}), 422
+        project_data = {
+            "id": new_project.id,
+            "name": new_project.name,
+            "description": new_project.description,
+        }
+        return (
+            jsonify(
+                {
+                    "message": "Projeto criado com sucesso!",
+                    "success": True,
+                    "data": project_data,
+                }
+            ),
+            201,
+        )
+    return (
+        jsonify({"message": "Dados inválidos!", "success": False, "data": form.errors}),
+        422,
+    )
 
 
 def update_project(id):
-    if not current_user.is_authenticated:
-        return jsonify({"mensagem": "Não autorizado!"}), 403
-
     project = Project.query.get(id)
     if project is None or project.user_id != current_user.id:
-        return jsonify({"mensagem": "Projeto não encontrado!"}), 404
+        return (
+            jsonify(
+                {"message": "Projeto não encontrado!", "success": False, "data": None}
+            ),
+            404,
+        )
 
     form = ProjectFormUpdate(project_id=id)
     if form.validate_on_submit():
         updated = False
-        for field_name, field in form._fields.items():
+        for field_name, field in form.data.items():
             if field.data and getattr(project, field_name) != field.data:
                 setattr(project, field_name, field.data)
                 updated = True
         if updated:
             db.session.commit()
-        return jsonify({"mensagem": "Projeto atualizado com sucesso!"}), 200
+        project_data = {
+            "id": project.id,
+            "name": project.name,
+            "description": project.description,
+        }
+        return (
+            jsonify(
+                {
+                    "message": "Projeto atualizado com sucesso!",
+                    "success": True,
+                    "data": project_data,
+                }
+            ),
+            200,
+        )
 
-    return jsonify({"mensagem": "Dados inválidos!", "erros": form.errors}), 422
+    return (
+        jsonify({"message": "Dados inválidos!", "success": False, "data": form.errors}),
+        422,
+    )
 
 
 def delete_project(id):
-    if not current_user.is_authenticated:
-        return jsonify({"mensagem": "Não autorizado!"}), 403
-
     project = Project.query.get(id)
     if project and project.user_id == current_user.id:
+        project_data = {
+            "id": project.id,
+            "name": project.name,
+            "description": project.description,
+        }
         db.session.delete(project)
         db.session.commit()
-    return jsonify({"mensagem": "Projeto deletado com sucesso!"}), 200
+        return (
+            jsonify(
+                {
+                    "message": "Projeto deletado com sucesso!",
+                    "success": True,
+                    "data": project_data,
+                }
+            ),
+            200,
+        )
+    return (
+        jsonify({"message": "Projeto não encontrado!", "success": False, "data": None}),
+        404,
+    )

@@ -8,7 +8,10 @@ from app.forms.user_form import UserFormCreate, UserFormUpdate
 def get_users():
     user_master = current_app.config["USER_MASTER"]
     if not current_user.is_authenticated or current_user.id != user_master:
-        return jsonify({"mensagem": "Não autorizado!"}), 403
+        return (
+            jsonify({"message": "Não autorizado!", "success": False, "data": None}),
+            403,
+        )
 
     users = User.query.with_entities(
         User.id, User.name, User.phone_number, User.email
@@ -22,12 +25,24 @@ def get_users():
         }
         for user in users
     ]
-    return jsonify(users_list), 200
+    return (
+        jsonify(
+            {
+                "message": "Usuários recuperados com sucesso!",
+                "success": True,
+                "data": users_list,
+            }
+        ),
+        200,
+    )
 
 
 def get_user(id):
     if not current_user.is_authenticated or current_user.id != id:
-        return jsonify({"mensagem": "Não autorizado!"}), 403
+        return (
+            jsonify({"message": "Não autorizado!", "success": False, "data": None}),
+            403,
+        )
 
     user = (
         User.query.with_entities(User.id, User.name, User.phone_number, User.email)
@@ -35,7 +50,12 @@ def get_user(id):
         .first()
     )
     if user is None:
-        return jsonify({"mensagem": "Usuário não encontrado!"}), 404
+        return (
+            jsonify(
+                {"message": "Usuário não encontrado!", "success": False, "data": None}
+            ),
+            404,
+        )
 
     user_data = {
         "id": user.id,
@@ -43,7 +63,16 @@ def get_user(id):
         "phone_number": user.phone_number,
         "email": user.email,
     }
-    return jsonify(user_data), 200
+    return (
+        jsonify(
+            {
+                "message": "Usuário recuperado com sucesso!",
+                "success": True,
+                "data": user_data,
+            }
+        ),
+        200,
+    )
 
 
 def create_user():
@@ -57,17 +86,43 @@ def create_user():
         new_user.set_password(form.password.data)
         db.session.add(new_user)
         db.session.commit()
-        return jsonify({"mensagem": "Usuário criado com sucesso!"}), 201
-    return jsonify({"mensagem": "Dados inválidos!", "erros": form.errors}), 422
+        user_data = {
+            "id": new_user.id,
+            "name": new_user.name,
+            "phone_number": new_user.phone_number,
+            "email": new_user.email,
+        }
+        return (
+            jsonify(
+                {
+                    "message": "Usuário criado com sucesso!",
+                    "success": True,
+                    "data": user_data,
+                }
+            ),
+            201,
+        )
+    return (
+        jsonify({"message": "Dados inválidos!", "success": False, "data": form.errors}),
+        422,
+    )
 
 
 def update_user(id):
     if not current_user.is_authenticated or current_user.id != id:
-        return jsonify({"mensagem": "Não autorizado!"}), 403
+        return (
+            jsonify({"message": "Não autorizado!", "success": False, "data": None}),
+            403,
+        )
 
     user = User.query.get(id)
     if user is None:
-        return jsonify({"mensagem": "Usuário não encontrado!"}), 404
+        return (
+            jsonify(
+                {"message": "Usuário não encontrado!", "success": False, "data": None}
+            ),
+            404,
+        )
 
     form = UserFormUpdate(user_id=id, obj=user)
     if form.validate_on_submit():
@@ -81,17 +136,57 @@ def update_user(id):
             updated = True
         if updated:
             db.session.commit()
-        return jsonify({"mensagem": "Usuário atualizado com sucesso!"}), 200
+        user_data = {
+            "id": user.id,
+            "name": user.name,
+            "phone_number": user.phone_number,
+            "email": user.email,
+        }
+        return (
+            jsonify(
+                {
+                    "message": "Usuário atualizado com sucesso!",
+                    "success": True,
+                    "data": user_data,
+                }
+            ),
+            200,
+        )
 
-    return jsonify({"mensagem": "Dados inválidos!", "erros": form.errors}), 422
+    return (
+        jsonify({"message": "Dados inválidos!", "success": False, "data": form.errors}),
+        422,
+    )
 
 
 def delete_user(id):
     if not current_user.is_authenticated or current_user.id != id:
-        return jsonify({"mensagem": "Não autorizado!"}), 403
+        return (
+            jsonify({"message": "Não autorizado!", "success": False, "data": None}),
+            403,
+        )
 
     user = User.query.get(id)
     if user:
+        user_data = {
+            "id": user.id,
+            "name": user.name,
+            "phone_number": user.phone_number,
+            "email": user.email,
+        }
         db.session.delete(user)
         db.session.commit()
-    return jsonify({"mensagem": "Usuário deletado com sucesso!"}), 200
+        return (
+            jsonify(
+                {
+                    "message": "Usuário deletado com sucesso!",
+                    "success": True,
+                    "data": user_data,
+                }
+            ),
+            200,
+        )
+    return (
+        jsonify({"message": "Usuário não encontrado!", "success": False, "data": None}),
+        404,
+    )
