@@ -10,20 +10,18 @@ from sqlalchemy.orm import subqueryload
 
 
 def get_datasets():
-    # Verifica se o usuário está autenticado
     if not current_user.is_authenticated:
-        return jsonify({"mensagem": "Não autorizado!"}), 403
-
-    # Consulta os datasets do usuário autenticado com o relacionamento clean_dataset
-    datasets = (
-        Dataset.query.options(
-            subqueryload(Dataset.clean_dataset)  # Carrega a relação com CleanDataset
+        return (
+            jsonify({"message": "Não autorizado!", "success": False, "data": None}),
+            403,
         )
+
+    datasets = (
+        Dataset.query.options(subqueryload(Dataset.clean_dataset))
         .filter_by(user_id=current_user.id)
         .all()
     )
 
-    # Constrói uma lista de dicionários contendo as informações dos datasets
     datasets_list = []
     for ds in datasets:
         clean_data = None
@@ -48,27 +46,43 @@ def get_datasets():
 
         datasets_list.append(dataset_info)
 
-    return jsonify(datasets_list), 200
+    return (
+        jsonify(
+            {
+                "message": "Bases de dados recuperadas com sucesso!",
+                "success": True,
+                "data": datasets_list,
+            }
+        ),
+        200,
+    )
 
 
 def get_dataset(id):
-    # Verifica se o usuário está autenticado
     if not current_user.is_authenticated:
-        return jsonify({"mensagem": "Não autorizado!"}), 403
-
-    # Consulta um dataset específico pelo id com o relacionamento clean_dataset
-    dataset = (
-        Dataset.query.options(
-            subqueryload(Dataset.clean_dataset)  # Carrega a relação com CleanDataset
+        return (
+            jsonify({"message": "Não autorizado!", "success": False, "data": None}),
+            403,
         )
+
+    dataset = (
+        Dataset.query.options(subqueryload(Dataset.clean_dataset))
         .filter_by(id=id, user_id=current_user.id)
         .first()
     )
 
     if dataset is None:
-        return jsonify({"mensagem": "Base de dados não encontrada!"}), 404
+        return (
+            jsonify(
+                {
+                    "message": "Base de dados não encontrada!",
+                    "success": False,
+                    "data": None,
+                }
+            ),
+            404,
+        )
 
-    # Verifica se o clean_dataset possui dados relevantes
     clean_data = None
     if dataset.clean_dataset and (
         dataset.clean_dataset.size_file
@@ -80,44 +94,50 @@ def get_dataset(id):
             "file_url": dataset.clean_dataset.file_url,
         }
 
-    # Constrói o dicionário com as informações do dataset
     dataset_data = {
         "id": dataset.id,
         "name": dataset.name,
         "description": dataset.description,
         "size_file": dataset.size_file,
         "file_url": dataset.file_url,
-        "clean_dataset": clean_data,  # Inclui clean_dataset apenas se houver dados válidos
+        "clean_dataset": clean_data,
     }
 
-    return jsonify(dataset_data), 200
+    return (
+        jsonify(
+            {
+                "message": "Base de dados recuperada com sucesso!",
+                "success": True,
+                "data": dataset_data,
+            }
+        ),
+        200,
+    )
 
 
 def create_dataset():
-    # Verifica se o usuário está autenticado
     if not current_user.is_authenticated:
-        return jsonify({"mensagem": "Não autorizado!"}), 403
+        return (
+            jsonify({"message": "Não autorizado!", "success": False, "data": None}),
+            403,
+        )
 
     form = DatasetFormCreate()
     if form.validate_on_submit():
         csv_file = form.csv_file.data
 
-        # Calcula o tamanho do arquivo em MB
         csv_file.seek(0, os.SEEK_END)
         size_file_with_unit = f"{round(csv_file.tell() / (1024 * 1024), 4)}MB"
         csv_file.seek(0)
 
-        # Gera um hash para o nome do arquivo com base no ID do usuário e nome do dataset
         file_hash = hashlib.md5(
             f"{current_user.id}_{form.name.data}".encode("utf-8")
         ).hexdigest()
         csv_file.filename = f"{file_hash}.csv"
 
-        # Realiza o upload do arquivo para o S3
         s3Controller = S3Controller()
         file_url = s3Controller.upload_file_to_s3(csv_file)
 
-        # Cria uma nova entrada de dataset no banco de dados
         new_dataset = Dataset(
             name=form.name.data,
             description=form.description.data,
@@ -128,20 +148,49 @@ def create_dataset():
         )
         db.session.add(new_dataset)
         db.session.commit()
-        return jsonify({"mensagem": "Base de dados criada com sucesso!"}), 201
+        dataset_data = {
+            "id": new_dataset.id,
+            "name": new_dataset.name,
+            "description": new_dataset.description,
+            "size_file": new_dataset.size_file,
+            "file_url": new_dataset.file_url,
+        }
+        return (
+            jsonify(
+                {
+                    "message": "Base de dados criada com sucesso!",
+                    "success": True,
+                    "data": dataset_data,
+                }
+            ),
+            201,
+        )
 
-    return jsonify({"mensagem": "Dados inválidos!", "erros": form.errors}), 422
+    return (
+        jsonify({"message": "Dados inválidos!", "success": False, "data": form.errors}),
+        422,
+    )
 
 
 def update_dataset(id):
-    # Verifica se o usuário está autenticado
     if not current_user.is_authenticated:
-        return jsonify({"mensagem": "Não autorizado!"}), 403
+        return (
+            jsonify({"message": "Não autorizado!", "success": False, "data": None}),
+            403,
+        )
 
-    # Consulta o dataset a ser atualizado
     dataset = Dataset.query.get(id)
     if dataset is None or dataset.user_id != current_user.id:
-        return jsonify({"mensagem": "Base de dados não encontrada!"}), 404
+        return (
+            jsonify(
+                {
+                    "message": "Base de dados não encontrada!",
+                    "success": False,
+                    "data": None,
+                }
+            ),
+            404,
+        )
 
     form = DatasetFormUpdate()
     if form.validate_on_submit():
@@ -150,53 +199,98 @@ def update_dataset(id):
         if form.csv_file.data:
             csv_file = form.csv_file.data
 
-            # Calcula o tamanho do arquivo em MB
             csv_file.seek(0, os.SEEK_END)
             size_file_with_unit = f"{round(csv_file.tell() / (1024 * 1024), 4)}MB"
             csv_file.seek(0)
 
-            # Gera um hash para o nome do arquivo com base no ID do usuário e nome do dataset
             file_hash = hashlib.md5(
                 f"{current_user.id}_{form.name.data}".encode("utf-8")
             ).hexdigest()
             csv_file.filename = f"{file_hash}.csv"
 
-            # Realiza o upload do arquivo atualizado para o S3
             file_url = s3Controller.upload_file_to_s3(csv_file)
             dataset.size_file = size_file_with_unit
             dataset.file_url = file_url
 
-        # Atualiza os campos do dataset com os novos dados fornecidos
         dataset.name = form.name.data or dataset.name
         dataset.description = form.description.data or dataset.description
         dataset.project_id = form.project_id.data or dataset.project_id
 
         db.session.commit()
-        return jsonify({"mensagem": "Base de dados atualizada com sucesso!"}), 200
+        dataset_data = {
+            "id": dataset.id,
+            "name": dataset.name,
+            "description": dataset.description,
+            "size_file": dataset.size_file,
+            "file_url": dataset.file_url,
+        }
+        return (
+            jsonify(
+                {
+                    "message": "Base de dados atualizada com sucesso!",
+                    "success": True,
+                    "data": dataset_data,
+                }
+            ),
+            200,
+        )
 
-    return jsonify({"mensagem": "Dados inválidos!", "erros": form.errors}), 422
+    return (
+        jsonify({"message": "Dados inválidos!", "success": False, "data": form.errors}),
+        422,
+    )
 
 
 def delete_dataset(id):
-    # Verifica se o usuário está autenticado
     if not current_user.is_authenticated:
-        return jsonify({"mensagem": "Não autorizado!"}), 403
+        return (
+            jsonify({"message": "Não autorizado!", "success": False, "data": None}),
+            403,
+        )
 
-    # Consulta o dataset a ser deletado
     dataset = Dataset.query.get(id)
     if dataset is None or dataset.user_id != current_user.id:
-        return jsonify({"mensagem": "Base de dados não encontrada!"}), 404
+        return (
+            jsonify(
+                {
+                    "message": "Base de dados não encontrada!",
+                    "success": False,
+                    "data": None,
+                }
+            ),
+            404,
+        )
 
     if dataset.file_url:
         s3Controller = S3Controller()
-        # Deleta o arquivo do S3
         if not s3Controller.delete_file_from_s3(dataset.file_url):
             return (
-                jsonify({"mensagem": "Credenciais inválidas para acesso ao S3."}),
+                jsonify(
+                    {
+                        "message": "Credenciais inválidas para acesso ao S3.",
+                        "success": False,
+                        "data": None,
+                    }
+                ),
                 403,
             )
 
-    # Deleta o dataset do banco de dados
     db.session.delete(dataset)
     db.session.commit()
-    return jsonify({"mensagem": "Base de dados deletada com sucesso!"}), 200
+    dataset_data = {
+        "id": dataset.id,
+        "name": dataset.name,
+        "description": dataset.description,
+        "size_file": dataset.size_file,
+        "file_url": dataset.file_url,
+    }
+    return (
+        jsonify(
+            {
+                "message": "Base de dados deletada com sucesso!",
+                "success": True,
+                "data": dataset_data,
+            }
+        ),
+        200,
+    )

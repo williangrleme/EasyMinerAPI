@@ -615,6 +615,7 @@ paths:
       description: >
         Realiza a limpeza de dados em um dataset específico. O usuário deve
         fornecer os métodos de limpeza a serem aplicados nas features escolhidas.
+        Métodos aceitos: `media`, `mediana`, `moda`.
       parameters:
         - name: id
           in: path
@@ -637,14 +638,14 @@ paths:
                 type: array
                 items:
                   type: string
-                description: "Lista de features (colunas) para realizar a limpeza."
-                example: ["feature1", "feature2"]
+                description: "Lista de features a serem limpas."
               methods:
                 type: string
-                description: >
-                  Método de substituição de valores faltantes.
-                  Pode ser 'media', 'mediana' ou 'moda'.
-                example: "media"
+                description: "Método de limpeza a ser aplicado."
+                enum:
+                  - media
+                  - mediana
+                  - moda
       responses:
         201:
           description: "Limpeza de dados realizada com sucesso!"
@@ -653,7 +654,6 @@ paths:
             properties:
               mensagem:
                 type: string
-                example: "Limpeza de dados realizada com sucesso!"
         403:
           description: "Não autorizado"
           schema:
@@ -661,7 +661,6 @@ paths:
             properties:
               mensagem:
                 type: string
-                example: "Não autorizado!"
         404:
           description: "Base de dados não encontrada!"
           schema:
@@ -669,7 +668,6 @@ paths:
             properties:
               mensagem:
                 type: string
-                example: "Base de dados não encontrada!"
         422:
           description: "Dados inválidos!"
           schema:
@@ -677,18 +675,10 @@ paths:
             properties:
               mensagem:
                 type: string
-                example: "Dados inválidos!"
               erros:
-                  type: object
-                  properties:
-                    features:
-                      type: array
-                      items:
-                        type: string
-                      example: [
-                        "O campo enviado não está registrado na sua base de dados."
-                      ]
-                  description: "Erros de validação."
+                type: array
+                items:
+                  type: string
 
   /preprocessing/data-normalization/{id}:
     post:
@@ -698,6 +688,7 @@ paths:
       description: >
         Aplica a normalização de dados em um dataset específico. O usuário deve
         fornecer os métodos de normalização a serem aplicados nas features escolhidas.
+        Métodos aceitos: `minmax`, `zscore`.
       parameters:
         - name: id
           in: path
@@ -707,71 +698,34 @@ paths:
         - in: body
           name: body
           description: >
-            Parâmetros necessários para realizar a normalização dos dados, incluindo
-            as colunas alvo (features) e o método de normalização a ser aplicado.
+            Detalhes da normalização de dados.
           required: true
           schema:
             type: object
             required:
-              - features
               - methods
+              - features
             properties:
+              methods:
+                type: string
+                description: "Método de normalização a ser aplicado."
+                enum:
+                  - minmax
+                  - zscore
               features:
                 type: array
                 items:
                   type: string
-                description: "Lista de features (colunas) para realizar a normalização."
-                example: ["coluna1", "coluna2"]
-              methods:
-                type: string
-                description: >
-                  Método de normalização a ser aplicado.
-                  Pode ser 'minmax' ou 'zscore'.
-                example: "minmax"
+                description: "Lista de features a serem normalizadas."
       responses:
         201:
           description: "Normalização de dados realizada com sucesso!"
-          schema:
-            type: object
-            properties:
-              mensagem:
-                type: string
-                example: "Normalização de dados realizada com sucesso!"
         403:
           description: "Não autorizado"
-          schema:
-            type: object
-            properties:
-              mensagem:
-                type: string
-                example: "Não autorizado!"
         404:
           description: "Base de dados não encontrada!"
-          schema:
-            type: object
-            properties:
-              mensagem:
-                type: string
-                example: "Base de dados não encontrada!"
         422:
           description: "Dados inválidos!"
-          schema:
-            type: object
-            properties:
-              mensagem:
-                type: string
-                example: "Dados inválidos!"
-              erros:
-                  type: object
-                  properties:
-                    features:
-                      type: array
-                      items:
-                        type: string
-                      example: [
-                        "O campo enviado não está registrado na sua base de dados."
-                      ]
-                  description: "Erros de validação."
 
   /preprocessing/data-reduction/{id}:
     post:
@@ -781,6 +735,7 @@ paths:
       description: >
         Aplica técnicas de redução de dados em um dataset específico. O usuário deve
         fornecer as features e o método de redução de dados a ser aplicado.
+        Métodos aceitos: `pca`, `amostragem_aleatoria`, `amostragem_sistematica`.
       parameters:
         - name: id
           in: path
@@ -804,7 +759,7 @@ paths:
                 items:
                   type: string
                 description: "Lista de features (colunas) para realizar a redução de dados."
-                example: ["coluna1", "coluna2"]
+                example: [ "coluna1", "coluna2" ]
               methods:
                 type: string
                 description: >
