@@ -222,7 +222,7 @@ def update_dataset(id):
             404,
         )
 
-    form = DatasetFormUpdate()
+    form = DatasetFormUpdate(dataset.id)
     if form.validate_on_submit():
         s3Controller = S3Controller()
 
