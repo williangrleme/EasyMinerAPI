@@ -461,39 +461,35 @@ paths:
         - "CRUD de Bases de Dados"
       summary: "Criar base de dados"
       description: "Cria uma nova base de dados."
+      consumes:
+        - "multipart/form-data"
       parameters:
-        - in: "body"
-          name: "body"
-          description: "Detalhes da base de dados"
+        - in: "formData"
+          name: "name"
+          type: "string"
+          description: "Nome da base de dados."
           required: true
-          schema:
-            type: "object"
-            required:
-              - name
-              - project_id
-              - csv_file
-            properties:
-              name:
-                type: "string"
-                description: "Nome da base de dados."
-                minLength: 3
-                maxLength: 255
-                example: "Dataset 1"
-              description:
-                type: "string"
-                description: "Descrição da base de dados."
-                minLength: 11
-                maxLength: 2000
-                example: "Descrição do dataset"
-              project_id:
-                type: "integer"
-                description: "ID do projeto associado."
-                example: 1
-              csv_file:
-                type: "string"
-                format: "binary"
-                description: "Arquivo CSV contendo os dados."
-                example: "file.csv"
+          minLength: 3
+          maxLength: 255
+          example: "Dataset 1"
+        - in: "formData"
+          name: "description"
+          type: "string"
+          description: "Descrição da base de dados."
+          minLength: 11
+          maxLength: 2000
+          example: "Descrição do dataset"
+        - in: "formData"
+          name: "project_id"
+          type: "integer"
+          description: "ID do projeto associado."
+          required: true
+          example: 1
+        - in: "formData"
+          name: "csv_file"
+          type: "file"
+          description: "Arquivo CSV contendo os dados."
+          required: true
 
       responses:
         201:
@@ -543,39 +539,36 @@ paths:
         - "CRUD de Bases de Dados"
       summary: "Atualizar base de dados por ID"
       description: "Atualiza os detalhes de uma base de dados específica do usuário autenticado."
+      consumes:
+        - "multipart/form-data"
       parameters:
         - name: "id"
           in: "path"
           required: true
           type: "integer"
           description: "ID da base de dados"
-        - in: "body"
-          name: "body"
-          description: "Detalhes da base de dados atualizados"
-          required: true
-          schema:
-            type: "object"
-            properties:
-              name:
-                type: "string"
-                description: "Nome da base de dados."
-                minLength: 3
-                maxLength: 255
-                example: "Dataset Atualizado"
-              description:
-                type: "string"
-                description: "Descrição da base de dados."
-                minLength: 11
-                maxLength: 2000
-                example: "Descrição atualizada do dataset"
-              project_id:
-                type: "integer"
-                description: "ID do projeto associado."
-              csv_file:
-                type: "string"
-                format: "binary"
-                description: "Arquivo CSV atualizado contendo os dados."
-                example: "novo_arquivo.csv"
+        - in: "formData"
+          name: "name"
+          type: "string"
+          description: "Nome da base de dados."
+          minLength: 3
+          maxLength: 255
+          example: "Dataset Atualizado"
+        - in: "formData"
+          name: "description"
+          type: "string"
+          description: "Descrição da base de dados."
+          minLength: 11
+          maxLength: 2000
+          example: "Descrição atualizada do dataset"
+        - in: "formData"
+          name: "project_id"
+          type: "integer"
+          description: "ID do projeto associado."
+        - in: "formData"
+          name: "csv_file"
+          type: "file"
+          description: "Arquivo CSV atualizado contendo os dados."
 
       responses:
         200:
@@ -605,7 +598,6 @@ paths:
           description: "Não autorizado"
         404:
           description: "Base de dados não encontrada"
-
 
   /preprocessing/data-cleaning/{id}:
     post:
