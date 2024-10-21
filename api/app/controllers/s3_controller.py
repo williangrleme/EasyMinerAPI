@@ -1,4 +1,4 @@
-from flask import current_app
+from flask import jsonify, current_app
 import boto3
 from botocore.exceptions import NoCredentialsError, ClientError
 
@@ -20,18 +20,64 @@ class S3Controller:
                 file.filename,
                 ExtraArgs={"ACL": acl, "ContentType": file.content_type},
             )
-            return f"https://{self.bucket_name}.s3.amazonaws.com/{file.filename}"
+            file_url = f"https://{self.bucket_name}.s3.amazonaws.com/{file.filename}"
+            return (
+                jsonify(
+                    {
+                        "message": "Upload realizado com sucesso!",
+                        "success": True,
+                        "data": {"file_url": file_url},
+                    }
+                ),
+                200,
+            )
         except ClientError as e:
-            current_app.logger.error(f"falha ao realizar upload para o S3: {e}")
-            return str(e)
+            current_app.logger.error(f"Falha ao realizar upload para o S3: {e}")
+            return (
+                jsonify(
+                    {
+                        "message": "Falha ao realizar upload para o S3.",
+                        "success": False,
+                        "data": str(e),
+                    }
+                ),
+                500,
+            )
 
     def delete_file_from_s3(self, file_url):
         s3_key = file_url.split("/")[-1]
         try:
             self.s3.delete_object(Bucket=self.bucket_name, Key=s3_key)
+            return (
+                jsonify(
+                    {
+                        "message": "Arquivo deletado com sucesso!",
+                        "success": True,
+                        "data": None,
+                    }
+                ),
+                200,
+            )
         except NoCredentialsError:
-            return False
+            return (
+                jsonify(
+                    {
+                        "message": "Credenciais inválidas para acesso ao S3.",
+                        "success": False,
+                        "data": None,
+                    }
+                ),
+                403,
+            )
         except ClientError as e:
-            current_app.logger.error(f"falha ao deletar arquivo no S3: {e}")
-            return False
-        return True
+            current_app.logger.error(f"Falha ao deletar arquivo no S3: {e}")
+            return (
+                jsonify(
+                    {
+                        "message": "Falha ao deletar arquivo no S3.",
+                        "success": False,
+                        "data": str(e),
+                    }
+                ),
+                500,
+            )

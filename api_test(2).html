@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Testar API Flask</title>
+</head>
+<body>
+    <h1>Testar Consumo da API</h1>
+
+    <form id="apiTestForm">
+        <label for="name">Nome:</label>
+        <input type="text" id="name" name="name" required><br><br>
+
+        <label for="phone">Telefone:</label>
+        <input type="text" id="phone" name="phone" required><br><br>
+
+        <label for="email">Email:</label>
+        <input type="email" id="email" name="email" required><br><br>
+
+        <label for="password">Senha:</label>
+        <input type="password" id="password" name="password" required><br><br>
+
+        <button type="submit">Enviar Dados</button>
+    </form>
+
+    <div id="response"></div>
+
+   <script>
+    async function signUp() {
+        try {
+            // Obter o token CSRF
+            const csrfResponse = await fetch('http://127.0.0.1:5000/api/auth/csrf-token', {
+                method: 'GET',
+                credentials: 'include'  // Garantir que os cookies de sessão sejam enviados e recebidos
+            });
+
+            // Verificar se a resposta foi bem-sucedida
+            if (!csrfResponse.ok) {
+                throw new Error(`Erro ao obter o token CSRF: ${csrfResponse.status} ${csrfResponse.statusText}`);
+            }
+
+            const csrfData = await csrfResponse.json();
+            const csrfToken = csrfData.csrf_token;
+
+            // Obter os dados do formulário
+            const name = document.getElementById('name').value;
+            const phone = document.getElementById('phone').value;
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+
+            // Fazer a requisição POST para a API
+            const response = await fetch('http://127.0.0.1:5000/api/users/', {
+                method: 'POST',
+                credentials: 'include',  // Incluir cookies de sessão
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    name: name,
+                    phone_number: phone,  // Usando o campo phone_number do modelo
+                    email: email,
+                    password: password
+                })
+            });
+
+            // Verificar se a resposta foi bem-sucedida
+            if (!response.ok) {
+                throw new Error(`Erro na requisição: ${response.status} ${response.statusText}`);
+            }
+
+            // Ler a resposta da API
+            const result = await response.json();
+            document.getElementById('response').textContent = JSON.stringify(result);
+
+        } catch (error) {
+            console.error('Erro ao fazer requisição:', error);
+            document.getElementById('response').textContent = 'Erro: ' + error.message;
+        }
+    }
+
+    // Lidar com o envio do formulário
+    document.getElementById('apiTestForm').addEventListener('submit', function (event) {
+        event.preventDefault();  // Impede o envio padrão do formulário
+        signUp();  // Chama a função de inscrição
+    });
+</script>
+
+</body>
+</html>
