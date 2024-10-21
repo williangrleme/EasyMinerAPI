@@ -12,13 +12,7 @@ from sqlalchemy.orm import subqueryload
 def get_datasets():
     if not current_user.is_authenticated:
         return (
-            jsonify(
-                {
-                    "message": "Não autorizado!",
-                    "success": False,
-                    "data": None,
-                }
-            ),
+            jsonify({"message": "Não autorizado!", "success": False, "data": None}),
             403,
         )
 
@@ -67,13 +61,7 @@ def get_datasets():
 def get_dataset(id):
     if not current_user.is_authenticated:
         return (
-            jsonify(
-                {
-                    "message": "Não autorizado!",
-                    "success": False,
-                    "data": None,
-                }
-            ),
+            jsonify({"message": "Não autorizado!", "success": False, "data": None}),
             403,
         )
 
@@ -130,13 +118,7 @@ def get_dataset(id):
 def create_dataset():
     if not current_user.is_authenticated:
         return (
-            jsonify(
-                {
-                    "message": "Não autorizado!",
-                    "success": False,
-                    "data": None,
-                }
-            ),
+            jsonify({"message": "Não autorizado!", "success": False, "data": None}),
             403,
         )
 
@@ -185,13 +167,7 @@ def create_dataset():
         )
 
     return (
-        jsonify(
-            {
-                "message": "Dados inválidos!",
-                "success": False,
-                "data": form.errors,
-            }
-        ),
+        jsonify({"message": "Dados inválidos!", "success": False, "data": form.errors}),
         422,
     )
 
@@ -199,13 +175,7 @@ def create_dataset():
 def update_dataset(id):
     if not current_user.is_authenticated:
         return (
-            jsonify(
-                {
-                    "message": "Não autorizado!",
-                    "success": False,
-                    "data": None,
-                }
-            ),
+            jsonify({"message": "Não autorizado!", "success": False, "data": None}),
             403,
         )
 
@@ -266,13 +236,7 @@ def update_dataset(id):
         )
 
     return (
-        jsonify(
-            {
-                "message": "Dados inválidos!",
-                "success": False,
-                "data": form.errors,
-            }
-        ),
+        jsonify({"message": "Dados inválidos!", "success": False, "data": form.errors}),
         422,
     )
 
@@ -280,13 +244,7 @@ def update_dataset(id):
 def delete_dataset(id):
     if not current_user.is_authenticated:
         return (
-            jsonify(
-                {
-                    "message": "Não autorizado!",
-                    "success": False,
-                    "data": None,
-                }
-            ),
+            jsonify({"message": "Não autorizado!", "success": False, "data": None}),
             403,
         )
 

@@ -40,11 +40,7 @@ def get_project(id):
     if project is None:
         return (
             jsonify(
-                {
-                    "message": "Projeto não encontrado!",
-                    "success": False,
-                    "data": None,
-                }
+                {"message": "Projeto não encontrado!", "success": False, "data": None}
             ),
             404,
         )
@@ -92,13 +88,7 @@ def create_project():
             201,
         )
     return (
-        jsonify(
-            {
-                "message": "Dados inválidos!",
-                "success": False,
-                "data": form.errors,
-            }
-        ),
+        jsonify({"message": "Dados inválidos!", "success": False, "data": form.errors}),
         422,
     )
 
@@ -108,11 +98,7 @@ def update_project(id):
     if project is None or project.user_id != current_user.id:
         return (
             jsonify(
-                {
-                    "message": "Projeto não encontrado!",
-                    "success": False,
-                    "data": None,
-                }
+                {"message": "Projeto não encontrado!", "success": False, "data": None}
             ),
             404,
         )
@@ -120,7 +106,7 @@ def update_project(id):
     form = ProjectFormUpdate(project_id=id)
     if form.validate_on_submit():
         updated = False
-        for field_name, field in form._fields.items():
+        for field_name, field in form.data.items():
             if field.data and getattr(project, field_name) != field.data:
                 setattr(project, field_name, field.data)
                 updated = True
@@ -143,13 +129,7 @@ def update_project(id):
         )
 
     return (
-        jsonify(
-            {
-                "message": "Dados inválidos!",
-                "success": False,
-                "data": form.errors,
-            }
-        ),
+        jsonify({"message": "Dados inválidos!", "success": False, "data": form.errors}),
         422,
     )
 
