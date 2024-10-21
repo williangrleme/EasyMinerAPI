@@ -9,13 +9,7 @@ def get_users():
     user_master = current_app.config["USER_MASTER"]
     if not current_user.is_authenticated or current_user.id != user_master:
         return (
-            jsonify(
-                {
-                    "message": "Não autorizado!",
-                    "success": False,
-                    "data": None,
-                }
-            ),
+            jsonify({"message": "Não autorizado!", "success": False, "data": None}),
             403,
         )
 
@@ -46,13 +40,7 @@ def get_users():
 def get_user(id):
     if not current_user.is_authenticated or current_user.id != id:
         return (
-            jsonify(
-                {
-                    "message": "Não autorizado!",
-                    "success": False,
-                    "data": None,
-                }
-            ),
+            jsonify({"message": "Não autorizado!", "success": False, "data": None}),
             403,
         )
 
@@ -64,11 +52,7 @@ def get_user(id):
     if user is None:
         return (
             jsonify(
-                {
-                    "message": "Usuário não encontrado!",
-                    "success": False,
-                    "data": None,
-                }
+                {"message": "Usuário não encontrado!", "success": False, "data": None}
             ),
             404,
         )
@@ -119,13 +103,7 @@ def create_user():
             201,
         )
     return (
-        jsonify(
-            {
-                "message": "Dados inválidos!",
-                "success": False,
-                "data": form.errors,
-            }
-        ),
+        jsonify({"message": "Dados inválidos!", "success": False, "data": form.errors}),
         422,
     )
 
@@ -133,13 +111,7 @@ def create_user():
 def update_user(id):
     if not current_user.is_authenticated or current_user.id != id:
         return (
-            jsonify(
-                {
-                    "message": "Não autorizado!",
-                    "success": False,
-                    "data": None,
-                }
-            ),
+            jsonify({"message": "Não autorizado!", "success": False, "data": None}),
             403,
         )
 
@@ -147,11 +119,7 @@ def update_user(id):
     if user is None:
         return (
             jsonify(
-                {
-                    "message": "Usuário não encontrado!",
-                    "success": False,
-                    "data": None,
-                }
+                {"message": "Usuário não encontrado!", "success": False, "data": None}
             ),
             404,
         )
@@ -186,13 +154,7 @@ def update_user(id):
         )
 
     return (
-        jsonify(
-            {
-                "message": "Dados inválidos!",
-                "success": False,
-                "data": form.errors,
-            }
-        ),
+        jsonify({"message": "Dados inválidos!", "success": False, "data": form.errors}),
         422,
     )
 
@@ -200,13 +162,7 @@ def update_user(id):
 def delete_user(id):
     if not current_user.is_authenticated or current_user.id != id:
         return (
-            jsonify(
-                {
-                    "message": "Não autorizado!",
-                    "success": False,
-                    "data": None,
-                }
-            ),
+            jsonify({"message": "Não autorizado!", "success": False, "data": None}),
             403,
         )
 
@@ -231,12 +187,6 @@ def delete_user(id):
             200,
         )
     return (
-        jsonify(
-            {
-                "message": "Usuário não encontrado!",
-                "success": False,
-                "data": None,
-            }
-        ),
+        jsonify({"message": "Usuário não encontrado!", "success": False, "data": None}),
         404,
     )
