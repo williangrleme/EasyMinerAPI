@@ -49,12 +49,15 @@ O fluxo de dados e operações dentro do EasyMinerAPI é ilustrado a seguir:
 
 4. Configure as variáveis de ambiente necessárias (exemplo para Unix):
     ```sh
-    export FLASK_APP=run.py
-    export FLASK_ENV=development
-    export AWS_ACCESS_KEY_ID=your_access_key
-    export AWS_SECRET_ACCESS_KEY=your_secret_key
+   export FLASK_APP=run.py
+   export FLASK_ENV=development
+   export SECRET_KEY=sua_chave_secreta
+   export SQLALCHEMY_DATABASE_URI=sua_uri_do_banco_de_dados
+   export S3_BUCKET=seu_bucket_s3
+   export S3_KEY=sua_chave_s3
+   export S3_SECRET=seu_segredo_s3
     ```
-
+   
 5. Execute a aplicação:
     ```sh
     flask run
