@@ -1,106 +1,78 @@
 from flask_wtf import FlaskForm
 from wtforms import StringField, PasswordField
-from wtforms.validators import DataRequired, Email, Length, ValidationError, Optional
-
+from wtforms.validators import DataRequired, Email, Length, ValidationError
 from app.models import User
 
 
-class UserFormCreate(FlaskForm):
-    def validate_phone_number(self, field):
-        if User.query.filter_by(phone_number=field.data).first():
-            raise ValidationError("Phone number already registered.")
+class UserFormBase(FlaskForm):
+    ERROR_MESSAGES = {
+        "required": "O campo é obrigatório.",
+        "size_length": "Tamanho deve estar entre {} e {}.",
+        "phone_number_exists": "Número de telefone já cadastrado.",
+        "email_exists": "E-mail já cadastrado.",
+    }
 
-    def validate_email(self, field):
-        if User.query.filter_by(email=field.data).first():
-            raise ValidationError("Email already registered.")
+    @staticmethod
+    def size_length_message(min_length, max_length):
+        return f"O tamanho deve estar entre {min_length} e {max_length} caracteres."
 
     name = StringField(
-        "Name",
+        "Nome",
         validators=[
-            DataRequired(message="O campo é obrigatório."),
-            Length(
-                min=10,
-                max=150,
-                message="Tamanho deve estar entre {} e {}".format(10, 150),
-            ),
+            DataRequired(message=ERROR_MESSAGES["required"]),
+            Length(min=10, max=150, message=size_length_message(10, 150)),
         ],
     )
+
     phone_number = StringField(
-        "Phone number",
+        "Número de telefone",
         validators=[
-            DataRequired(message="O campo é obrigatório."),
-            Length(
-                min=11,
-                max=20,
-                message="Tamanho deve estar entre {} e {}".format(11, 20),
-            ),
+            DataRequired(message=ERROR_MESSAGES["required"]),
+            Length(min=11, max=20, message=size_length_message(11, 20)),
         ],
     )
+
     email = StringField(
-        "Email",
+        "E-mail",
         validators=[
-            DataRequired(message="O campo é obrigatório."),
-            Length(
-                min=6,
-                max=200,
-                message="Tamanho deve estar entre {} e {}".format(6, 200),
-            ),
+            DataRequired(message=ERROR_MESSAGES["required"]),
+            Length(min=6, max=200, message=size_length_message(6, 200)),
             Email(),
         ],
     )
+
     password = PasswordField(
-        "Password",
+        "Senha",
         validators=[
-            DataRequired(message="O campo é obrigatório."),
-            Length(
-                min=8, max=30, message="Tamanho deve estar entre {} e {}".format(8, 30)
-            ),
+            DataRequired(message=ERROR_MESSAGES["required"]),
+            Length(min=8, max=30, message=size_length_message(8, 30)),
         ],
     )
 
+    def validate_phone_number(self, field):
+        if User.query.filter_by(phone_number=field.data).first():
+            raise ValidationError(self.ERROR_MESSAGES["phone_number_exists"])
 
-class UserFormUpdate(FlaskForm):
+    def validate_email(self, field):
+        if User.query.filter_by(email=field.data).first():
+            raise ValidationError(self.ERROR_MESSAGES["email_exists"])
+
+
+class UserFormCreate(UserFormBase):
+    pass
+
+
+class UserFormUpdate(UserFormBase):
     def __init__(self, user_id, *args, **kwargs):
-        super(UserFormUpdate, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
         self.user_id = user_id
 
     def validate_phone_number(self, field):
         if User.query.filter(
             User.phone_number == field.data, User.id != self.user_id
         ).first():
-            raise ValidationError("Phone number already registered.")
+            raise ValidationError(self.ERROR_MESSAGES["phone_number_exists"])
 
     def validate_email(self, field):
         if User.query.filter(User.email == field.data, User.id != self.user_id).first():
-            raise ValidationError("Email already registered.")
-
-    name = StringField(
-        "Name",
-        validators=[
-            Length(
-                min=10,
-                max=150,
-                message="Tamanho deve estar entre {} e {}".format(10, 150),
-            ),
-        ],
-    )
-    phone_number = StringField(
-        "Phone number",
-        validators=[
-            Length(
-                min=11,
-                max=20,
-                message="Tamanho deve estar entre {} e {}".format(11, 20),
-            ),
-        ],
-    )
-    email = StringField("Email", validators=[Length(min=6, max=200), Email()])
-    password = PasswordField(
-        "Password",
-        validators=[
-            Length(
-                min=8, max=30, message="Tamanho deve estar entre {} e {}".format(8, 30)
-            ),
-            Optional(),
-        ],
-    )
+            raise ValidationError(self.ERROR_MESSAGES["email_exists"])
