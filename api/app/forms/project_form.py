@@ -1,61 +1,66 @@
 from flask_wtf import FlaskForm
 from wtforms import StringField
 from wtforms.validators import DataRequired, Length, ValidationError, Optional
-
 from app.models import Project
 
 
-class ProjectFormCreate(FlaskForm):
-    def validate_name(self, field):
-        if Project.query.filter_by(name=field.data).first():
-            raise ValidationError("O nome do projeto já existe.")
+class BaseProjectForm(FlaskForm):
+    ERROR_MESSAGES = {
+        "required": "O campo é obrigatório.",
+        "name_exists": "O nome do projeto já existe.",
+        "size_length": "Tamanho deve estar entre {} e {}.",
+    }
+
+    @staticmethod
+    def size_length_message(min_length, max_length):
+        return f"O tamanho deve estar entre {min_length} e {max_length} caracteres."
 
     name = StringField(
         "Name",
         validators=[
-            DataRequired(message="O campo é obrigatório."),
-            Length(min=3, max=200),
+            DataRequired(message=ERROR_MESSAGES["required"]),
+            Length(min=2, max=100, message=size_length_message(10, 150)),
         ],
     )
+
     description = StringField(
         "Description",
         validators=[
             Optional(),
-            Length(min=11, max=2000),
+            Length(min=10, max=2000, message=size_length_message(10, 150)),
         ],
     )
 
+    def validate_name(self, field):
+        if self.is_name_taken(field.data):
+            raise ValidationError(self.ERROR_MESSAGES["name_exists"])
 
-class ProjectFormUpdate(FlaskForm):
+    @staticmethod
+    def is_name_taken(name):
+        return Project.query.filter_by(name=name).first() is not None
+
+
+class ProjectFormCreate(BaseProjectForm):
+    pass
+
+
+class ProjectFormUpdate(BaseProjectForm):
     def __init__(self, project_id, *args, **kwargs):
-        super(ProjectFormUpdate, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
         self.project_id = project_id
+
+    name = StringField(
+        "Name",
+        validators=[
+            Optional(),
+            Length(
+                min=2, max=100, message=BaseProjectForm.size_length_message(10, 150)
+            ),
+        ],
+    )
 
     def validate_name(self, field):
         if Project.query.filter(
             Project.name == field.data, Project.id != self.project_id
         ).first():
-            raise ValidationError("O nome do projeto já existe.")
-
-    name = StringField(
-        "Name",
-        validators=[
-            Optional(),
-            Length(
-                min=3,
-                max=200,
-                message="Tamanho deve estar entre {} e {}".format(3, 200),
-            ),
-        ],
-    )
-    description = StringField(
-        "Description",
-        validators=[
-            Optional(),
-            Length(
-                min=11,
-                max=2000,
-                message="Tamanho deve estar entre {} e {}".format(11, 2000),
-            ),
-        ],
-    )
+            raise ValidationError(self.ERROR_MESSAGES["name_exists"])

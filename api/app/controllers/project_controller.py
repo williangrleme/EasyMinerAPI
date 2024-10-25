@@ -6,16 +6,22 @@ from app.forms.project_form import ProjectFormCreate, ProjectFormUpdate
 
 
 def get_projects():
-    projects = (
-        Project.query.with_entities(Project.id, Project.name, Project.description)
-        .filter_by(user_id=current_user.id)
-        .all()
-    )
+    projects = Project.query.filter_by(user_id=current_user.id).all()
     projects_list = [
         {
             "id": project.id,
             "name": project.name,
             "description": project.description,
+            "datasets": [
+                {
+                    "id": dataset.id,
+                    "name": dataset.name,
+                    "description": dataset.description,
+                    "size_file": dataset.size_file,
+                    "file_url": dataset.file_url,
+                }
+                for dataset in project.datasets
+            ],
         }
         for project in projects
     ]
@@ -31,12 +37,8 @@ def get_projects():
     )
 
 
-def get_project(id):
-    project = (
-        Project.query.with_entities(Project.id, Project.name, Project.description)
-        .filter_by(id=id, user_id=current_user.id)
-        .first()
-    )
+def get_project(project_id):
+    project = Project.query.filter_by(id=project_id, user_id=current_user.id).first()
     if project is None:
         return (
             jsonify(
@@ -53,6 +55,16 @@ def get_project(id):
         "id": project.id,
         "name": project.name,
         "description": project.description,
+        "datasets": [
+            {
+                "id": dataset.id,
+                "name": dataset.name,
+                "description": dataset.description,
+                "size_file": dataset.size_file,
+                "file_url": dataset.file_url,
+            }
+            for dataset in project.datasets
+        ],
     }
     return (
         jsonify(
@@ -175,6 +187,12 @@ def delete_project(id):
             200,
         )
     return (
-        jsonify({"message": "Projeto não encontrado!", "success": False, "data": None}),
+        jsonify(
+            {
+                "message": "Projeto não encontrado!",
+                "success": False,
+                "data": None,
+            }
+        ),
         404,
     )
