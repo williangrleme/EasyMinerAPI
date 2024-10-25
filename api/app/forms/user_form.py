@@ -10,6 +10,7 @@ class UserFormBase(FlaskForm):
         "size_length": "Tamanho deve estar entre {} e {}.",
         "phone_number_exists": "Número de telefone já cadastrado.",
         "email_exists": "E-mail já cadastrado.",
+        "invalid_email": "Por favor, insira um endereço de email válido.",
     }
 
     @staticmethod
@@ -37,7 +38,7 @@ class UserFormBase(FlaskForm):
         validators=[
             DataRequired(message=ERROR_MESSAGES["required"]),
             Length(min=6, max=200, message=size_length_message(6, 200)),
-            Email(),
+            Email(message=ERROR_MESSAGES["invalid_email"]),
         ],
     )
 
