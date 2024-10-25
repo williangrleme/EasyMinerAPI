@@ -1,8 +1,8 @@
 import pandas as pd
 from io import BytesIO
 from app.models import Dataset, CleanDataset
-from flask_login import current_user
-from flask import jsonify
+from flask_login import current_user, login_required
+from flask import jsonify, current_app
 from app.forms.data_mining_forms.preprocessing.data_cleaning_forms import (
     DataCleaningForm,
 )
@@ -10,77 +10,106 @@ from app.controllers.s3_controller import S3Controller
 from app import db
 
 
-def dataCleaning(id):
-    # Verifica se o usuário está autenticado
-    if not current_user.is_authenticated:
-        return jsonify({"mensagem": "Não autorizado!"}), 403
-
-    # Busca o dataset pelo ID e valida se pertence ao usuário atual
+def data_cleaning(dataset_id):
     dataset = (
         Dataset.query.with_entities(Dataset.id, Dataset.file_url)
-        .filter_by(id=id, user_id=current_user.id)
+        .filter_by(id=dataset_id, user_id=current_user.id)
         .first()
     )
     if dataset is None:
-        return jsonify({"mensagem": "Base de dados não encontrada!"}), 404
+        return (
+            jsonify(
+                {
+                    "message": "Base de dados não encontrada!",
+                    "success": False,
+                    "data": None,
+                }
+            ),
+            404,
+        )
 
     form = DataCleaningForm(file_url=dataset.file_url)
     if form.validate_on_submit():
         features = form.features.data
         methods = form.methods.data
+        missing_values = form.missing_values.data
 
-        # Carrega o arquivo CSV original no DataFrame
         df_original = pd.read_csv(dataset.file_url)
-
-        # Cria uma cópia apenas das colunas selecionadas (features) para limpeza
         df_features = df_original[features].copy()
+        columns_missing_value = identify_columns_with_missing_values(
+            df_features, missing_values
+        )
 
-        # Identifica colunas com valores faltantes ou específicos para tratamento
-        columns_missing_value = identify_columns_with_missing_values(df_features)
-
-        # Aplica os métodos de substituição de valores faltantes em cada coluna
         for column in columns_missing_value:
-            update_missing_values(df_features, column, methods)
+            update_missing_values(df_features, column, methods, missing_values)
 
-        # Atualiza o DataFrame original com os dados limpos
         df_original.update(df_features)
-
-        # Gera o nome do arquivo limpo e salva no S3
         file_url, size_file_with_unit = save_clean_dataset(
             df_original, dataset.file_url
         )
 
-        # Cria uma nova entrada no banco de dados para o dataset limpo
         clean_dataset = CleanDataset(
             size_file=size_file_with_unit,
             file_url=file_url,
             dataset_id=dataset.id,
             user_id=current_user.id,
         )
+
         db.session.add(clean_dataset)
         db.session.commit()
 
-        return jsonify({"mensagem": "Limpeza de dados realizada com sucesso!"}), 201
+        clean_dataset_data = {
+            "id": clean_dataset.id,
+            "size_file": clean_dataset.size_file,
+            "file_url": clean_dataset.file_url,
+            "dataset_id": clean_dataset.dataset_id,
+        }
 
-    return jsonify({"mensagem": "Dados inválidos!", "erros": form.errors}), 422
+        return (
+            jsonify(
+                {
+                    "message": "Limpeza de dados realizada com sucesso!",
+                    "success": True,
+                    "data": clean_dataset_data,
+                }
+            ),
+            200,
+        )
+
+    return (
+        jsonify(
+            {
+                "message": "Dados inválidos!",
+                "success": False,
+                "data": form.errors,
+            }
+        ),
+        422,
+    )
 
 
-def identify_columns_with_missing_values(df):
-    return [
-        column
-        for column in df.columns
-        if df[column].isnull().any()
-        or (df[column] == "").any()
-        or (df[column] == "?").any()
-        or (df[column] == 0).any()
-    ]
+def convert_missing_values(missing_values):
+    mapping = {"null": None, "0": 0, "?": "?"}
+    return [mapping.get(value, value) for value in missing_values]
 
 
-def update_missing_values(df, column, method):
-    # Converte valores específicos para NaN
-    df[column].replace(["", "?"], pd.NA, inplace=True)
+def identify_columns_with_missing_values(df, missing_values):
+    converted_missing_values = convert_missing_values(missing_values)
+    columns_with_missing_values = []
 
-    # Preenche valores faltantes com a estratégia escolhida
+    for column in df.columns:
+        if (
+            any(df[column].isin([value]).any() for value in converted_missing_values)
+            or df[column].isna().any()
+        ):
+            columns_with_missing_values.append(column)
+    return columns_with_missing_values
+
+
+def update_missing_values(df, column, method, missing_values):
+    missing_value = convert_missing_values(missing_values)
+    df[column].replace(missing_value, pd.NA, inplace=True)
+
     if method == "mediana":
         df[column] = df[column].fillna(df[column].median())
     elif method == "media":
@@ -90,24 +119,19 @@ def update_missing_values(df, column, method):
 
 
 def save_clean_dataset(df, original_file_url):
-    # Gera um nome de arquivo único para o dataset limpo usando o hash do arquivo original
     file_hash = original_file_url.split("/")[-1].replace(".csv", "")
     clean_file_name = f"{file_hash}_clean.csv"
 
-    # Converte o DataFrame limpo para CSV em memória para upload
     csv_buffer = BytesIO()
     df.to_csv(csv_buffer, header=True, index=False)
-    csv_buffer.seek(0)  # Reseta o ponteiro do buffer para o início
+    csv_buffer.seek(0)
 
-    # Calcula o tamanho do arquivo CSV limpo para armazenamento no banco de dados
     size_file_with_unit = f"{round(csv_buffer.getbuffer().nbytes / (1024 * 1024), 4)}MB"
 
-    # Prepara o buffer para upload ao S3 e define metadados
     csv_file = BytesIO(csv_buffer.read())
     csv_file.filename = clean_file_name
     csv_file.content_type = "text/csv"
 
-    # Faz o upload do arquivo limpo para o S3
     s3Controller = S3Controller()
     file_url = s3Controller.upload_file_to_s3(csv_file)
 

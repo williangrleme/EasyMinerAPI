@@ -5,92 +5,6 @@ from app import db
 from app.forms.user_form import UserFormCreate, UserFormUpdate
 
 
-def get_users():
-    user_master = current_app.config["USER_MASTER"]
-    if not current_user.is_authenticated or current_user.id != user_master:
-        return (
-            jsonify(
-                {
-                    "message": "Não autorizado!",
-                    "success": False,
-                    "data": None,
-                }
-            ),
-            403,
-        )
-
-    users = User.query.with_entities(
-        User.id, User.name, User.phone_number, User.email
-    ).all()
-    users_list = [
-        {
-            "id": user.id,
-            "name": user.name,
-            "phone_number": user.phone_number,
-            "email": user.email,
-        }
-        for user in users
-    ]
-    return (
-        jsonify(
-            {
-                "message": "Usuários recuperados com sucesso!",
-                "success": True,
-                "data": users_list,
-            }
-        ),
-        200,
-    )
-
-
-def get_user(id):
-    if not current_user.is_authenticated or current_user.id != id:
-        return (
-            jsonify(
-                {
-                    "message": "Não autorizado!",
-                    "success": False,
-                    "data": None,
-                }
-            ),
-            403,
-        )
-
-    user = (
-        User.query.with_entities(User.id, User.name, User.phone_number, User.email)
-        .filter_by(id=id)
-        .first()
-    )
-    if user is None:
-        return (
-            jsonify(
-                {
-                    "message": "Usuário não encontrado!",
-                    "success": False,
-                    "data": None,
-                }
-            ),
-            404,
-        )
-
-    user_data = {
-        "id": user.id,
-        "name": user.name,
-        "phone_number": user.phone_number,
-        "email": user.email,
-    }
-    return (
-        jsonify(
-            {
-                "message": "Usuário recuperado com sucesso!",
-                "success": True,
-                "data": user_data,
-            }
-        ),
-        200,
-    )
-
-
 def create_user():
     form = UserFormCreate()
     if form.validate_on_submit():
@@ -130,20 +44,8 @@ def create_user():
     )
 
 
-def update_user(id):
-    if not current_user.is_authenticated or current_user.id != id:
-        return (
-            jsonify(
-                {
-                    "message": "Não autorizado!",
-                    "success": False,
-                    "data": None,
-                }
-            ),
-            403,
-        )
-
-    user = User.query.get(id)
+def update_user(user_id):
+    user = User.query.get(user_id)
     if user is None:
         return (
             jsonify(
@@ -156,7 +58,7 @@ def update_user(id):
             404,
         )
 
-    form = UserFormUpdate(user_id=id, obj=user)
+    form = UserFormUpdate(user_id=user_id, obj=user)
     if form.validate_on_submit():
         updated = False
         for field_name, field in form._fields.items():
@@ -197,20 +99,8 @@ def update_user(id):
     )
 
 
-def delete_user(id):
-    if not current_user.is_authenticated or current_user.id != id:
-        return (
-            jsonify(
-                {
-                    "message": "Não autorizado!",
-                    "success": False,
-                    "data": None,
-                }
-            ),
-            403,
-        )
-
-    user = User.query.get(id)
+def delete_user(user_id):
+    user = User.query.get(user_id)
     if user:
         user_data = {
             "id": user.id,

@@ -10,18 +10,6 @@ from sqlalchemy.orm import subqueryload
 
 
 def get_datasets():
-    if not current_user.is_authenticated:
-        return (
-            jsonify(
-                {
-                    "message": "Não autorizado!",
-                    "success": False,
-                    "data": None,
-                }
-            ),
-            403,
-        )
-
     datasets = (
         Dataset.query.options(subqueryload(Dataset.clean_dataset))
         .filter_by(user_id=current_user.id)
@@ -64,22 +52,10 @@ def get_datasets():
     )
 
 
-def get_dataset(id):
-    if not current_user.is_authenticated:
-        return (
-            jsonify(
-                {
-                    "message": "Não autorizado!",
-                    "success": False,
-                    "data": None,
-                }
-            ),
-            403,
-        )
-
+def get_dataset(dataset_id):
     dataset = (
         Dataset.query.options(subqueryload(Dataset.clean_dataset))
-        .filter_by(id=id, user_id=current_user.id)
+        .filter_by(id=dataset_id, user_id=current_user.id)
         .first()
     )
 
@@ -128,18 +104,6 @@ def get_dataset(id):
 
 
 def create_dataset():
-    if not current_user.is_authenticated:
-        return (
-            jsonify(
-                {
-                    "message": "Não autorizado!",
-                    "success": False,
-                    "data": None,
-                }
-            ),
-            403,
-        )
-
     form = DatasetFormCreate()
     if form.validate_on_submit():
         csv_file = form.csv_file.data
@@ -172,6 +136,7 @@ def create_dataset():
             "description": new_dataset.description,
             "size_file": new_dataset.size_file,
             "file_url": new_dataset.file_url,
+            "project_id": new_dataset.project_id,
         }
         return (
             jsonify(
@@ -196,20 +161,8 @@ def create_dataset():
     )
 
 
-def update_dataset(id):
-    if not current_user.is_authenticated:
-        return (
-            jsonify(
-                {
-                    "message": "Não autorizado!",
-                    "success": False,
-                    "data": None,
-                }
-            ),
-            403,
-        )
-
-    dataset = Dataset.query.get(id)
+def update_dataset(dataset_id):
+    dataset = Dataset.query.get(dataset_id)
     if dataset is None or dataset.user_id != current_user.id:
         return (
             jsonify(
@@ -277,20 +230,8 @@ def update_dataset(id):
     )
 
 
-def delete_dataset(id):
-    if not current_user.is_authenticated:
-        return (
-            jsonify(
-                {
-                    "message": "Não autorizado!",
-                    "success": False,
-                    "data": None,
-                }
-            ),
-            403,
-        )
-
-    dataset = Dataset.query.get(id)
+def delete_dataset(dataset_id):
+    dataset = Dataset.query.get(dataset_id)
     if dataset is None or dataset.user_id != current_user.id:
         return (
             jsonify(

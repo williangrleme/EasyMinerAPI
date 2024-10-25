@@ -11,7 +11,7 @@ from app.controllers.s3_controller import S3Controller
 from app import db
 
 
-def dataReduction(id):
+def data_reduction(id):
     # Verifica se o usuário está autenticado
     if not current_user.is_authenticated:
         return jsonify({"mensagem": "Não autorizado!"}), 403
