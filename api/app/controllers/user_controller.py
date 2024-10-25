@@ -1,5 +1,4 @@
 from flask import jsonify, current_app
-from flask_login import current_user
 from app.models import User
 from app import db
 from app.forms.user_form import UserFormCreate, UserFormUpdate
