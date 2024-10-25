@@ -11,13 +11,13 @@ from app.controllers.s3_controller import S3Controller
 from app import db
 
 
-def data_reduction(id):
+def data_reduction(dataset_id):
     # Verifica se o usuário está autenticado
     if not current_user.is_authenticated:
         return jsonify({"mensagem": "Não autorizado!"}), 403
 
     # Busca o dataset associado ao ID fornecido e ao usuário atual
-    dataset = Dataset.query.filter_by(id=id, user_id=current_user.id).first()
+    dataset = Dataset.query.filter_by(id=dataset_id, user_id=current_user.id).first()
     if not dataset:
         return jsonify({"mensagem": "Base de dados não encontrada!"}), 404
 
