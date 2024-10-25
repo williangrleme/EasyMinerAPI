@@ -3,10 +3,10 @@ info:
   description: "Esta é a documentação da API do EasyMiner."
   version: "1.0.0"
   title: "EasyMinerAPI"
-host: "https://easyminerapi.fly.dev"
+host: "easyminerapi.fly.dev"
 basePath: "/api"
 schemes:
-  - "http"
+  - "https"
 
 paths:
   /auth/csrf-token:
@@ -14,26 +14,36 @@ paths:
       tags:
         - "Autenticação"
       summary: "Obter token CSRF"
-      description: "Gera um token CSRF."
+      description: "Gera e retorna um token CSRF para proteger formulários contra ataques CSRF."
       responses:
         200:
-          description: "Operação bem-sucedida"
+          description: "Token CSRF gerado com sucesso."
           schema:
             type: "object"
             properties:
-              csrf_token:
+              message:
                 type: "string"
+                example: "Token CSRF gerado com sucesso!"
+              success:
+                type: "boolean"
+                example: true
+              data:
+                type: "object"
+                properties:
+                  csrf_token:
+                    type: "string"
+                    example: "abc123csrfToken"
 
   /auth/login:
     post:
       tags:
         - "Autenticação"
       summary: "Login de usuário"
-      description: "Realiza o login de um usuário."
+      description: "Autentica um usuário com base no email e senha fornecidos."
       parameters:
         - in: "body"
           name: "body"
-          description: "Detalhes do login"
+          description: "Detalhes do login, incluindo email e senha."
           required: true
           schema:
             type: "object"
@@ -46,76 +56,126 @@ paths:
                 format: "email"
                 example: "usuario@exemplo.com"
                 description: "Endereço de email do usuário."
-                minLength: 5
-                maxLength: 255
               password:
                 type: "string"
                 description: "Senha do usuário."
-                minLength: 6
-                maxLength: 20
-                example: "suaSenhaSegura"
+                example: "senha123"
       responses:
         200:
-          description: "Login bem-sucedido"
+          description: "Login bem-sucedido."
+          schema:
+            type: "object"
+            properties:
+              message:
+                type: "string"
+                example: "Login realizado com sucesso!"
+              success:
+                type: "boolean"
+                example: true
+              data:
+                type: "null"
+                example: null
+
         401:
-          description: "Credenciais inválidas"
+          description: "Credenciais inválidas."
+          schema:
+            type: "object"
+            properties:
+              message:
+                type: "string"
+                example: "Credenciais inválidas!"
+              success:
+                type: "boolean"
+                example: false
+              data:
+                type: "null"
+                example: null
         422:
-          description: "Dados inválidos"
+          description: "Dados inválidos."
+          schema:
+            type: "object"
+            properties:
+              message:
+                type: "string"
+                example: "Dados inválidos!"
+              success:
+                type: "boolean"
+                example: false
+              data:
+                type: "object"
+                example: { "email": [ "Campo obrigatório." ], "password": [ "Campo obrigatório." ] }
 
   /auth/logout:
     post:
       tags:
         - "Autenticação"
       summary: "Logout de usuário"
-      description: "Realiza o logout do usuário atual."
+      description: "Realiza o logout do usuário atualmente autenticado."
       responses:
         200:
-          description: "Logout bem-sucedido"
+          description: "Logout bem-sucedido."
+          schema:
+            type: "object"
+            properties:
+              message:
+                type: "string"
+                example: "Logout realizado com sucesso!"
+              success:
+                type: "boolean"
+                example: true
+              data:
+                type: "null"
+                example: null
 
   /auth/me:
     get:
       tags:
         - "Autenticação"
       summary: "Obter usuário atual"
-      description: "Retorna os detalhes do usuário atualmente logado."
+      description: "Retorna os detalhes do usuário autenticado atualmente."
       responses:
         200:
-          description: "Operação bem-sucedida"
+          description: "Operação bem-sucedida."
           schema:
             type: "object"
             properties:
-              id:
-                type: "integer"
-              name:
+              message:
                 type: "string"
-              phone_number:
+                example: "Usuário atual recuperado com sucesso!"
+              success:
+                type: "boolean"
+                example: true
+              data:
+                type: "object"
+                properties:
+                  id:
+                    type: "integer"
+                    example: 1
+                  name:
+                    type: "string"
+                    example: "João Silva"
+                  phone_number:
+                    type: "string"
+                    example: "+55 11 98765-4321"
+                  email:
+                    type: "string"
+                    example: "joao.silva@exemplo.com"
+        403:
+          description: "Não autorizado."
+          schema:
+            type: "object"
+            properties:
+              message:
                 type: "string"
-              email:
-                type: "string"
+                example: "Não autorizado!"
+              success:
+                type: "boolean"
+                example: false
+              data:
+                type: "null"
+                example: null
 
   /users:
-    get:
-      tags:
-        - "CRUD de Usuários"
-      summary: "Obter usuários"
-      description: "Retorna uma lista de todos os usuários."
-      responses:
-        200:
-          description: "Operação bem-sucedida"
-          schema:
-            type: "array"
-            items:
-              type: "object"
-              properties:
-                id:
-                  type: "integer"
-                name:
-                  type: "string"
-                phone_number:
-                  type: "string"
-                email:
-                  type: "string"
-
     post:
       tags:
         - "CRUD de Usuários"
@@ -162,41 +222,47 @@ paths:
 
       responses:
         201:
-          description: "Usuário criado"
-        422:
-          description: "Dados inválidos"
-
-  /users/{id}:
-    get:
-      tags:
-        - "CRUD de Usuários"
-      summary: "Obter usuário por ID"
-      description: "Retorna os detalhes de um usuário específico."
-      parameters:
-        - name: "id"
-          in: "path"
-          required: true
-          type: "integer"
-          description: "ID do usuário"
-      responses:
-        200:
-          description: "Operação bem-sucedida"
+          description: "Usuário criado com sucesso."
           schema:
             type: "object"
             properties:
-              id:
-                type: "integer"
-              name:
+              message:
                 type: "string"
-              phone_number:
+                example: "Usuário criado com sucesso!"
+              success:
+                type: "boolean"
+                example: true
+              data:
+                type: "object"
+                properties:
+                  id:
+                    type: "integer"
+                    example: 1
+                  name:
+                    type: "string"
+                    example: "João da Silva"
+                  phone_number:
+                    type: "string"
+                    example: "5511987654321"
+                  email:
+                    type: "string"
+                    example: "usuario@exemplo.com"
+        422:
+          description: "Dados inválidos."
+          schema:
+            type: "object"
+            properties:
+              message:
                 type: "string"
-              email:
-                type: "string"
-        403:
-          description: "Não autorizado"
-        404:
-          description: "Usuário não encontrado"
-
+                example: "Dados inválidos!"
+              success:
+                type: "boolean"
+                example: false
+              data:
+                type: "object"
+                example:
+                  name: [ "O tamanho deve estar entre 10 e 150 caracteres." ]
+                  email: [ "Por favor, insira um endereço de email válido." ]
     put:
       tags:
         - "CRUD de Usuários"
@@ -244,18 +310,64 @@ paths:
                 minLength: 8
                 maxLength: 30
                 example: "novaSenhaSegura123"
-                nullable: true
 
       responses:
         200:
-          description: "Usuário atualizado"
-        403:
-          description: "Não autorizado"
-        404:
-          description: "Usuário não encontrado"
+          description: "Usuário atualizado com sucesso."
+          schema:
+            type: "object"
+            properties:
+              message:
+                type: "string"
+                example: "Usuário atualizado com sucesso!"
+              success:
+                type: "boolean"
+                example: true
+              data:
+                type: "object"
+                properties:
+                  id:
+                    type: "integer"
+                    example: 1
+                  name:
+                    type: "string"
+                    example: "João da Silva"
+                  phone_number:
+                    type: "string"
+                    example: "5511987654321"
+                  email:
+                    type: "string"
+                    example: "usuario@exemplo.com"
         422:
-          description: "Dados inválidos"
+          description: "Dados inválidos."
+          schema:
+            type: "object"
+            properties:
+              message:
+                type: "string"
+                example: "Dados inválidos!"
+              success:
+                type: "boolean"
+                example: false
+              data:
+                type: "object"
+                example:
+                  phone_number: [ "O número de telefone deve ter entre 11 e 20 dígitos." ]
+                  password: [ "A senha deve ter entre 8 e 30 caracteres." ]
 
+        404:
+          description: "Usuário não encontrado."
+          schema:
+            type: "object"
+            properties:
+              message:
+                type: "string"
+                example: "Usuário não encontrado!"
+              success:
+                type: "boolean"
+                example: false
+              data:
+                type: "null"
     delete:
       tags:
         - "CRUD de Usuários"
@@ -269,11 +381,46 @@ paths:
           description: "ID do usuário"
       responses:
         200:
-          description: "Usuário excluído"
-        403:
-          description: "Não autorizado"
+          description: "Usuário excluído com sucesso."
+          schema:
+            type: "object"
+            properties:
+              message:
+                type: "string"
+                example: "Usuário deletado com sucesso!"
+              success:
+                type: "boolean"
+                example: true
+              data:
+                type: "object"
+                properties:
+                  id:
+                    type: "integer"
+                    example: 1
+                  name:
+                    type: "string"
+                    example: "João da Silva"
+                  phone_number:
+                    type: "string"
+                    example: "5511987654321"
+                  email:
+                    type: "string"
+                    example: "usuario@exemplo.com"
         404:
-          description: "Usuário não encontrado"
+          description: "Usuário não encontrado."
+          schema:
+            type: "object"
+            properties:
+              message:
+                type: "string"
+                example: "Usuário não encontrado!"
+              success:
+                type: "boolean"
+                example: false
+              data:
+                type: "null"
+                example: null
+
 
   /projects:
     get:
@@ -285,21 +432,62 @@ paths:
         200:
           description: "Operação bem-sucedida"
           schema:
-            type: "array"
-            items:
-              type: "object"
-              properties:
-                id:
-                  type: "integer"
-                name:
-                  type: "string"
-                description:
-                  type: "string"
+            type: "object"
+            properties:
+              message:
+                type: "string"
+                example: "Projetos recuperados com sucesso!"
+              success:
+                type: "boolean"
+                example: true
+              data:
+                type: "array"
+                items:
+                  type: "object"
+                  properties:
+                    id:
+                      type: "integer"
+                      example: 290
+                    name:
+                      type: "string"
+                      example: "Projeto para predição no setor de creditos"
+                    description:
+                      type: "string"
+                      example: "Este projeto é destinado a realizar o processo de KDD em 3 bases de dados no setor de créditos"
+                    datasets:
+                      type: "array"
+                      items:
+                        type: "object"
+                        properties:
+                          id:
+                            type: "integer"
+                            example: 40
+                          name:
+                            type: "string"
+                            example: "Dataset teste"
+                          description:
+                            type: "string"
+                            example: "Descrição do dataset teste"
+                          file_url:
+                            type: "string"
+                            example: "https://s3.amazonaws.com/bucket-easyminer/datasets/5/file"
+                          size_file:
+                            type: "string"
+                            example: "0.0037MB"
         403:
           description: "Não autorizado"
-        404:
-          description: "Projeto não encontrado"
-
+          schema:
+            type: "object"
+            properties:
+              message:
+                type: "string"
+                example: "Não autorizado."
+              success:
+                type: "boolean"
+                example: false
+              data:
+                type: "null"
+                example: null
     post:
       tags:
         - "CRUD de Projetos"
@@ -318,21 +506,54 @@ paths:
               name:
                 type: "string"
                 description: "Nome do projeto."
-                minLength: 3
-                maxLength: 200
-                example: "Novo Projeto"
+                minLength: 2
+                maxLength: 100
+                example: "Projeto financeiro"
               description:
                 type: "string"
                 description: "Descrição detalhada do projeto."
-                minLength: 11
+                minLength: 10
                 maxLength: 2000
-                example: "Este projeto é destinado a..."
-
+                example: "Este projeto é destinado a realizar o processo de KDD em 5 bases de dados no setor de finanças"
       responses:
         201:
           description: "Projeto criado com sucesso"
+          schema:
+            type: "object"
+            properties:
+              message:
+                type: "string"
+                example: "Projeto criado com sucesso!"
+              success:
+                type: "boolean"
+                example: true
+              data:
+                type: "object"
+                properties:
+                  id:
+                    type: "integer"
+                    example: 289
+                  name:
+                    type: "string"
+                    example: "Projeto para predição de doenças"
+                  description:
+                    type: "string"
+                    example: "Este projeto é destinado a realizar o processo de KDD em 3 bases de dados no setor de saúde"
         422:
           description: "Dados inválidos"
+          schema:
+            type: "object"
+            properties:
+              message:
+                type: "string"
+                example: "Dados inválidos!"
+              success:
+                type: "boolean"
+                example: false
+              data:
+                type: "object"
+                example:
+                  name: "O nome do projeto já existe."
 
   /projects/{id}:
     get:
@@ -352,16 +573,75 @@ paths:
           schema:
             type: "object"
             properties:
-              id:
-                type: "integer"
-              name:
+              message:
                 type: "string"
-              description:
-                type: "string"
+                example: "Projeto recuperado com sucesso!"
+              success:
+                type: "boolean"
+                example: true
+              data:
+                type: "array"
+                items:
+                  type: "object"
+                  properties:
+                    id:
+                      type: "integer"
+                      example: 540
+                    name:
+                      type: "string"
+                      example: "Projeto para predição no setor de creditos"
+                    description:
+                      type: "string"
+                      example: "Este projeto é destinado a realizar o processo de KDD em 3 bases de dados no setor de créditos"
+                    datasets:
+                      type: "array"
+                      items:
+                        type: "object"
+                        properties:
+                          id:
+                            type: "integer"
+                            example: 92
+                          name:
+                            type: "string"
+                            example: "Dataset teste 2"
+                          description:
+                            type: "string"
+                            example: "Descrição do dataset teste 2"
+                          file_url:
+                            type: "string"
+                            example: "https://s3.amazonaws.com/bucket-easyminer/datasets/92/file"
+                          size_file:
+                            type: "string"
+                            example: "0.29MB"
+
         403:
           description: "Não autorizado"
+          schema:
+            type: "object"
+            properties:
+              message:
+                type: "string"
+                example: "Não autorizado."
+              success:
+                type: "boolean"
+                example: false
+              data:
+                type: "null"
+                example: null
         404:
           description: "Projeto não encontrado"
+          schema:
+            type: "object"
+            properties:
+              message:
+                type: "string"
+                example: "Projeto não encontrado."
+              success:
+                type: "boolean"
+                example: false
+              data:
+                type: "null"
+                example: null
 
     put:
       tags:
@@ -380,31 +660,86 @@ paths:
           required: true
           schema:
             type: "object"
-            required:
-              - name
             properties:
               name:
                 type: "string"
                 description: "Nome do projeto."
-                minLength: 3
-                maxLength: 200
+                minLength: 2
+                maxLength: 100
                 example: "Projeto Atualizado"
               description:
                 type: "string"
                 description: "Descrição detalhada do projeto."
-                minLength: 11
+                minLength: 10
                 maxLength: 2000
                 example: "Descrição atualizada do projeto..."
-
       responses:
         200:
           description: "Projeto atualizado com sucesso"
+          schema:
+            type: "object"
+            properties:
+              message:
+                type: "string"
+                example: "Projeto atualizado com sucesso!"
+              success:
+                type: "boolean"
+                example: true
+              data:
+                type: "object"
+                properties:
+                  id:
+                    type: "integer"
+                  name:
+                    type: "string"
+                    example: "Nome atualizado"
+                  description:
+                    type: "string"
+                    example: "Descrição atualizada"
         403:
           description: "Não autorizado"
+          schema:
+            type: "object"
+            properties:
+              message:
+                type: "string"
+                example: "Não autorizado."
+              success:
+                type: "boolean"
+                example: false
+              data:
+                type: "null"
+                example: null
         404:
           description: "Projeto não encontrado"
+          schema:
+            type: "object"
+            properties:
+              message:
+                type: "string"
+                example: "Projeto não encontrado."
+              success:
+                type: "boolean"
+                example: false
+              data:
+                type: "null"
+                example: null
         422:
           description: "Dados inválidos"
+          schema:
+            type: "object"
+            properties:
+              message:
+                type: "string"
+                example: "Dados inválidos!"
+              success:
+                type: "boolean"
+                example: false
+              data:
+                type: "object"
+                example:
+                  description: "Tamanho deve estar entre 11 e 2000 caracteres."
+
 
     delete:
       tags:
@@ -420,10 +755,56 @@ paths:
       responses:
         200:
           description: "Projeto excluído com sucesso"
+          schema:
+            type: "object"
+            properties:
+              message:
+                type: "string"
+                example: "Projeto deletado com sucesso!"
+              success:
+                type: "boolean"
+                example: true
+              data:
+                type: "object"
+                properties:
+                  id:
+                    type: "integer"
+                    example: 5
+                  name:
+                    type: "string"
+                    example: "Projeto numero 5"
+                  description:
+                    type: "string"
+                    example: "Descrição do projeto numero 5"
         403:
           description: "Não autorizado"
+          schema:
+            type: "object"
+            properties:
+              message:
+                type: "string"
+                example: "Não autorizado."
+              success:
+                type: "boolean"
+                example: false
+              data:
+                type: "null"
+                example: null
         404:
           description: "Projeto não encontrado"
+          schema:
+            type: "object"
+            properties:
+              message:
+                type: "string"
+                example: "Projeto não encontrado."
+              success:
+                type: "boolean"
+                example: false
+              data:
+                type: "null"
+                example: null
+
 
   /datasets:
     get:
@@ -435,26 +816,51 @@ paths:
         200:
           description: "Operação bem-sucedida"
           schema:
-            type: "array"
-            items:
-              type: "object"
-              properties:
-                id:
-                  type: "integer"
-                name:
-                  type: "string"
-                description:
-                  type: "string"
-                size_file:
-                  type: "string"
-                file_url:
-                  type: "string"
-                project_id:
-                  type: "integer"
-                user_id:
-                  type: "integer"
+            type: "object"
+            properties:
+              message:
+                type: "string"
+                example: "Bases de dados recuperadas com sucesso!"
+              success:
+                type: "boolean"
+                example: true
+              data:
+                type: "array"
+                items:
+                  type: "object"
+                  properties:
+                    id:
+                      type: "integer"
+                      example: 5
+                    name:
+                      type: "string"
+                      example: "Base de dados 1"
+                    description:
+                      type: "string"
+                      example: "Descrição da base de dados"
+                    size_file:
+                      type: "string"
+                      example: "1.2 MB"
+                    file_url:
+                      type: "string"
+                      example: "https://s3.amazonaws.com/bucket-easyminer/datasets/5/file"
+                    project_id:
+                      type: "integer"
+                      example: 1
         403:
           description: "Não autorizado"
+          schema:
+            type: "object"
+            properties:
+              message:
+                type: "string"
+                example: "Não autorizado."
+              success:
+                type: "boolean"
+                example: false
+              data:
+                type: "null"
+                example: null
 
     post:
       tags:
@@ -471,32 +877,71 @@ paths:
           required: true
           minLength: 3
           maxLength: 255
-          example: "Dataset 1"
+          x-example: "Dataset 1"
         - in: "formData"
           name: "description"
           type: "string"
           description: "Descrição da base de dados."
           minLength: 11
           maxLength: 2000
-          example: "Descrição do dataset"
+          x-example: "Descrição do dataset"
         - in: "formData"
           name: "project_id"
           type: "integer"
           description: "ID do projeto associado."
           required: true
-          example: 1
+          x-example: 1
         - in: "formData"
           name: "csv_file"
           type: "file"
           description: "Arquivo CSV contendo os dados."
           required: true
-
       responses:
         201:
           description: "Base de dados criada com sucesso"
+          schema:
+            type: "object"
+            properties:
+              message:
+                type: "string"
+                example: "Base de dados criada com sucesso!"
+              success:
+                type: "boolean"
+                example: true
+              data:
+                type: "object"
+                properties:
+                  id:
+                    type: "integer"
+                    example: 5
+                  name:
+                    type: "string"
+                    example: "Base de dados 1"
+                  description:
+                    type: "string"
+                    example: "Descrição da base de dados"
+                  size_file:
+                    type: "string"
+                    example: "0.25 MB"
+                  file_url:
+                    type: "string"
+                    example: "https://s3.amazonaws.com/bucket-easyminer/datasets/5/file"
         422:
           description: "Dados inválidos"
-
+          schema:
+            type: "object"
+            properties:
+              message:
+                type: "string"
+                example: "Dados inválidos!"
+              success:
+                type: "boolean"
+                example: false
+              data:
+                type: "object"
+                example:
+                  csv_file:  "Apenas arquivos CSV são permitidos."
+                  name: "O nome da base de dados já existe."
   /datasets/{id}:
     get:
       tags:
@@ -515,24 +960,61 @@ paths:
           schema:
             type: "object"
             properties:
-              id:
-                type: "integer"
-              name:
+              message:
                 type: "string"
-              description:
-                type: "string"
-              size_file:
-                type: "string"
-              file_url:
-                type: "string"
-              project_id:
-                type: "integer"
-              user_id:
-                type: "integer"
+                example: "Base de dados recuperada com sucesso!"
+              success:
+                type: "boolean"
+                example: true
+              data:
+                type: "object"
+                properties:
+                  id:
+                    type: "integer"
+                    example: 2
+                  name:
+                    type: "string"
+                    example: "Base de dados 1"
+                  description:
+                    type: "string"
+                    example: "Descrição da base de dados"
+                  size_file:
+                    type: "string"
+                    example: "1.2 MB"
+                  file_url:
+                    type: "string"
+                    example: "https://s3.amazonaws.com/bucket-easyminer/datasets/2/file"
+                  project_id:
+                    type: "integer"
+                    example: 1
         403:
           description: "Não autorizado"
+          schema:
+            type: "object"
+            properties:
+              message:
+                type: "string"
+                example: "Você não tem permissão para acessar essa base de dados."
+              success:
+                type: "boolean"
+                example: false
+              data:
+                type: "null"
+                example: null
         404:
           description: "Base de dados não encontrada"
+          schema:
+            type: "object"
+            properties:
+              message:
+                type: "string"
+                example: "Base de dados não encontrada!"
+              success:
+                type: "boolean"
+                example: false
+              data:
+                type: "null"
+                example: null
 
     put:
       tags:
@@ -542,29 +1024,25 @@ paths:
       consumes:
         - "multipart/form-data"
       parameters:
-        - name: "id"
-          in: "path"
-          required: true
-          type: "integer"
-          description: "ID da base de dados"
         - in: "formData"
           name: "name"
           type: "string"
           description: "Nome da base de dados."
           minLength: 3
           maxLength: 255
-          example: "Dataset Atualizado"
+          x-example: "Dataset Atualizado"
         - in: "formData"
           name: "description"
           type: "string"
           description: "Descrição da base de dados."
           minLength: 11
           maxLength: 2000
-          example: "Descrição atualizada do dataset"
+          x-example: "Descrição atualizada do dataset"
         - in: "formData"
           name: "project_id"
           type: "integer"
           description: "ID do projeto associado."
+          x-example: 1
         - in: "formData"
           name: "csv_file"
           type: "file"
@@ -573,12 +1051,77 @@ paths:
       responses:
         200:
           description: "Base de dados atualizada com sucesso"
+          schema:
+            type: "object"
+            properties:
+              message:
+                type: "string"
+                example: "Base de dados atualizada com sucesso!"
+              success:
+                type: "boolean"
+                example: true
+              data:
+                type: "object"
+                properties:
+                  id:
+                    type: "integer"
+                    example: 3
+                  name:
+                    type: "string"
+                    example: "Base de dados 3"
+                  description:
+                    type: "string"
+                    example: "Descrição da base de dados"
+                  size_file:
+                    type: "string"
+                    example: "1.3 MB"
+                  file_url:
+                    type: "string"
+                    example: "https://s3.amazonaws.com/bucket-easyminer/datasets/3/file"
         403:
           description: "Não autorizado"
+          schema:
+            type: "object"
+            properties:
+              message:
+                type: "string"
+                example: "Você não tem permissão para acessar essa base de dados."
+              success:
+                type: "boolean"
+                example: false
+              data:
+                type: "null"
+                example: null
         404:
           description: "Base de dados não encontrada"
+          schema:
+            type: "object"
+            properties:
+              message:
+                type: "string"
+                example: "Base de dados não encontrada!"
+              success:
+                type: "boolean"
+                example: false
+              data:
+                type: "null"
+                example: null
         422:
           description: "Dados inválidos"
+          schema:
+            type: "object"
+            properties:
+              message:
+                type: "string"
+                example: "Dados inválidos!"
+              success:
+                type: "boolean"
+                example: false
+              data:
+                type: "object"
+                example:
+                  description: "O tamanho deve estar entre 11 e 2000 caracteres."
+                  project_id: "O projeto não existe."
 
     delete:
       tags:
@@ -594,10 +1137,61 @@ paths:
       responses:
         200:
           description: "Base de dados excluída com sucesso"
+          schema:
+            type: "object"
+            properties:
+              message:
+                type: "string"
+                example: "Base de dados deletada com sucesso!"
+              success:
+                type: "boolean"
+                example: true
+              data:
+                type: "object"
+                properties:
+                  id:
+                    type: "integer"
+                    example: 15
+                  name:
+                    type: "string"
+                    example: "Base de dados 15"
+                  description:
+                    type: "string"
+                    example: "Descrição da base de dados"
+                  size_file:
+                    type: "string"
+                    example: "0.89 MB"
+                  file_url:
+                    type: "string"
+                    example: "https://s3.amazonaws.com/bucket-easyminer/datasets/15/file"
         403:
           description: "Não autorizado"
+          schema:
+            type: "object"
+            properties:
+              message:
+                type: "string"
+                example: "Você não tem permissão para acessar essa base de dados."
+              success:
+                type: "boolean"
+                example: false
+              data:
+                type: "null"
+                example: null
         404:
           description: "Base de dados não encontrada"
+          schema:
+            type: "object"
+            properties:
+              message:
+                type: "string"
+                example: "Base de dados não encontrada!"
+              success:
+                type: "boolean"
+                example: false
+              data:
+                type: "null"
+                example: null
 
   /preprocessing/data-cleaning/{id}:
     post:
@@ -606,8 +1200,8 @@ paths:
       summary: "Realizar limpeza de dados"
       description: >
         Realiza a limpeza de dados em um dataset específico. O usuário deve
-        fornecer os métodos de limpeza a serem aplicados nas features escolhidas.
-        Métodos aceitos: `media`, `mediana`, `moda`.
+        fornecer os métodos de limpeza a serem aplicados nas features escolhidas,
+        assim como os valores faltantes a serem substituídos.
       parameters:
         - name: id
           in: path
@@ -618,19 +1212,24 @@ paths:
           name: body
           description: >
             Parâmetros necessários para realizar a limpeza dos dados, incluindo
-            a coluna alvo, features e o método de substituição de valores faltantes.
+            a coluna alvo, features, o método de substituição de valores faltantes e os valores faltantes.
           required: true
           schema:
             type: object
             required:
               - features
               - methods
+              - missing_values
             properties:
               features:
                 type: array
                 items:
                   type: string
                 description: "Lista de features a serem limpas."
+                example: [
+                  "COLUNA 1",
+                  "COLUNA 2"
+                ]
               methods:
                 type: string
                 description: "Método de limpeza a ser aplicado."
@@ -638,39 +1237,80 @@ paths:
                   - media
                   - mediana
                   - moda
+                example: "media"
+              missing_values:
+                type: array
+                items:
+                  type: string
+                  enum:
+                    - "0"
+                    - "null"
+                    - ""
+                    - "?"
+                description: "Valores a serem substituídos."
+                example: [
+                  "0",
+                  "?"
+                ]
       responses:
-        201:
+        200:
           description: "Limpeza de dados realizada com sucesso!"
           schema:
             type: object
             properties:
-              mensagem:
+              message:
                 type: string
+                example: "Limpeza de dados realizada com sucesso!"
+              success:
+                type: boolean
+                example: true
+              data:
+                type: string
+                example: None
         403:
           description: "Não autorizado"
           schema:
             type: object
             properties:
-              mensagem:
+              message:
                 type: string
+                example: "Não autorizado"
+              success:
+                type: boolean
+                example: False
+              data:
+                type: string
+                example: None
         404:
           description: "Base de dados não encontrada!"
           schema:
             type: object
             properties:
-              mensagem:
+              message:
                 type: string
+                example: "Base de dados não encontrada!"
+              success:
+                type: boolean
+                example: False
+              data:
+                type: string
+                example: None
         422:
           description: "Dados inválidos!"
           schema:
             type: object
             properties:
-              mensagem:
+              message:
                 type: string
-              erros:
+                example: "Dados inválidos!"
+              success:
+                type: boolean
+                example: False
+              data:
                 type: array
                 items:
                   type: string
+                  example: "Os seguintes campos não estão registrados na sua base de dados: COLUNA 1, COLUNA 2"
 
   /preprocessing/data-normalization/{id}:
     post:
