@@ -11,8 +11,8 @@ from app import db
 from sklearn.preprocessing import MinMaxScaler, StandardScaler
 
 
-def data_normalization(id):
-    dataset = Dataset.query.filter_by(id=id, user_id=current_user.id).first()
+def data_normalization(dataset_id):
+    dataset = Dataset.query.filter_by(id=dataset_id, user_id=current_user.id).first()
     if not dataset:
         return (
             jsonify(

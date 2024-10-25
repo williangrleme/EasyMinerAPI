@@ -115,8 +115,8 @@ def create_project():
     )
 
 
-def update_project(id):
-    project = Project.query.get(id)
+def update_project(project_id):
+    project = Project.query.get(project_id)
     if project is None or project.user_id != current_user.id:
         return (
             jsonify(
@@ -129,7 +129,7 @@ def update_project(id):
             404,
         )
 
-    form = ProjectFormUpdate(project_id=id)
+    form = ProjectFormUpdate(project_id=project_id)
     if form.validate_on_submit():
         updated = False
         for field_name, field in form._fields.items():
@@ -166,8 +166,8 @@ def update_project(id):
     )
 
 
-def delete_project(id):
-    project = Project.query.get(id)
+def delete_project(project_id):
+    project = Project.query.get(project_id)
     if project and project.user_id == current_user.id:
         project_data = {
             "id": project.id,
