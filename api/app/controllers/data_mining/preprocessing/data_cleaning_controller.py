@@ -1,8 +1,8 @@
 import pandas as pd
 from io import BytesIO
 from app.models import Dataset, CleanDataset
-from flask_login import current_user, login_required
-from flask import jsonify, current_app
+from flask_login import current_user
+from flask import jsonify
 from app.forms.data_mining_forms.preprocessing.data_cleaning_forms import (
     DataCleaningForm,
 )
@@ -111,9 +111,9 @@ def update_missing_values(df, column, method, missing_values):
     df[column].replace(missing_value, pd.NA, inplace=True)
 
     if method == "mediana":
-        df[column] = df[column].fillna(df[column].median())
+        df[column] = df[column].fillna(df[column].median().round(4))
     elif method == "media":
-        df[column] = df[column].fillna(df[column].mean())
+        df[column] = df[column].fillna(df[column].mean().round(4))
     elif method == "moda":
         df[column] = df[column].fillna(df[column].mode()[0])
 
