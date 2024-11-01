@@ -1,6 +1,6 @@
-from flask import current_app
 import boto3
 from botocore.exceptions import NoCredentialsError, ClientError
+from flask import current_app
 
 
 class S3Controller:

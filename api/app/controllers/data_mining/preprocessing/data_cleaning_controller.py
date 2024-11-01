@@ -1,13 +1,27 @@
-import pandas as pd
-from io import BytesIO
-from app.models import Dataset, CleanDataset
-from flask_login import current_user
-from flask import jsonify
+from app import db
+from app.controllers.s3_controller import S3Controller
 from app.forms.data_mining_forms.preprocessing.data_cleaning_forms import (
     DataCleaningForm,
 )
-from app.controllers.s3_controller import S3Controller
-from app import db
+from app.models import CleanDataset, Dataset
+from collections import OrderedDict
+from flask import Response
+from flask_login import current_user
+import json
+import pandas as pd
+from io import BytesIO
+
+
+def create_response(message, success, data=None, status_code=200):
+    response_data = OrderedDict(
+        [
+            ("message", message),
+            ("success", success),
+            ("data", data),
+        ]
+    )
+    response_json = json.dumps(response_data)
+    return Response(response_json, mimetype="application/json", status=status_code)
 
 
 def data_cleaning(dataset_id):
@@ -17,14 +31,10 @@ def data_cleaning(dataset_id):
         .first()
     )
     if dataset is None:
-        return (
-            jsonify(
-                {
-                    "message": "Base de dados não encontrada!",
-                    "success": False,
-                    "data": None,
-                }
-            ),
+        return create_response(
+            "Base de dados não encontrada!",
+            False,
+            None,
             404,
         )
 
@@ -55,6 +65,15 @@ def data_cleaning(dataset_id):
             user_id=current_user.id,
         )
 
+        existing_clean_dataset = CleanDataset.query.filter_by(
+            dataset_id=dataset.id
+        ).first()
+        if existing_clean_dataset:
+            s3 = S3Controller()
+            s3.delete_file_from_s3(existing_clean_dataset.file_url)
+            db.session.delete(existing_clean_dataset)
+            db.session.commit()
+
         db.session.add(clean_dataset)
         db.session.commit()
 
@@ -62,28 +81,20 @@ def data_cleaning(dataset_id):
             "id": clean_dataset.id,
             "size_file": clean_dataset.size_file,
             "file_url": clean_dataset.file_url,
-            "dataset_id": clean_dataset.dataset_id,
+            "original_dataset_id": clean_dataset.dataset_id,
         }
 
-        return (
-            jsonify(
-                {
-                    "message": "Limpeza de dados realizada com sucesso!",
-                    "success": True,
-                    "data": clean_dataset_data,
-                }
-            ),
+        return create_response(
+            "Limpeza de dados realizada com sucesso!",
+            True,
+            clean_dataset_data,
             200,
         )
 
-    return (
-        jsonify(
-            {
-                "message": "Dados inválidos!",
-                "success": False,
-                "data": form.errors,
-            }
-        ),
+    return create_response(
+        "Dados inválidos!",
+        False,
+        form.errors,
         422,
     )
 
@@ -119,7 +130,7 @@ def update_missing_values(df, column, method, missing_values):
 
 
 def save_clean_dataset(df, original_file_url):
-    file_hash = original_file_url.split("/")[-1].replace(".csv", "")
+    file_hash = original_file_url.split("/")[-1].split("_", 1)[0]
     clean_file_name = f"{file_hash}_clean.csv"
 
     csv_buffer = BytesIO()
