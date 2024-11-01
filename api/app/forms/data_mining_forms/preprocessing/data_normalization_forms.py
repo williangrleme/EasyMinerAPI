@@ -1,6 +1,6 @@
 from flask_wtf import FlaskForm
 from wtforms import StringField, FieldList
-from wtforms.validators import Optional, DataRequired, ValidationError
+from wtforms.validators import DataRequired, ValidationError
 import pandas as pd
 from enum import Enum
 
@@ -11,47 +11,64 @@ class MethodEnum(Enum):
 
 
 class DataNormalizationForm(FlaskForm):
-    def __init__(self, file_url, *args, **kwargs):
-        super(DataNormalizationForm, self).__init__(*args, **kwargs)
+    ERROR_MESSAGES = {
+        "required": "O campo é obrigatório.",
+        "invalid_method": "Método inválido: {}. Selecione uma opção válida.",
+        "column_access": "Não foi possível acessar as colunas da base de dados.",
+        "invalid_features": "Os seguintes campos não estão registrados na sua base de dados: {}",
+    }
+
+    def __init__(self, file_url: str, *args, **kwargs):
+        super().__init__(*args, **kwargs)
         self.file_url = file_url
+        self.df_columns = self.load_dataframe_columns(file_url)
+
+    @staticmethod
+    def load_dataframe_columns(file_url: str):
+        try:
+            return pd.read_csv(file_url).columns.tolist()
+        except Exception as e:
+            raise ValueError(f"Erro ao carregar o arquivo: {e}")
 
     features = FieldList(
         StringField(
-            "Feature", validators=[DataRequired(message="O campo é obrigatório.")]
+            "Feature", validators=[DataRequired(message=ERROR_MESSAGES["required"])]
         ),
-        min_entries=1,
     )
 
     methods = StringField(
-        "Methods", validators=[DataRequired(message="O campo é obrigatório.")]
+        "Methods", validators=[DataRequired(message=ERROR_MESSAGES["required"])]
     )
 
-    # Validação customizada para o campo 'methods'
     def validate_methods(self, field):
         if field.data not in MethodEnum._value2member_map_:
             raise ValidationError(
-                f"Método inválido: {field.data}. Escolha entre 'zscore', ou 'minmax'."
+                self.ERROR_MESSAGES["invalid_method"].format(field.data)
             )
 
     def validate(self, **kwargs):
         if not super().validate(**kwargs):
             return False
 
-        df = pd.read_csv(self.file_url)
+        if not self.df_columns:
+            raise ValidationError(self.ERROR_MESSAGES["column_access"])
 
-        columns = df.columns.tolist()
+        if not self.check_features():
+            return False
 
-        if not columns:
-            raise ValidationError(
-                "Não foi possível acessar as colunas da base de dados."
-            )
+        return True
 
-        # Validações customizadas para o campo 'features'
-        for feature in self.features:
-            if feature.data not in columns:
-                self.features.errors.append(
-                    "O campo enviado não está registrado na sua base de dados."
+    def check_features(self):
+        invalid_features = [
+            feature.data
+            for feature in self.features
+            if feature.data not in self.df_columns
+        ]
+        if invalid_features:
+            self.features.errors.append(
+                self.ERROR_MESSAGES["invalid_features"].format(
+                    ", ".join(invalid_features)
                 )
-                return False
-
+            )
+            return False
         return True

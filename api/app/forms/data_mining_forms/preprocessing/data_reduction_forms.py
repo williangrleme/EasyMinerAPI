@@ -1,6 +1,6 @@
 from flask_wtf import FlaskForm
 from wtforms import StringField, FieldList, IntegerField
-from wtforms.validators import Optional, DataRequired, ValidationError
+from wtforms.validators import DataRequired, Optional, ValidationError
 import pandas as pd
 from enum import Enum
 
@@ -17,98 +17,124 @@ class SystematicMethodEnum(Enum):
 
 
 class DataReductionForm(FlaskForm):
-    def __init__(self, file_url, *args, **kwargs):
-        super(DataReductionForm, self).__init__(*args, **kwargs)
-        self.file_url = file_url
+    ERROR_MESSAGES = {
+        "required": "O campo é obrigatório.",
+        "invalid_method": "Método inválido: {}. Selecione uma opção válida.",
+        "invalid_systematic_method": "Escolha entre 'maiores' ou 'menores'.",
+        "feature_selection": "Apenas uma feature deve ser selecionada.",
+        "column_access": "Não foi possível acessar as colunas da base de dados.",
+        "invalid_features": "Os seguintes campos não estão registrados na sua base de dados: {}",
+        "sample_size_exceeds_records": "Amostra maior que o número de registros disponíveis.",
+    }
 
     features = FieldList(
         StringField(
-            "Feature", validators=[DataRequired(message="O campo é obrigatório.")]
-        ),
-        min_entries=1,
+            "Feature", validators=[DataRequired(message=ERROR_MESSAGES["required"])]
+        )
     )
 
     methods = StringField(
-        "Methods", validators=[DataRequired(message="O campo é obrigatório.")]
+        "Methods", validators=[DataRequired(message=ERROR_MESSAGES["required"])]
     )
 
     random_records = IntegerField("Random_numbers", validators=[Optional()])
     systematic_records = IntegerField("Systematic_records", validators=[Optional()])
     systematic_method = StringField("Systematic_method", validators=[Optional()])
 
+    def __init__(self, file_url, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.file_url = file_url
+        self.df = self.load_dataframe(file_url)
+
+    @staticmethod
+    def load_dataframe(file_url):
+        try:
+            return pd.read_csv(file_url)
+        except Exception as e:
+            raise ValueError(f"Erro ao carregar o arquivo: {e}")
+
     def validate_methods(self, field):
         if field.data not in MethodEnum._value2member_map_:
             raise ValidationError(
-                f"Método inválido: {field.data}. Escolha entre 'pca', 'amostragem_aleatoria' ou 'amostragem_sistematica'."
+                self.ERROR_MESSAGES["invalid_method"].format(field.data)
             )
 
     def validate(self, **kwargs):
         if not super().validate(**kwargs):
             return False
 
-        # Validação condicional baseada no valor do método
-        method = self.methods.data
+        if self.df is None:
+            raise ValidationError(self.ERROR_MESSAGES["column_access"])
 
-        # Verifica se o método é de amostragem aleatória e se o número de registros foi fornecido
+        if not self.check_features():
+            return False
+
+        if not self.check_sampling_method(self.methods.data):
+            return False
+
+        return True
+
+    def check_sampling_method(self, method):
         if method == MethodEnum.AMOSTRAGEM_ALEATORIA.value:
-            if not self.random_records.data:
-                self.random_records.errors.append("O campo é obrigatório.")
-                return False
+            return self.check_random_sampling()
 
-        # Verifica se o método é de amostragem sistemática
-        elif method == MethodEnum.AMOSTRAGEM_SISTEMATICA.value:
-            if not self.systematic_records.data:
-                self.systematic_records.errors.append("O campo é obrigatório.")
-                return False
+        if method == MethodEnum.AMOSTRAGEM_SISTEMATICA.value:
+            return self.check_systematic_sampling()
 
-            if (
-                not self.systematic_method.data
-                or self.systematic_method.data
-                not in SystematicMethodEnum._value2member_map_
-            ):
-                self.systematic_method.errors.append(
-                    "Escolha entre 'maiores' ou 'menores'."
-                )
-                return False
+        return True
 
-            # Validação extra: lista de features deve conter exatamente uma feature
-            if len(self.features.data) != 1:
-                self.features.errors.append("Apenas uma feature deve ser selecionada.")
-                return False
+    def check_random_sampling(self):
+        if not self.random_records.data:
+            self.random_records.errors.append(self.ERROR_MESSAGES["required"])
+            return False
 
-        # Carrega o dataset para validar o tamanho da amostragem
-        try:
-            df = pd.read_csv(self.file_url)
-        except Exception:
-            raise ValidationError(
-                "Não foi possível acessar as colunas da base de dados."
-            )
-
-        if (
-            method == MethodEnum.AMOSTRAGEM_ALEATORIA.value
-            and self.random_records.data > len(df)
-        ):
+        if self.random_records.data > len(self.df):
             self.random_records.errors.append(
-                "Amostra maior que o número de registros disponíveis."
+                self.ERROR_MESSAGES["sample_size_exceeds_records"]
+            )
+            return False
+
+        return True
+
+    def check_systematic_sampling(self):
+        if not self.systematic_records.data:
+            self.systematic_records.errors.append(self.ERROR_MESSAGES["required"])
+            return False
+
+        if self.systematic_records.data > len(self.df):
+            self.systematic_records.errors.append(
+                self.ERROR_MESSAGES["sample_size_exceeds_records"]
             )
             return False
 
         if (
-            method == MethodEnum.AMOSTRAGEM_SISTEMATICA.value
-            and self.systematic_records.data > len(df)
+            not self.systematic_method.data
+            or self.systematic_method.data
+            not in SystematicMethodEnum._value2member_map_
         ):
-            self.systematic_records.errors.append(
-                "Amostra maior que o número de registros disponíveis."
+            self.systematic_method.errors.append(
+                self.ERROR_MESSAGES["invalid_method"].format(
+                    self.systematic_method.data
+                )
             )
             return False
 
-        # Validações customizadas para o campo 'features'
-        columns = df.columns.tolist()
-        for feature in self.features:
-            if feature.data not in columns:
-                self.features.errors.append(
-                    "O campo enviado não está registrado na sua base de dados."
-                )
-                return False
+        if len(self.features.data) != 1:
+            self.features.errors.append(self.ERROR_MESSAGES["feature_selection"])
+            return False
 
+        return True
+
+    def check_features(self):
+        columns = self.df.columns.tolist()
+        invalid_features = [
+            feature.data for feature in self.features if feature.data not in columns
+        ]
+        if invalid_features:
+            self.features.errors.append(
+                self.ERROR_MESSAGES["invalid_features"].format(
+                    ", ".join(invalid_features)
+                )
+            )
+            return False
         return True
