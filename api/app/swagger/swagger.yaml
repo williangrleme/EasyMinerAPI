@@ -9,31 +9,40 @@ schemes:
   - "https"
 
 paths:
+#  DOCUMENTACAO DE AUTENTICAÇÃO
+
   /auth/csrf-token:
     get:
       tags:
         - "Autenticação"
       summary: "Obter token CSRF"
-      description: "Gera e retorna um token CSRF para proteger formulários contra ataques CSRF."
+      description: "Gera e retorna um token CSRF."
       responses:
         200:
-          description: "Token CSRF gerado com sucesso."
+          description: "Operação bem sucedida."
           schema:
             type: "object"
             properties:
               message:
                 type: "string"
-                example: "Token CSRF gerado com sucesso!"
+                description: "Mensagem de retorno da operação."
               success:
                 type: "boolean"
-                example: true
+                description: "Indica se a operação foi bem-sucedida."
               data:
-                type: "object"
-                properties:
-                  csrf_token:
-                    type: "string"
-                    example: "abc123csrfToken"
-
+                type: "array"
+                description: "Dados adicionais retornados pela operação."
+          examples:
+            application/json:
+              {
+                "message": "Token CSRF gerado com sucesso!",
+                "success": true,
+                "data": [
+                  {
+                    "csrf_token": "ImQ5MTc1NDI4MGIwZTk0MGJjZmFkNziMTExNDk5OWQ3ZWRhNDIi.ZyA8C9cBRr1EZLzs3vrQDK7s6RyOZVxs"
+                  }
+                ]
+              }
   /auth/login:
     post:
       tags:
@@ -43,7 +52,7 @@ paths:
       parameters:
         - in: "body"
           name: "body"
-          description: "Detalhes do login, incluindo email e senha."
+          description: "Informações necessárias para realizar o login."
           required: true
           schema:
             type: "object"
@@ -54,56 +63,82 @@ paths:
               email:
                 type: "string"
                 format: "email"
-                example: "usuario@exemplo.com"
                 description: "Endereço de email do usuário."
+                example: "usuário@gmail.com"
               password:
                 type: "string"
                 description: "Senha do usuário."
-                example: "senha123"
+                example: "senhaSegura123"
       responses:
         200:
-          description: "Login bem-sucedido."
+          description: "Operação bem sucedida."
           schema:
             type: "object"
             properties:
               message:
                 type: "string"
-                example: "Login realizado com sucesso!"
+                description: "Mensagem de retorno da operação."
               success:
                 type: "boolean"
-                example: true
-              data:
-                type: "null"
-                example: null
-
-        401:
-          description: "Credenciais inválidas."
-          schema:
-            type: "object"
-            properties:
-              message:
-                type: "string"
-                example: "Credenciais inválidas!"
-              success:
-                type: "boolean"
-                example: false
-              data:
-                type: "null"
-                example: null
-        422:
-          description: "Dados inválidos."
-          schema:
-            type: "object"
-            properties:
-              message:
-                type: "string"
-                example: "Dados inválidos!"
-              success:
-                type: "boolean"
-                example: false
+                description: "Indica se a operação foi bem-sucedida."
               data:
                 type: "object"
-                example: { "email": [ "Campo obrigatório." ], "password": [ "Campo obrigatório." ] }
+                description: "Dados adicionais retornados pela operação."
+          examples:
+            application/json:
+              {
+                "message": "Login realizado com sucesso!",
+                "success": true,
+                "data": null
+              }
+
+        401:
+          description: "Servidor não conseguiu autenticar a solicitação."
+          schema:
+            type: "object"
+            properties:
+              message:
+                type: "string"
+                description: "Mensagem de retorno da operação."
+              success:
+                type: "boolean"
+                description: "Indica se a operação foi bem-sucedida."
+              data:
+                type: "object"
+                description: "Dados adicionais retornados pela operação."
+          examples:
+            application/json:
+              {
+                "message": "Credenciais inválidas!",
+                "success": false,
+                "data": null
+              }
+        422:
+          description: "Erros de validação."
+          schema:
+            type: "object"
+            properties:
+              message:
+                type: "string"
+                description: "Mensagem de retorno da operação."
+              success:
+                type: "boolean"
+                description: "Indica se a operação foi bem-sucedida."
+              data:
+                type: "object"
+                description: "Dados adicionais retornados pela operação."
+          examples:
+            application/json:
+              {
+                "message": "Dados inválidos!",
+                "success": false,
+                "data": [
+                  {
+                    "email": "Endereço de email inválido.",
+                    "password": "O campo é obrigatório."
+                  }
+                ]
+              }
 
   /auth/logout:
     post:
@@ -113,20 +148,26 @@ paths:
       description: "Realiza o logout do usuário atualmente autenticado."
       responses:
         200:
-          description: "Logout bem-sucedido."
+          description: "Operação bem sucedida."
           schema:
             type: "object"
             properties:
               message:
                 type: "string"
-                example: "Logout realizado com sucesso!"
+                description: "Mensagem de retorno da operação."
               success:
                 type: "boolean"
-                example: true
+                description: "Indica se a operação foi bem-sucedida."
               data:
-                type: "null"
-                example: null
-
+                type: "object"
+                description: "Dados adicionais retornados pela operação."
+          examples:
+            application/json:
+              {
+                "message": "Logout realizado com sucesso!",
+                "success": true,
+                "data": null
+              }
   /auth/me:
     get:
       tags:
@@ -135,45 +176,35 @@ paths:
       description: "Retorna os detalhes do usuário autenticado atualmente."
       responses:
         200:
-          description: "Operação bem-sucedida."
+          description: "Operação bem sucedida."
           schema:
             type: "object"
             properties:
               message:
                 type: "string"
-                example: "Usuário atual recuperado com sucesso!"
+                description: "Mensagem de retorno da operação."
               success:
                 type: "boolean"
-                example: true
+                description: "Indica se a operação foi bem-sucedida."
               data:
                 type: "object"
-                properties:
-                  id:
-                    type: "integer"
-                    example: 1
-                  name:
-                    type: "string"
-                    example: "João Silva"
-                  phone_number:
-                    type: "string"
-                    example: "+55 11 98765-4321"
-                  email:
-                    type: "string"
-                    example: "joao.silva@exemplo.com"
-        403:
-          description: "Não autorizado."
-          schema:
-            type: "object"
-            properties:
-              message:
-                type: "string"
-                example: "Não autorizado!"
-              success:
-                type: "boolean"
-                example: false
-              data:
-                type: "null"
-                example: null
+                description: "Dados adicionais retornados pela operação."
+          examples:
+            application/json:
+              {
+                "message": "Usuário atual recuperado com sucesso!",
+                "success": true,
+                "data": [
+                  {
+                    "id": 593,
+                    "name": "Matheus Shinji Fukuyama",
+                    "phone_number": "+55 11 98765-4321",
+                    "email": "shinji@gmail.com",
+                  }
+                ]
+              }
+
+  # DOCUMENTAÇÃO DE CRUD DE USUÁRIOS
 
   /users:
     post:
@@ -184,7 +215,7 @@ paths:
       parameters:
         - in: "body"
           name: "body"
-          description: "Detalhes do usuário"
+          description: "Informações necessárias para criar um novo usuário."
           required: true
           schema:
             type: "object"
@@ -199,70 +230,82 @@ paths:
                 description: "Nome do usuário."
                 minLength: 10
                 maxLength: 150
-                example: "João da Silva"
+                example: "Matheus Shinji Fukuyama"
               phone_number:
                 type: "string"
                 description: "Número de telefone do usuário."
                 minLength: 11
                 maxLength: 20
-                example: "5511987654321"
+                example: "+55 11 98765-4321"
               email:
                 type: "string"
                 format: "email"
                 description: "Endereço de email do usuário."
                 minLength: 6
                 maxLength: 200
-                example: "usuario@exemplo.com"
+                example: "shinji@mail.com"
               password:
                 type: "string"
                 description: "Senha do usuário."
                 minLength: 8
                 maxLength: 30
                 example: "senhaSegura123"
-
       responses:
         201:
-          description: "Usuário criado com sucesso."
+          description: "Novo registro criado com sucesso."
           schema:
             type: "object"
             properties:
               message:
                 type: "string"
-                example: "Usuário criado com sucesso!"
+                description: "Mensagem de retorno da operação."
               success:
                 type: "boolean"
-                example: true
+                description: "Indica se a operação foi bem-sucedida."
               data:
                 type: "object"
-                properties:
-                  id:
-                    type: "integer"
-                    example: 1
-                  name:
-                    type: "string"
-                    example: "João da Silva"
-                  phone_number:
-                    type: "string"
-                    example: "5511987654321"
-                  email:
-                    type: "string"
-                    example: "usuario@exemplo.com"
+                description: "Dados adicionais retornados pela operação."
+          examples:
+              application/json:
+                {
+                  "message": "Usuário criado com sucesso!",
+                  "success": true,
+                  "data": [
+                    {
+                      "id": 593,
+                      "name": "Matheus Shinji Fukuyama",
+                      "phone_number": "+55 11 98765-4321",
+                      "email": "shinji@gmail.com",
+                    }
+                  ]
+                }
+
         422:
-          description: "Dados inválidos."
+          description: "Erros de validação."
           schema:
             type: "object"
             properties:
               message:
                 type: "string"
-                example: "Dados inválidos!"
+                description: "Mensagem de retorno da operação."
               success:
                 type: "boolean"
-                example: false
+                description: "Indica se a operação foi bem-sucedida."
               data:
                 type: "object"
-                example:
-                  name: [ "O tamanho deve estar entre 10 e 150 caracteres." ]
-                  email: [ "Por favor, insira um endereço de email válido." ]
+                description: "Dados adicionais retornados pela operação."
+          examples:
+            application/json:
+              {
+                "message": "Dados inválidos!",
+                "success": false,
+                "data": [
+                  {
+                    "phone_number": "Número de telefone já cadastrado.",
+                    "email": "Endereço de email inválido."
+                  }
+                ]
+              }
     put:
       tags:
         - "CRUD de Usuários"
@@ -276,7 +319,7 @@ paths:
           description: "ID do usuário"
         - in: "body"
           name: "body"
-          description: "Detalhes do usuário atualizados"
+          description: "Informações atualizadas do usuário."
           required: true
           schema:
             type: "object"
@@ -313,61 +356,81 @@ paths:
 
       responses:
         200:
-          description: "Usuário atualizado com sucesso."
+          description: "Operação bem sucedida."
           schema:
             type: "object"
             properties:
               message:
                 type: "string"
-                example: "Usuário atualizado com sucesso!"
+                description: "Mensagem de retorno da operação."
               success:
                 type: "boolean"
-                example: true
+                description: "Indica se a operação foi bem-sucedida."
               data:
                 type: "object"
-                properties:
-                  id:
-                    type: "integer"
-                    example: 1
-                  name:
-                    type: "string"
-                    example: "João da Silva"
-                  phone_number:
-                    type: "string"
-                    example: "5511987654321"
-                  email:
-                    type: "string"
-                    example: "usuario@exemplo.com"
-        422:
-          description: "Dados inválidos."
-          schema:
-            type: "object"
-            properties:
-              message:
-                type: "string"
-                example: "Dados inválidos!"
-              success:
-                type: "boolean"
-                example: false
-              data:
-                type: "object"
-                example:
-                  phone_number: [ "O número de telefone deve ter entre 11 e 20 dígitos." ]
-                  password: [ "A senha deve ter entre 8 e 30 caracteres." ]
+                description: "Dados adicionais retornados pela operação."
+          examples:
+            application/json:
+              {
+                "message": "Usuário atualizado com sucesso!",
+                "success": true,
+                "data": [
+                  {
+                    "id": 690,
+                    "name": "João da Silva II",
+                    "phone_number": "5511987654321",
+                    "email": "Joao@gmail.com",
+                  }
+                ]
+              }
 
-        404:
-          description: "Usuário não encontrado."
+        422:
+          description: "Erros de validação."
           schema:
             type: "object"
             properties:
               message:
                 type: "string"
-                example: "Usuário não encontrado!"
+                description: "Mensagem de retorno da operação."
               success:
                 type: "boolean"
-                example: false
+                description: "Indica se a operação foi bem-sucedida."
               data:
-                type: "null"
+                type: "object"
+                description: "Dados adicionais retornados pela operação."
+          examples:
+            application/json:
+              {
+                "message": "Dados inválidos!",
+                "success": false,
+                "data": [
+                  {
+                    "phone_number": "Tamanho deve estar entre 11 e 20",
+                    "password": "Tamanho deve estar entre 8 e 30"
+                  }
+                ]
+              }
+        404:
+          description: "Não encontrado."
+          schema:
+            type: "object"
+            properties:
+              message:
+                type: "string"
+                description: "Mensagem de retorno da operação."
+              success:
+                type: "boolean"
+                description: "Indica se a operação foi bem-sucedida."
+              data:
+                type: "object"
+                description: "Dados adicionais retornados pela operação."
+          examples:
+            application/json:
+              {
+                "message": "Usuário não encontrado!",
+                "success": false,
+                "data": null
+              }
     delete:
       tags:
         - "CRUD de Usuários"
@@ -381,46 +444,56 @@ paths:
           description: "ID do usuário"
       responses:
         200:
-          description: "Usuário excluído com sucesso."
+          description: "Operação bem sucedida."
           schema:
             type: "object"
             properties:
               message:
                 type: "string"
-                example: "Usuário deletado com sucesso!"
+                description: "Mensagem de retorno da operação."
               success:
                 type: "boolean"
-                example: true
+                description: "Indica se a operação foi bem-sucedida."
               data:
                 type: "object"
-                properties:
-                  id:
-                    type: "integer"
-                    example: 1
-                  name:
-                    type: "string"
-                    example: "João da Silva"
-                  phone_number:
-                    type: "string"
-                    example: "5511987654321"
-                  email:
-                    type: "string"
-                    example: "usuario@exemplo.com"
+                description: "Dados adicionais retornados pela operação."
+          examples:
+            application/json:
+              {
+                "message": "Usuário deletado com sucesso!",
+                "success": true,
+                "data": [
+                  {
+                    "id": 690,
+                    "name": "João da Silva II",
+                    "phone_number": "5511987654321",
+                    "email": "Joao@gmail.com",
+                  }
+                ]
+              }
         404:
-          description: "Usuário não encontrado."
+          description: "Não encontrado."
           schema:
             type: "object"
             properties:
               message:
                 type: "string"
-                example: "Usuário não encontrado!"
+                description: "Mensagem de retorno da operação."
               success:
                 type: "boolean"
-                example: false
+                description: "Indica se a operação foi bem-sucedida."
               data:
-                type: "null"
-                example: null
+                type: "object"
+                description: "Dados adicionais retornados pela operação."
+          examples:
+            application/json:
+              {
+                "message": "Usuário não encontrado!",
+                "success": false,
+                "data": null
+              }
 
+  # DOCUMENTAÇÃO DE CRUD DE PROJETOS
 
   /projects:
     get:
@@ -540,7 +613,7 @@ paths:
                     type: "string"
                     example: "Este projeto é destinado a realizar o processo de KDD em 3 bases de dados no setor de saúde"
         422:
-          description: "Dados inválidos"
+          description: "Erros de validação."
           schema:
             type: "object"
             properties:
@@ -725,7 +798,7 @@ paths:
                 type: "null"
                 example: null
         422:
-          description: "Dados inválidos"
+          description: "Erros de validação."
           schema:
             type: "object"
             properties:
@@ -739,8 +812,6 @@ paths:
                 type: "object"
                 example:
                   description: "Tamanho deve estar entre 11 e 2000 caracteres."
-
-
     delete:
       tags:
         - "CRUD de Projetos"
@@ -805,6 +876,7 @@ paths:
                 type: "null"
                 example: null
 
+  # DOCUMENTAÇÃO DE CRUD DE BASES DE DADOS
 
   /datasets:
     get:
@@ -831,22 +903,71 @@ paths:
                   properties:
                     id:
                       type: "integer"
-                      example: 5
+                      example: 1
                     name:
                       type: "string"
                       example: "Base de dados 1"
                     description:
                       type: "string"
-                      example: "Descrição da base de dados"
+                      example: "Dados de clientes para análise de churn"
                     size_file:
                       type: "string"
-                      example: "1.2 MB"
+                      example: "2.5 MB"
                     file_url:
                       type: "string"
-                      example: "https://s3.amazonaws.com/bucket-easyminer/datasets/5/file"
+                      example: "https://s3.amazonaws.com/bucket-easyminer/datasets/1/file"
                     project_id:
                       type: "integer"
-                      example: 1
+                      example: 10
+          examples:
+            application/json:
+              {
+                "message": "Bases de dados recuperadas com sucesso!",
+                "success": true,
+                "data": [
+                  {
+                    "id": 1,
+                    "name": "Base de dados 1",
+                    "description": "Dados de clientes para análise de churn",
+                    "size_file": "2.5 MB",
+                    "file_url": "https://s3.amazonaws.com/bucket-easyminer/datasets/1/file",
+                    "project_id": 10
+                  },
+                  {
+                    "id": 2,
+                    "name": "Base de dados 2",
+                    "description": "Dados de vendas do último ano",
+                    "size_file": "3.7 MB",
+                    "file_url": "https://s3.amazonaws.com/bucket-easyminer/datasets/2/file",
+                    "project_id": 10
+                  },
+                  {
+                    "id": 3,
+                    "name": "Base de dados 3",
+                    "description": "Informações de acessos ao sistema",
+                    "size_file": "1.1 MB",
+                    "file_url": "https://s3.amazonaws.com/bucket-easyminer/datasets/3/file",
+                    "project_id": 12
+                  },
+                  {
+                    "id": 4,
+                    "name": "Base de dados 4",
+                    "description": "Registros de transações financeiras",
+                    "size_file": "4.0 MB",
+                    "file_url": "https://s3.amazonaws.com/bucket-easyminer/datasets/4/file",
+                    "project_id": 13
+                  },
+                  {
+                    "id": 5,
+                    "name": "Base de dados 5",
+                    "description": "Dados de inventário",
+                    "size_file": "1.2 MB",
+                    "file_url": "https://s3.amazonaws.com/bucket-easyminer/datasets/5/file",
+                    "project_id": 15
+                  }
+                ]
+              }
+
         403:
           description: "Não autorizado"
           schema:
@@ -927,7 +1048,7 @@ paths:
                     type: "string"
                     example: "https://s3.amazonaws.com/bucket-easyminer/datasets/5/file"
         422:
-          description: "Dados inválidos"
+          description: "Erros de validação."
           schema:
             type: "object"
             properties:
@@ -940,14 +1061,15 @@ paths:
               data:
                 type: "object"
                 example:
-                  csv_file:  "Apenas arquivos CSV são permitidos."
+                  csv_file: "Apenas arquivos CSV são permitidos."
                   name: "O nome da base de dados já existe."
+
   /datasets/{id}:
     get:
       tags:
         - "CRUD de Bases de Dados"
       summary: "Obter base de dados por ID"
-      description: "Retorna os detalhes de uma base de dados específica do usuário autenticado."
+      description: "Retorna os detalhes de uma base de dados específica do usuário autenticado, assim como a relação com uma base uma base de dados pré-processada, caso ela exista."
       parameters:
         - name: "id"
           in: "path"
@@ -986,7 +1108,40 @@ paths:
                     example: "https://s3.amazonaws.com/bucket-easyminer/datasets/2/file"
                   project_id:
                     type: "integer"
-                    example: 1
+                    example: 29
+                  clean_dataset:
+                    type: "object"
+                    properties:
+                      id:
+                        type: "integer"
+                        example: 1
+                      size_file:
+                        type: "string"
+                        example: "0.5 MB"
+                      file_url:
+                        type: "string"
+                        example: "https://s3.amazonaws.com/bucket-easyminer/clean_datasets/1/file"
+          examples:
+            application/json:
+              {
+                "message": "Base de dados recuperada com sucesso!",
+                "success": true,
+                "data": [
+                  {
+                    "id": 190,
+                    "name": "Base de dados 190",
+                    "description": "Dados de clientes para análise de churn",
+                    "size_file": "2.5 MB",
+                    "file_url": "https://s3.amazonaws.com/bucket-easyminer/datasets/10/file",
+                    "project_id": 10,
+                    "clean_dataset": {
+                      "id": 1,
+                      "size_file": "0.0222MB",
+                      "file_url": "https://s3.amazonaws.com/bucket-easyminer/datasets/10_clean/file",
+                    }
+                  }
+                ]
+              }
         403:
           description: "Não autorizado"
           schema:
@@ -1047,7 +1202,6 @@ paths:
           name: "csv_file"
           type: "file"
           description: "Arquivo CSV atualizado contendo os dados."
-
       responses:
         200:
           description: "Base de dados atualizada com sucesso"
@@ -1107,7 +1261,7 @@ paths:
                 type: "null"
                 example: null
         422:
-          description: "Dados inválidos"
+          description: "Erros de validação."
           schema:
             type: "object"
             properties:
@@ -1135,35 +1289,8 @@ paths:
           type: "integer"
           description: "ID da base de dados"
       responses:
-        200:
+        204:
           description: "Base de dados excluída com sucesso"
-          schema:
-            type: "object"
-            properties:
-              message:
-                type: "string"
-                example: "Base de dados deletada com sucesso!"
-              success:
-                type: "boolean"
-                example: true
-              data:
-                type: "object"
-                properties:
-                  id:
-                    type: "integer"
-                    example: 15
-                  name:
-                    type: "string"
-                    example: "Base de dados 15"
-                  description:
-                    type: "string"
-                    example: "Descrição da base de dados"
-                  size_file:
-                    type: "string"
-                    example: "0.89 MB"
-                  file_url:
-                    type: "string"
-                    example: "https://s3.amazonaws.com/bucket-easyminer/datasets/15/file"
         403:
           description: "Não autorizado"
           schema:
@@ -1171,7 +1298,7 @@ paths:
             properties:
               message:
                 type: "string"
-                example: "Você não tem permissão para acessar essa base de dados."
+                example: "Você não tem permissão para excluir essa base de dados."
               success:
                 type: "boolean"
                 example: false
@@ -1296,7 +1423,7 @@ paths:
                 type: string
                 example: None
         422:
-          description: "Dados inválidos!"
+          description: "Erros de validação."
           schema:
             type: object
             properties:
@@ -1357,7 +1484,7 @@ paths:
         404:
           description: "Base de dados não encontrada!"
         422:
-          description: "Dados inválidos!"
+          description: "Erros de validação."
 
   /preprocessing/data-reduction/{id}:
     post:
@@ -1436,7 +1563,7 @@ paths:
                 type: string
                 example: "Base de dados não encontrada!"
         422:
-          description: "Dados inválidos!"
+          description: "Erros de validação."
           schema:
             type: object
             properties:
