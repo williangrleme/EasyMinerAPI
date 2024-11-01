@@ -10,7 +10,7 @@ class UserFormBase(FlaskForm):
         "size_length": "Tamanho deve estar entre {} e {}.",
         "phone_number_exists": "Número de telefone já cadastrado.",
         "email_exists": "E-mail já cadastrado.",
-        "invalid_email": "Por favor, insira um endereço de email válido.",
+        "invalid_email": "Endereço de email inválido.",
     }
 
     @staticmethod

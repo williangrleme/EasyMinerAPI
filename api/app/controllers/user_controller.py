@@ -1,7 +1,21 @@
-from flask import jsonify, current_app
-from app.models import User
 from app import db
 from app.forms.user_form import UserFormCreate, UserFormUpdate
+from app.models import User
+from collections import OrderedDict
+from flask import Response
+import json
+
+
+def create_response(message, success, data=None, status_code=200):
+    response_data = OrderedDict(
+        [
+            ("message", message),
+            ("success", success),
+            ("data", data),
+        ]
+    )
+    response_json = json.dumps(response_data)
+    return Response(response_json, mimetype="application/json", status=status_code)
 
 
 def create_user():
@@ -15,30 +29,24 @@ def create_user():
         new_user.set_password(form.password.data)
         db.session.add(new_user)
         db.session.commit()
-        user_data = {
-            "id": new_user.id,
-            "name": new_user.name,
-            "phone_number": new_user.phone_number,
-            "email": new_user.email,
-        }
-        return (
-            jsonify(
-                {
-                    "message": "Usuário criado com sucesso!",
-                    "success": True,
-                    "data": user_data,
-                }
-            ),
+        user_data = OrderedDict(
+            [
+                ("id", new_user.id),
+                ("name", new_user.name),
+                ("phone_number", new_user.phone_number),
+                ("email", new_user.email),
+            ]
+        )
+        return create_response(
+            "Usuário criado com sucesso!",
+            True,
+            user_data,
             201,
         )
-    return (
-        jsonify(
-            {
-                "message": "Dados inválidos!",
-                "success": False,
-                "data": form.errors,
-            }
-        ),
+    return create_response(
+        "Dados inválidos!",
+        False,
+        form.errors,
         422,
     )
 
@@ -46,14 +54,10 @@ def create_user():
 def update_user(user_id):
     user = User.query.get(user_id)
     if user is None:
-        return (
-            jsonify(
-                {
-                    "message": "Usuário não encontrado!",
-                    "success": False,
-                    "data": None,
-                }
-            ),
+        return create_response(
+            "Usuário não encontrado!",
+            False,
+            None,
             404,
         )
 
@@ -69,31 +73,25 @@ def update_user(user_id):
             updated = True
         if updated:
             db.session.commit()
-        user_data = {
-            "id": user.id,
-            "name": user.name,
-            "phone_number": user.phone_number,
-            "email": user.email,
-        }
-        return (
-            jsonify(
-                {
-                    "message": "Usuário atualizado com sucesso!",
-                    "success": True,
-                    "data": user_data,
-                }
-            ),
+        user_data = OrderedDict(
+            [
+                ("id", user.id),
+                ("name", user.name),
+                ("phone_number", user.phone_number),
+                ("email", user.email),
+            ]
+        )
+        return create_response(
+            "Usuário atualizado com sucesso!",
+            True,
+            user_data,
             200,
         )
 
-    return (
-        jsonify(
-            {
-                "message": "Dados inválidos!",
-                "success": False,
-                "data": form.errors,
-            }
-        ),
+    return create_response(
+        "Dados inválidos!",
+        False,
+        form.errors,
         422,
     )
 
@@ -101,31 +99,25 @@ def update_user(user_id):
 def delete_user(user_id):
     user = User.query.get(user_id)
     if user:
-        user_data = {
-            "id": user.id,
-            "name": user.name,
-            "phone_number": user.phone_number,
-            "email": user.email,
-        }
+        user_data = OrderedDict(
+            [
+                ("id", user.id),
+                ("name", user.name),
+                ("phone_number", user.phone_number),
+                ("email", user.email),
+            ]
+        )
         db.session.delete(user)
         db.session.commit()
-        return (
-            jsonify(
-                {
-                    "message": "Usuário deletado com sucesso!",
-                    "success": True,
-                    "data": user_data,
-                }
-            ),
+        return create_response(
+            "Usuário deletado com sucesso!",
+            True,
+            user_data,
             200,
         )
-    return (
-        jsonify(
-            {
-                "message": "Usuário não encontrado!",
-                "success": False,
-                "data": None,
-            }
-        ),
+    return create_response(
+        "Usuário não encontrado!",
+        False,
+        None,
         404,
     )
