@@ -1,153 +1,141 @@
-import pandas as pd
-from io import BytesIO
-from flask_login import current_user
-from flask import jsonify, current_app
-from app.models import Dataset
 from api.app.forms.data_mining_forms.preprocessing.data_reduction_forms import (
     DataReductionForm,
 )
-from sklearn.decomposition import PCA
-from app.controllers.s3_controller import S3Controller
 from app import db
+from app.controllers.s3_controller import S3Controller
+from app.models import CleanDataset, Dataset
+from collections import OrderedDict
+from flask import Response
+from flask_login import current_user
+from io import BytesIO
+import json
+import pandas as pd
+from sklearn.decomposition import PCA
+
+
+def create_response(message, success, data=None, status_code=200):
+    response_data = OrderedDict(
+        [
+            ("message", message),
+            ("success", success),
+            ("data", data),
+        ]
+    )
+    response_json = json.dumps(response_data)
+    return Response(response_json, mimetype="application/json", status=status_code)
 
 
 def data_reduction(dataset_id):
-    # Verifica se o usuário está autenticado
-    if not current_user.is_authenticated:
-        return jsonify({"mensagem": "Não autorizado!"}), 403
-
-    # Busca o dataset associado ao ID fornecido e ao usuário atual
     dataset = Dataset.query.filter_by(id=dataset_id, user_id=current_user.id).first()
     if not dataset:
-        return jsonify({"mensagem": "Base de dados não encontrada!"}), 404
+        return create_response(
+            "Base de dados não encontrada!",
+            False,
+            None,
+            404,
+        )
 
-    # Obtém o dataset limpo
-    clean_dataset = dataset.clean_dataset
+    file_url = dataset.file_url
+    existing_clean_dataset = CleanDataset.query.filter_by(dataset_id=dataset.id).first()
 
-    # Inicializa o formulário de redução de dados com a URL do arquivo
-    form = DataReductionForm(file_url=clean_dataset.file_url)
+    if existing_clean_dataset:
+        file_url = existing_clean_dataset.file_url
 
-    # Validação do formulário
+    form = DataReductionForm(file_url=file_url)
+
     if not form.validate_on_submit():
-        return jsonify({"mensagem": "Dados inválidos!", "erros": form.errors}), 422
+        return create_response(
+            "Dados inválidos!",
+            False,
+            form.errors,
+            422,
+        )
 
-    # Carrega o dataset original a partir da URL
-    df = pd.read_csv(clean_dataset.file_url)
-
-    # Extrai os campos do formulário
+    df = pd.read_csv(file_url)
     features = form.features.data
-    methods = form.methods.data
+    method = form.methods.data
 
-    # Aplica a técnica de redução de dados apropriada
-    reduced_df = reduce_data(df, features, methods, form)
+    reduced_df = reduce_data(df, features, method, form)
+    file_url_reduced, size_file_with_unit = save_reduced_dataset(reduced_df, file_url)
 
-    # Loga o DataFrame reduzido para visualização
-    current_app.logger.info(f"\nDataset Reduzido:\n{reduced_df.head()}")
+    if existing_clean_dataset:
+        s3 = S3Controller()
+        s3.delete_file_from_s3(existing_clean_dataset.file_url)
+        db.session.delete(existing_clean_dataset)
+        db.session.commit()
 
-    # Salva o dataset reduzido no S3 e atualiza a URL e tamanho no banco de dados
-    file_url, size_file_with_unit = save_reduced_dataset(
-        reduced_df, clean_dataset.file_url
+    clean_dataset = CleanDataset(
+        size_file=size_file_with_unit,
+        file_url=file_url_reduced,
+        dataset_id=dataset.id,
+        user_id=current_user.id,
     )
-
-    # Atualiza o registro do dataset com a nova URL e tamanho
-    clean_dataset.file_url = file_url
-    clean_dataset.size_file = size_file_with_unit
+    db.session.add(clean_dataset)
     db.session.commit()
 
-    # Retorna uma mensagem de sucesso e o dataset reduzido
-    return jsonify({"mensagem": "Redução de dados realizada com sucesso!"}), 201
+    clean_dataset_data = {
+        "id": clean_dataset.id,
+        "size_file": clean_dataset.size_file,
+        "file_url": clean_dataset.file_url,
+        "original_dataset_id": clean_dataset.dataset_id,
+    }
+
+    return create_response(
+        "Redução de dados realizada com sucesso!",
+        True,
+        clean_dataset_data,
+        200,
+    )
 
 
 def reduce_data(df, features, method, form):
-    # Dicionário para mapear os métodos de redução para as funções correspondentes
     reduction_methods = {
         "pca": apply_pca,
         "amostragem_aleatoria": random_sampling,
         "amostragem_sistematica": systematic_sampling,
     }
-
-    # Obtém a função apropriada para o método fornecido
     reduction_method = reduction_methods.get(method)
-
-    # Executa o método de redução de dados e retorna o DataFrame reduzido
     return reduction_method(df, features, form)
 
 
 def apply_pca(df, features, form):
-    try:
-        # Aplica PCA nas features especificadas
-        pca = PCA(n_components=2)
-        pca_result = pca.fit_transform(df[features])
-
-        # Cria um DataFrame com os dois componentes principais
-        pca_df = pd.DataFrame(
-            pca_result, columns=["Componente Principal 1", "Componente Principal 2"]
-        )
-
-        # Retorna o DataFrame reduzido (apenas duas colunas)
-        return pca_df
-    except Exception as e:
-        current_app.logger.error(f"Erro ao aplicar PCA: {e}")
-        return pd.DataFrame()  # Retorna um DataFrame vazio em caso de erro
+    pca = PCA(n_components=2)
+    pca_result = pca.fit_transform(df[features])
+    return pd.DataFrame(
+        pca_result, columns=["Componente Principal 1", "Componente Principal 2"]
+    )
 
 
 def random_sampling(df, features, form):
-    try:
-        n = form.random_records.data
-
-        # Realiza a amostragem aleatória
-        sampled_df = df.sample(n=n, replace=False)
-
-        # Retorna o DataFrame reduzido com todas as colunas, mas com as linhas filtradas
-        return sampled_df
-    except Exception as e:
-        current_app.logger.error(f"Erro na amostragem aleatória: {e}")
-        return pd.DataFrame()  # Retorna um DataFrame vazio em caso de erro
+    n = form.random_records.data
+    return df.sample(n=n, replace=False)
 
 
 def systematic_sampling(df, features, form):
-    try:
-        n = form.systematic_records.data
-        systematic_method = form.systematic_method.data
-        feature = features[0]
+    n = form.systematic_records.data
+    systematic_method = form.systematic_method.data
+    feature = features[0]
 
-        # Organiza o dataset de acordo com o critério fornecido
-        sorted_df = None
-        if systematic_method == "maiores":
-            sorted_df = df.nlargest(n, feature)  # Pega os N maiores valores da feature
-        elif systematic_method == "menores":
-            sorted_df = df.nsmallest(n, feature)  # Pega os N menores valores da feature
-
-        # Retorna o DataFrame reduzido com todas as colunas, mas com as linhas filtradas
-        return sorted_df
-    except Exception as e:
-        current_app.logger.error(f"Erro na amostragem sistemática: {e}")
-        return pd.DataFrame()  # Retorna um DataFrame vazio em caso de erro
+    if systematic_method == "maiores":
+        return df.nlargest(n, feature)
+    elif systematic_method == "menores":
+        return df.nsmallest(n, feature)
 
 
 def save_reduced_dataset(df, original_file_url):
-    # Extrai o hash do nome do arquivo original e remove o sufixo "_clean", se presente
-    file_hash = (
-        original_file_url.split("/")[-1].replace(".csv", "").replace("_clean", "")
-    )
+    file_hash = original_file_url.split("/")[-1].split("_", 1)[0]
     reduced_file_name = f"{file_hash}_reduced.csv"
 
-    # Salva o DataFrame reduzido em um buffer de memória como um arquivo CSV
     csv_buffer = BytesIO()
     df.to_csv(csv_buffer, index=False)
     csv_buffer.seek(0)
 
-    # Calcula o tamanho do arquivo com unidade
     size_file_with_unit = f"{round(csv_buffer.getbuffer().nbytes / (1024 * 1024), 4)}MB"
-
-    # Cria um novo buffer para o arquivo CSV e define o nome e tipo do conteúdo
     csv_file = BytesIO(csv_buffer.read())
     csv_file.filename = reduced_file_name
     csv_file.content_type = "text/csv"
 
-    # Inicializa o controller S3, remove o arquivo antigo e faz o upload do novo arquivo
     s3 = S3Controller()
-    s3.delete_file_from_s3(original_file_url)
     file_url = s3.upload_file_to_s3(csv_file)
 
     return file_url, size_file_with_unit
