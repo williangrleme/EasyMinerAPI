@@ -6,7 +6,7 @@ from wtforms.validators import DataRequired, Email
 class LoginForm(FlaskForm):
     ERROR_MESSAGES = {
         "required": "O campo é obrigatório.",
-        "invalid_email": "Por favor, insira um endereço de email válido.",
+        "invalid_email": "Endereço de email inválido.",
     }
 
     email = StringField(
