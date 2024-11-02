@@ -1,3 +1,4 @@
+from flask_login import current_user
 from flask_wtf import FlaskForm
 from wtforms import StringField
 from wtforms.validators import DataRequired, Length, ValidationError, Optional
@@ -32,12 +33,8 @@ class BaseProjectForm(FlaskForm):
     )
 
     def validate_name(self, field):
-        if self.is_name_taken(field.data):
+        if Project.query.filter_by(name=field.data, user_id=current_user.id).first():
             raise ValidationError(self.ERROR_MESSAGES["name_exists"])
-
-    @staticmethod
-    def is_name_taken(name):
-        return Project.query.filter_by(name=name).first() is not None
 
 
 class ProjectFormCreate(BaseProjectForm):
@@ -61,6 +58,8 @@ class ProjectFormUpdate(BaseProjectForm):
 
     def validate_name(self, field):
         if Project.query.filter(
-            Project.name == field.data, Project.id != self.project_id
+            Project.name == field.data,
+            Project.id != self.project_id,
+            Project.user_id == current_user.id,
         ).first():
             raise ValidationError(self.ERROR_MESSAGES["name_exists"])
