@@ -23,28 +23,14 @@ def create_response(message, success, data=None, status_code=200):
     return Response(response_json, mimetype="application/json", status=status_code)
 
 
+from collections import OrderedDict
+
+
 def get_datasets():
-    datasets = (
-        Dataset.query.options(subqueryload(Dataset.clean_dataset))
-        .filter_by(user_id=current_user.id)
-        .all()
-    )
+    datasets = Dataset.query.filter_by(user_id=current_user.id).all()
 
     datasets_list = []
     for ds in datasets:
-        clean_dataset_info = None
-        if ds.clean_dataset and (
-            ds.clean_dataset.size_file
-            or ds.clean_dataset.name
-            or ds.clean_dataset.file_url
-        ):
-            clean_dataset_info = OrderedDict(
-                [
-                    ("id", ds.clean_dataset.id),
-                    ("size_file", ds.clean_dataset.size_file),
-                    ("file_url", ds.clean_dataset.file_url),
-                ]
-            )
         dataset_info = OrderedDict(
             [
                 ("id", ds.id),
@@ -53,9 +39,9 @@ def get_datasets():
                 ("size_file", ds.size_file),
                 ("file_url", ds.file_url),
                 ("project_id", ds.project_id),
-                ("clean_dataset", clean_dataset_info),
             ]
         )
+
         datasets_list.append(dataset_info)
 
     return create_response(
