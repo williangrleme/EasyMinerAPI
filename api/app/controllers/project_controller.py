@@ -27,21 +27,6 @@ def get_projects():
                 ("id", project.id),
                 ("name", project.name),
                 ("description", project.description),
-                (
-                    "datasets",
-                    [
-                        OrderedDict(
-                            [
-                                ("id", dataset.id),
-                                ("name", dataset.name),
-                                ("description", dataset.description),
-                                ("size_file", dataset.size_file),
-                                ("file_url", dataset.file_url),
-                            ]
-                        )
-                        for dataset in project.datasets
-                    ],
-                ),
             ]
         )
         for project in projects
