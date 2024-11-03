@@ -3,6 +3,7 @@ from app.forms.user_form import UserFormCreate, UserFormUpdate
 from app.models import User
 from collections import OrderedDict
 from flask import Response
+from flask_login import current_user
 import json
 
 
@@ -51,8 +52,8 @@ def create_user():
     )
 
 
-def update_user(user_id):
-    user = User.query.get(user_id)
+def update_user():
+    user = User.query.get(current_user.id)
     if user is None:
         return create_response(
             "Usuário não encontrado!",
@@ -61,7 +62,7 @@ def update_user(user_id):
             404,
         )
 
-    form = UserFormUpdate(user_id=user_id, obj=user)
+    form = UserFormUpdate(user_id=current_user.id, obj=user)
     if form.validate_on_submit():
         updated = False
         for field_name, field in form._fields.items():
@@ -96,28 +97,21 @@ def update_user(user_id):
     )
 
 
-def delete_user(user_id):
-    user = User.query.get(user_id)
-    if user:
-        user_data = OrderedDict(
-            [
-                ("id", user.id),
-                ("name", user.name),
-                ("phone_number", user.phone_number),
-                ("email", user.email),
-            ]
-        )
-        db.session.delete(user)
-        db.session.commit()
-        return create_response(
-            "Usuário deletado com sucesso!",
-            True,
-            user_data,
-            200,
-        )
+def delete_user():
+    user = User.query.get(current_user.id)
+    user_data = OrderedDict(
+        [
+            ("id", user.id),
+            ("name", user.name),
+            ("phone_number", user.phone_number),
+            ("email", user.email),
+        ]
+    )
+    db.session.delete(user)
+    db.session.commit()
     return create_response(
-        "Usuário não encontrado!",
-        False,
-        None,
-        404,
+        "Usuário deletado com sucesso!",
+        True,
+        user_data,
+        200,
     )
