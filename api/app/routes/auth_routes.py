@@ -1,11 +1,11 @@
-from flask import Blueprint
-from flask_login import login_required
 from app.controllers.auth_controller import (
-    login,
-    logout,
     get_csrf_token,
     get_current_user,
+    login,
+    logout,
 )
+from flask import Blueprint
+from flask_login import login_required
 
 auth_bp = Blueprint("auth", __name__)
 
