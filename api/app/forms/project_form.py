@@ -1,8 +1,8 @@
+from app.models import Project
 from flask_login import current_user
 from flask_wtf import FlaskForm
 from wtforms import StringField
-from wtforms.validators import DataRequired, Length, ValidationError, Optional
-from app.models import Project
+from wtforms.validators import DataRequired, Length, Optional, ValidationError
 
 
 class BaseProjectForm(FlaskForm):

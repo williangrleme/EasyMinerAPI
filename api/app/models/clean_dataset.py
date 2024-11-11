@@ -1,7 +1,8 @@
 from datetime import datetime
+
+from app.controllers.s3_controller import S3Controller
 from app.extensions import db
 from sqlalchemy import event
-from app.controllers.s3_controller import S3Controller
 
 
 class CleanDataset(db.Model):

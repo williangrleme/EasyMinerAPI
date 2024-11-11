@@ -1,9 +1,9 @@
-from flask_wtf.file import FileField, FileAllowed
-from flask_wtf import FlaskForm
-from wtforms import StringField, IntegerField
-from wtforms.validators import DataRequired, Length, Optional, ValidationError
 from app.models import Dataset, Project
 from flask_login import current_user
+from flask_wtf import FlaskForm
+from flask_wtf.file import FileAllowed, FileField
+from wtforms import IntegerField, StringField
+from wtforms.validators import DataRequired, Length, Optional, ValidationError
 
 
 class DatasetFormBase(FlaskForm):

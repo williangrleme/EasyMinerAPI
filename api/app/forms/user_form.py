@@ -1,7 +1,7 @@
-from flask_wtf import FlaskForm
-from wtforms import StringField, PasswordField
-from wtforms.validators import DataRequired, Email, Length, ValidationError, Optional
 from app.models import User
+from flask_wtf import FlaskForm
+from wtforms import PasswordField, StringField
+from wtforms.validators import DataRequired, Email, Length, Optional, ValidationError
 
 
 class UserFormBase(FlaskForm):
@@ -69,14 +69,14 @@ class UserFormUpdate(UserFormBase):
         self.user_id = user_id
 
     def validate_phone_number(self, field):
-        if field.data:  # Apenas verifica se o campo não está vazio
+        if field.data:
             if User.query.filter(
                 User.phone_number == field.data, User.id != self.user_id
             ).first():
                 raise ValidationError(self.ERROR_MESSAGES["phone_number_exists"])
 
     def validate_email(self, field):
-        if field.data:  # Apenas verifica se o campo não está vazio
+        if field.data:
             if User.query.filter(
                 User.email == field.data, User.id != self.user_id
             ).first():
