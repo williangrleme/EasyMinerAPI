@@ -1,9 +1,5 @@
-from app.controllers.auth_controller import (
-    get_csrf_token,
-    get_current_user,
-    login,
-    logout,
-)
+from app.controllers.auth_controller import (get_csrf_token, get_current_user,
+                                             login, logout)
 from flask import Blueprint
 from flask_login import login_required
 

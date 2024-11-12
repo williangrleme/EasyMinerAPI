@@ -1,4 +1,5 @@
-from app.controllers.user_controller import create_user, delete_user, update_user
+from app.controllers.user_controller import (create_user, delete_user,
+                                             update_user)
 from flask import Blueprint
 from flask_login import login_required
 

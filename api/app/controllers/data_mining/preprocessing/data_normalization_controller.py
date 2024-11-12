@@ -8,9 +8,8 @@ from app.models import CleanDataset, Dataset
 from flask_login import current_user
 from sklearn.preprocessing import MinMaxScaler, StandardScaler
 
-from api.app.forms.data_mining_forms.preprocessing.data_normalization_forms import (
-    DataNormalizationForm,
-)
+from api.app.forms.data_mining_forms.preprocessing.data_normalization_forms import \
+    DataNormalizationForm
 
 
 def remove_existing_clean_dataset(existing_clean_dataset):
