@@ -1,497 +1,752 @@
-swagger: "2.0"
+openapi: 3.0.0
 info:
-  description: "Esta é a documentação da API do EasyMiner."
-  version: "1.0.0"
-  title: "EasyMinerAPI"
-host: "easyminerapi.fly.dev"
-basePath: "/api"
-schemes:
-  - "https"
+  title: EasyMinerAPI
+  version: 1.0.0
+  description: Esta é a documentação da API do EasyMiner.
+servers:
+  - url: https://easyminerapi.fly.dev/api
 
 paths:
-#  DOCUMENTACAO DE AUTENTICAÇÃO
-
   /auth/csrf-token:
     get:
       tags:
-        - "Autenticação"
-      summary: "Obter token CSRF"
-      description: "Gera e retorna um token CSRF."
+        - Autenticação
+      summary: Obter token CSRF
+      description: Gera e retorna um token CSRF.
       responses:
-        200:
-          description: "Operação bem sucedida."
-          schema:
-            type: "object"
-            properties:
-              message:
-                type: "string"
-                description: "Mensagem de retorno da operação."
-              success:
-                type: "boolean"
-                description: "Indica se a operação foi bem-sucedida."
-              data:
-                type: "array"
-                description: "Dados adicionais retornados pela operação."
-          examples:
+        '200':
+          description: Operação bem sucedida.
+          content:
             application/json:
-              {
-                "message": "Token CSRF gerado com sucesso!",
-                "success": true,
-                "data": [
-                  {
-                    "csrf_token": "ImQ5MTc1NDI4MGIwZTk0MGJjZmFkNziMTExNDk5OWQ3ZWRhNDIi.ZyA8C9cBRr1EZLzs3vrQDK7s6RyOZVxs"
-                  }
-                ]
-              }
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    description: Mensagem de retorno da operação.
+                  success:
+                    type: boolean
+                    description: Indica se a operação foi bem-sucedida.
+                  data:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        csrf_token:
+                          type: string
+                          description: Token CSRF.
+              examples:
+                success:
+                  summary: Exemplo de resposta
+                  description: Retornado um Token CSRF para ser utilizado no header das requisições subsequentes.
+                  value:
+                    {
+                      "message": "Token CSRF gerado com sucesso!",
+                      "success": true,
+                      "data": [
+                        {
+                          "csrf_token": "ImQ5MTc1NDI4MGIwZTk0MGJjZmFkNziMTExNDk5OWQ3ZWRhNDIi.ZyA8C9cBRr1EZLzs3vrQDK7s6RyOZVxs"
+                        }
+                      ]
+                    }
+
   /auth/login:
     post:
       tags:
-        - "Autenticação"
-      summary: "Login de usuário"
-      description: "Autentica um usuário com base no email e senha fornecidos."
-      parameters:
-        - in: "body"
-          name: "body"
-          description: "Informações necessárias para realizar o login."
-          required: true
-          schema:
-            type: "object"
-            required:
-              - email
-              - password
-            properties:
-              email:
-                type: "string"
-                format: "email"
-                description: "Endereço de email do usuário."
-                example: "usuário@gmail.com"
-              password:
-                type: "string"
-                description: "Senha do usuário."
-                example: "senhaSegura123"
-      responses:
-        200:
-          description: "Operação bem sucedida."
-          schema:
-            type: "object"
-            properties:
-              message:
-                type: "string"
-                description: "Mensagem de retorno da operação."
+        - Autenticação
+      summary: Login de usuário
+      description: Autentica um usuário com base no email e senha fornecidos.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - email
+                - password
+              properties:
+                email:
+                  type: string
+                  format: email
+                  description: Endereço de email do usuário.
+                password:
+                  type: string
+                  description: Senha do usuário.
+            examples:
               success:
-                type: "boolean"
-                description: "Indica se a operação foi bem-sucedida."
-              data:
-                type: "object"
-                description: "Dados adicionais retornados pela operação."
-          examples:
-            application/json:
-              {
-                "message": "Login realizado com sucesso!",
-                "success": true,
-                "data": null
-              }
-
-        401:
-          description: "Servidor não conseguiu autenticar a solicitação."
-          schema:
-            type: "object"
-            properties:
-              message:
-                type: "string"
-                description: "Mensagem de retorno da operação."
-              success:
-                type: "boolean"
-                description: "Indica se a operação foi bem-sucedida."
-              data:
-                type: "object"
-                description: "Dados adicionais retornados pela operação."
-          examples:
-            application/json:
-              {
-                "message": "Credenciais inválidas!",
-                "success": false,
-                "data": null
-              }
-        422:
-          description: "Erros de validação."
-          schema:
-            type: "object"
-            properties:
-              message:
-                type: "string"
-                description: "Mensagem de retorno da operação."
-              success:
-                type: "boolean"
-                description: "Indica se a operação foi bem-sucedida."
-              data:
-                type: "object"
-                description: "Dados adicionais retornados pela operação."
-          examples:
-            application/json:
-              {
-                "message": "Dados inválidos!",
-                "success": false,
-                "data": [
+                summary: Exemplo de requisição
+                value:
                   {
-                    "email": "Endereço de email inválido.",
-                    "password": "O campo é obrigatório."
+                    "login": "usuario@gmail.com",
+                    "password": "senhaSegura123",
                   }
-                ]
-              }
+      responses:
+        '200':
+          description: Operação bem sucedida.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    description: Mensagem de retorno da operação.
+                  success:
+                    type: boolean
+                    description: Indica se a operação foi bem-sucedida.
+                  data:
+                    type: "null"
+                    description: Dados adicionais retornados pela operação.
+              examples:
+                success:
+                  summary: Exemplo de resposta
+                  description: Autenticação completa, habilitando o usuário a utilizar o sistema.
+                  value:
+                    {
+                      "message": "Login realizado com sucesso!",
+                      "success": true,
+                      "data": null
+                    }
 
+        '401':
+          description: Servidor não conseguiu autenticar a solicitação.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    description: Mensagem de retorno da operação.
+                  success:
+                    type: boolean
+                    description: Indica se a operação foi bem-sucedida.
+                  data:
+                    type: "null"
+                    description: Dados adicionais retornados pela operação.
+              examples:
+                invalid_credentials:
+                  summary: Exemplo de resposta
+                  description: Erro retornado o usuário tenta fazer login com credenciais que não são reconhecidas pelo sistema.
+                  value:
+                    {
+                      "message": "Credenciais inválidas!",
+                      "success": false,
+                      "data": null
+                    }
+
+        '422':
+          description: Erros de validação.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    description: Mensagem de retorno da operação.
+                  success:
+                    type: boolean
+                    description: Indica se a operação foi bem-sucedida.
+                  data:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        field:
+                          type: string
+                          description: Nome do campo que gerou o erro.
+                        error:
+                          type: string
+                          description: Mensagem de erro associada ao campo.
+              examples:
+                validation_error_email:
+                  summary: Exemplo de resposta 1
+                  description: Erro retornado quando o usuário forneceu um endereço de email inválido na requisição.
+                  value:
+                    {
+                      "message": "Dados inválidos!",
+                      "success": false,
+                      "data": [
+                        {
+                          "email": "Endereço de email inválido."
+                        }
+                      ]
+                    }
+                validation_error_password:
+                  summary: Exemplo de resposta 2
+                  description: Erro retornado quando o usuário não preencheu o campo de senha na requisição.
+                  value:
+                    {
+                      "message": "Dados inválidos!",
+                      "success": false,
+                      "data": [
+                        {
+                          "password": "O campo é obrigatório."
+                        }
+                      ]
+                    }
   /auth/logout:
     post:
       tags:
-        - "Autenticação"
-      summary: "Logout de usuário"
-      description: "Realiza o logout do usuário atualmente autenticado."
+        - Autenticação
+      summary: Logout de usuário
+      description: Realiza o logout do usuário atualmente autenticado.
       responses:
-        200:
-          description: "Operação bem sucedida."
-          schema:
-            type: "object"
-            properties:
-              message:
-                type: "string"
-                description: "Mensagem de retorno da operação."
-              success:
-                type: "boolean"
-                description: "Indica se a operação foi bem-sucedida."
-              data:
-                type: "object"
-                description: "Dados adicionais retornados pela operação."
-          examples:
+        '200':
+          description: Operação bem sucedida.
+          content:
             application/json:
-              {
-                "message": "Logout realizado com sucesso!",
-                "success": true,
-                "data": null
-              }
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    description: Mensagem de retorno da operação.
+                  success:
+                    type: boolean
+                    description: Indica se a operação foi bem-sucedida.
+                  data:
+                    type: "null"
+                    description: Dados adicionais retornados pela operação.
+              examples:
+                success:
+                  summary: Exemplo de resposta
+                  description: Logout do usuário bem sucedido, agora o usuário não está mais autenticado.
+                  value:
+                    {
+                      "message": "Logout realizado com sucesso!",
+                      "success": true,
+                      "data": null
+                    }
+        '401':
+          description: Não autorizado!.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    description: Mensagem de retorno da operação.
+                  success:
+                    type: boolean
+                    description: Indica se a operação foi bem-sucedida.
+                  data:
+                    type: "null"
+                    description: Dados adicionais retornados pela operação.
+              examples:
+                success:
+                  summary: Exemplo de resposta
+                  description: Usuário não está autenticado.
+                  value:
+                    {
+                      "message": "Não autorizado!!",
+                      "success": false,
+                      "data": null
+                    }
   /auth/me:
     get:
       tags:
-        - "Autenticação"
-      summary: "Obter usuário atual"
-      description: "Retorna os detalhes do usuário autenticado atualmente."
+        - Autenticação
+      summary: Obter usuário atual
+      description: Retorna os detalhes do usuário autenticado atualmente.
       responses:
-        200:
-          description: "Operação bem sucedida."
-          schema:
-            type: "object"
-            properties:
-              message:
-                type: "string"
-                description: "Mensagem de retorno da operação."
-              success:
-                type: "boolean"
-                description: "Indica se a operação foi bem-sucedida."
-              data:
-                type: "object"
-                description: "Dados adicionais retornados pela operação."
-          examples:
+        '200':
+          description: Operação bem sucedida.
+          content:
             application/json:
-              {
-                "message": "Usuário atual recuperado com sucesso!",
-                "success": true,
-                "data": [
-                  {
-                    "id": 593,
-                    "name": "Matheus Shinji Fukuyama",
-                    "phone_number": "+55 11 98765-4321",
-                    "email": "shinji@gmail.com",
-                  }
-                ]
-              }
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    description: Mensagem de retorno da operação.
+                  success:
+                    type: boolean
+                    description: Indica se a operação foi bem-sucedida.
+                  data:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: integer
+                          description: ID do usuário.
+                        name:
+                          type: string
+                          description: Nome do usuário.
+                        phone_number:
+                          type: string
+                          description: Número de telefone do usuário.
+                        email:
+                          type: string
+                          format: email
+                          description: Endereço de email do usuário.
+              examples:
+                success:
+                  summary: Exemplo de resposta
+                  description: Operação bem sucedida, retornando as informações do usuário autenticado.
+                  value:
+                    {
+                      "message": "Usuário atual recuperado com sucesso!",
+                      "success": true,
+                      "data": [
+                        {
+                          "id": 593,
+                          "name": "Willian Gustavo Rocha Leme",
+                          "phone_number": "+55 11 98765-4321",
+                          "email": "willian_leme@proton.me"
+                        }
+                      ]
+                    }
 
-  # DOCUMENTAÇÃO DE CRUD DE USUÁRIOS
-
+        '401':
+          description: Não autorizado.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    description: Mensagem de retorno da operação.
+                  success:
+                    type: boolean
+                    description: Indica se a operação foi bem-sucedida.
+                  data:
+                    type: "null"
+                    description: Dados adicionais retornados pela operação.
+              examples:
+                success:
+                  summary: Exemplo de resposta
+                  description: Usuário não está autenticado.
+                  value:
+                    {
+                      "message": "Não autorizado!",
+                      "success": false,
+                      "data": null
+                    }
   /users:
     post:
       tags:
         - "CRUD de Usuários"
       summary: "Criar usuário"
       description: "Cria um novo usuário."
-      parameters:
-        - in: "body"
-          name: "body"
-          description: "Informações necessárias para criar um novo usuário."
-          required: true
-          schema:
-            type: "object"
-            required:
-              - name
-              - phone_number
-              - email
-              - password
-            properties:
-              name:
-                type: "string"
-                description: "Nome do usuário."
-                minLength: 10
-                maxLength: 150
-                example: "Matheus Shinji Fukuyama"
-              phone_number:
-                type: "string"
-                description: "Número de telefone do usuário."
-                minLength: 11
-                maxLength: 20
-                example: "+55 11 98765-4321"
-              email:
-                type: "string"
-                format: "email"
-                description: "Endereço de email do usuário."
-                minLength: 6
-                maxLength: 200
-                example: "shinji@mail.com"
-              password:
-                type: "string"
-                description: "Senha do usuário."
-                minLength: 8
-                maxLength: 30
-                example: "senhaSegura123"
-      responses:
-        201:
-          description: "Novo registro criado com sucesso."
-          schema:
-            type: "object"
-            properties:
-              message:
-                type: "string"
-                description: "Mensagem de retorno da operação."
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - name
+                - phone_number
+                - email
+                - password
+              properties:
+                name:
+                  type: string
+                  description: Nome do usuário.
+                  minLength: 10
+                  maxLength: 150
+                phone_number:
+                  type: string
+                  description: Número de telefone do usuário.
+                  minLength: 11
+                  maxLength: 20
+                email:
+                  type: string
+                  format: email
+                  description: Endereço de email do usuário.
+                  minLength: 6
+                  maxLength: 200
+                password:
+                  type: string
+                  description: Senha do usuário.
+                  minLength: 8
+                  maxLength: 30
+            examples:
               success:
-                type: "boolean"
-                description: "Indica se a operação foi bem-sucedida."
-              data:
-                type: "object"
-                description: "Dados adicionais retornados pela operação."
-          examples:
-              application/json:
-                {
-                  "message": "Usuário criado com sucesso!",
-                  "success": true,
-                  "data": [
-                    {
-                      "id": 593,
-                      "name": "Matheus Shinji Fukuyama",
-                      "phone_number": "+55 11 98765-4321",
-                      "email": "shinji@gmail.com",
-                    }
-                  ]
-                }
-
-        422:
-          description: "Erros de validação."
-          schema:
-            type: "object"
-            properties:
-              message:
-                type: "string"
-                description: "Mensagem de retorno da operação."
-              success:
-                type: "boolean"
-                description: "Indica se a operação foi bem-sucedida."
-              data:
-                type: "object"
-                description: "Dados adicionais retornados pela operação."
-          examples:
-            application/json:
-              {
-                "message": "Dados inválidos!",
-                "success": false,
-                "data": [
+                summary: Exemplo de requisição
+                value:
                   {
-                    "phone_number": "Número de telefone já cadastrado.",
-                    "email": "Endereço de email inválido."
+                    "name": "Willian Gustavo Rocha Leme",
+                    "phone_number": "+55 11 98765-4321",
+                    "email": "willian_leme@proton.me",
+                    "password": "senhaSegura123"
                   }
-                ]
-              }
+      responses:
+        '201':
+          description: "Novo registro criado com sucesso."
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    description: Mensagem de retorno da operação.
+                  success:
+                    type: boolean
+                    description: Indica se a operação foi bem-sucedida.
+                  data:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: integer
+                          description: ID do usuário.
+                        name:
+                          type: string
+                          description: Nome do usuário.
+                        phone_number:
+                          type: string
+                          description: Número de telefone do usuário.
+                        email:
+                          type: string
+                          format: email
+                          description: Endereço de email do usuário.
+              examples:
+                success:
+                  summary: Exemplo de resposta
+                  description: Usuário criado, os detalhes do novo usuário são retornados.
+                  value:
+                    {
+                      "message": "Usuário criado com sucesso!",
+                      "success": true,
+                      "data": [
+                        {
+                          "id": 593,
+                          "name": "Willian Gustavo Rocha Leme",
+                          "phone_number": "+55 11 98765-4321",
+                          "email": "willian_leme@proton.me"
+                        }
+                      ]
+                    }
+        '422':
+          description: "Erros de validação."
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    description: Mensagem de retorno da operação.
+                  success:
+                    type: boolean
+                    description: Indica se a operação foi bem-sucedida.
+                  data:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        field:
+                          type: string
+                          description: Nome do campo que gerou o erro.
+                        error:
+                          type: string
+                          description: Mensagem de erro associada ao campo.
+              examples:
+                phone_validation_error:
+                  summary: Exemplo de resposta 1
+                  description: Informa o erro de validação associado ao campo de telefone.
+                  value:
+                    {
+                      "message": "Dados inválidos!",
+                      "success": false,
+                      "data": [
+                        {
+                          "phone_number": "Número de telefone já cadastrado."
+                        }
+                      ]
+                    }
+                email_validation_error:
+                  summary: Exemplo de resposta 2
+                  description: Informa o erro de validação associado ao campo de email.
+                  value:
+                    {
+                      "message": "Dados inválidos!",
+                      "success": false,
+                      "data": [
+                        {
+                          "email": "Endereço de email inválido."
+                        }
+                      ]
+                    }
+
     put:
       tags:
         - "CRUD de Usuários"
-      summary: "Atualizar usuário por ID"
-      description: "Atualiza os detalhes de um usuário específico."
-      parameters:
-        - name: "id"
-          in: "path"
-          required: true
-          type: "integer"
-          description: "ID do usuário"
-        - in: "body"
-          name: "body"
-          description: "Informações atualizadas do usuário."
-          required: true
-          schema:
-            type: "object"
-            required:
-              - name
-              - phone_number
-              - email
-            properties:
-              name:
-                type: "string"
-                description: "Nome do usuário."
-                minLength: 10
-                maxLength: 150
-                example: "João da Silva"
-              phone_number:
-                type: "string"
-                description: "Número de telefone do usuário."
-                minLength: 11
-                maxLength: 20
-                example: "5511987654321"
-              email:
-                type: "string"
-                format: "email"
-                description: "Endereço de email do usuário."
-                minLength: 6
-                maxLength: 200
-                example: "usuario@exemplo.com"
-              password:
-                type: "string"
-                description: "Senha do usuário."
-                minLength: 8
-                maxLength: 30
-                example: "novaSenhaSegura123"
-
+      summary: "Atualizar dados do usuário"
+      description: "Atualiza os detalhes do usuário autenticado atualmente."
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  description: Nome do usuário.
+                  minLength: 10
+                  maxLength: 150
+                phone_number:
+                  type: string
+                  description: Número de telefone do usuário.
+                  minLength: 11
+                  maxLength: 20
+                email:
+                  type: string
+                  format: email
+                  description: Endereço de email do usuário.
+                  minLength: 6
+                  maxLength: 200
+                password:
+                  type: string
+                  description: Senha do usuário.
+                  minLength: 8
+                  maxLength: 30
+            examples:
+              success:
+                summary: Exemplo de requisição
+                value:
+                  {
+                    "name": "Will Leme",
+                    "password": "novaSenhaSegura123"
+                  }
       responses:
-        200:
+        '200':
           description: "Operação bem sucedida."
-          schema:
-            type: "object"
-            properties:
-              message:
-                type: "string"
-                description: "Mensagem de retorno da operação."
-              success:
-                type: "boolean"
-                description: "Indica se a operação foi bem-sucedida."
-              data:
-                type: "object"
-                description: "Dados adicionais retornados pela operação."
-          examples:
+          content:
             application/json:
-              {
-                "message": "Usuário atualizado com sucesso!",
-                "success": true,
-                "data": [
-                  {
-                    "id": 690,
-                    "name": "João da Silva II",
-                    "phone_number": "5511987654321",
-                    "email": "Joao@gmail.com",
-                  }
-                ]
-              }
-
-        422:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    description: Mensagem de retorno da operação.
+                  success:
+                    type: boolean
+                    description: Indica se a operação foi bem-sucedida.
+                  data:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: integer
+                          description: ID do usuário.
+                        name:
+                          type: string
+                          description: Nome do usuário.
+                        phone_number:
+                          type: string
+                          description: Número de telefone do usuário.
+                        email:
+                          type: string
+                          format: email
+                          description: Endereço de email do usuário.
+              examples:
+                success:
+                  summary: Exemplo de resposta
+                  description: Usuário atualizado com sucesso; os detalhes do usuário atualizado são retornados.
+                  value:
+                    {
+                      "message": "Usuário atualizado com sucesso!",
+                      "success": true,
+                      "data": [
+                        {
+                          "id": 690,
+                          "name": "Will Leme",
+                          "phone_number": "+55 11 98765-4321",
+                          "email": "willian_leme@proton.me"
+                        }
+                      ]
+                    }
+        '422':
           description: "Erros de validação."
-          schema:
-            type: "object"
-            properties:
-              message:
-                type: "string"
-                description: "Mensagem de retorno da operação."
-              success:
-                type: "boolean"
-                description: "Indica se a operação foi bem-sucedida."
-              data:
-                type: "object"
-                description: "Dados adicionais retornados pela operação."
-          examples:
+          content:
             application/json:
-              {
-                "message": "Dados inválidos!",
-                "success": false,
-                "data": [
-                  {
-                    "phone_number": "Tamanho deve estar entre 11 e 20",
-                    "password": "Tamanho deve estar entre 8 e 30"
-                  }
-                ]
-              }
-        404:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    description: Mensagem de retorno da operação.
+                  success:
+                    type: boolean
+                    description: Indica se a operação foi bem-sucedida.
+                  data:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        field:
+                          type: string
+                          description: Nome do campo que gerou o erro.
+                        error:
+                          type: string
+                          description: Mensagem de erro associado ao campo.
+              examples:
+                validation_size_error:
+                  summary: Exemplo de resposta
+                  description: Informa o erro de validação associado ao campo de email.
+                  value:
+                    {
+                      "message": "Dados inválidos!",
+                      "success": false,
+                      "data": [
+                        {
+                          "email": "Tamanho deve estar entre 6 e 200"
+                        }
+                      ]
+                    }
+        '404':
           description: "Não encontrado."
-          schema:
-            type: "object"
-            properties:
-              message:
-                type: "string"
-                description: "Mensagem de retorno da operação."
-              success:
-                type: "boolean"
-                description: "Indica se a operação foi bem-sucedida."
-              data:
-                type: "object"
-                description: "Dados adicionais retornados pela operação."
-          examples:
+          content:
             application/json:
-              {
-                "message": "Usuário não encontrado!",
-                "success": false,
-                "data": null
-              }
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    description: Mensagem de retorno da operação.
+                  success:
+                    type: boolean
+                    description: Indica se a operação foi bem-sucedida.
+                  data:
+                    type: "null"
+              examples:
+                not_found:
+                  summary: Exemplo de resposta
+                  description: Usuário não encontrado; nenhum dado retornado.
+                  value:
+                    {
+                      "message": "Usuário não encontrado!",
+                      "success": false,
+                      "data": null
+                    }
+
     delete:
       tags:
         - "CRUD de Usuários"
-      summary: "Excluir usuário por ID"
-      description: "Exclui um usuário específico."
-      parameters:
-        - name: "id"
-          in: "path"
-          required: true
-          type: "integer"
-          description: "ID do usuário"
+      summary: "Excluir usuário"
+      description: "Exclui o usuário autenticado atualmente e todos os dados relacionados a ele, como projetos, datasets, etc."
       responses:
-        200:
+        '200':
           description: "Operação bem sucedida."
-          schema:
-            type: "object"
-            properties:
-              message:
-                type: "string"
-                description: "Mensagem de retorno da operação."
-              success:
-                type: "boolean"
-                description: "Indica se a operação foi bem-sucedida."
-              data:
-                type: "object"
-                description: "Dados adicionais retornados pela operação."
-          examples:
+          content:
             application/json:
-              {
-                "message": "Usuário deletado com sucesso!",
-                "success": true,
-                "data": [
-                  {
-                    "id": 690,
-                    "name": "João da Silva II",
-                    "phone_number": "5511987654321",
-                    "email": "Joao@gmail.com",
-                  }
-                ]
-              }
-        404:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    description: Mensagem de retorno da operação.
+                  success:
+                    type: boolean
+                    description: Indica se a operação foi bem-sucedida.
+                  data:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: integer
+                          description: ID do usuário.
+                        name:
+                          type: string
+                          description: Nome do usuário.
+                        phone_number:
+                          type: string
+                          description: Número de telefone do usuário.
+                        email:
+                          type: string
+                          format: email
+                          description: Endereço de email do usuário.
+              examples:
+                success:
+                  summary: Exemplo de resposta
+                  description: Usuário deletado com sucesso; os detalhes do usuário deletado são retornados.
+                  value:
+                    {
+                      "message": "Usuário deletado com sucesso!",
+                      "success": true,
+                      "data": [
+                        {
+                          "id": 690,
+                          "name": "João da Silva II",
+                          "phone_number": "5511987654321",
+                          "email": "Joao@gmail.com"
+                        }
+                      ]
+                    }
+        '404':
           description: "Não encontrado."
-          schema:
-            type: "object"
-            properties:
-              message:
-                type: "string"
-                description: "Mensagem de retorno da operação."
-              success:
-                type: "boolean"
-                description: "Indica se a operação foi bem-sucedida."
-              data:
-                type: "object"
-                description: "Dados adicionais retornados pela operação."
-          examples:
+          content:
             application/json:
-              {
-                "message": "Usuário não encontrado!",
-                "success": false,
-                "data": null
-              }
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    description: Mensagem de retorno da operação.
+                  success:
+                    type: boolean
+                    description: Indica se a operação foi bem-sucedida.
+                  data:
+                    type: "null"
+              examples:
+                not_found:
+                  summary: Exemplo de resposta
+                  description: Usuário não encontrado; nenhum dado retornado.
+                  value:
+                    {
+                      "message": "Usuário não encontrado!",
+                      "success": false,
+                      "data": null
+                    }
+
+        '500':
+          description: "Erro interno do servidor!"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    description: Mensagem de retorno da operação.
+                  success:
+                    type: boolean
+                    description: Indica se a operação foi bem-sucedida.
+                  data:
+                    type: string
+                    description: "Mensagem de erro do servidor."
+              examples:
+                internal_server_error:
+                  summary: Exemplo de resposta 1
+                  description: Usuário não encontrado; nenhum dado retornado.
+                  value:
+                    {
+                      "message": "Erro ao deletar o usuário!",
+                      "success": false,
+                      "data": "werkzeug.exceptions.InternalServerError: 500 Internal Server Error"
+                    }
+                internal_server_error_related_data:
+                  summary: Exemplo de resposta 2
+                  description: Erro ao deletar um projeto relacionado ao usuário.
+                  value:
+                    {
+                      "message": "Erro ao deletar dados relacionados ao usuário!",
+                      "success": false,
+                      "data": "sqlalchemy.exc.OperationalError: (sqlite3.OperationalError) no such table: projects"
+                    }
 
   # DOCUMENTAÇÃO DE CRUD DE PROJETOS
 
@@ -509,58 +764,37 @@ paths:
             properties:
               message:
                 type: "string"
-                example: "Projetos recuperados com sucesso!"
+                description: "Mensagem de retorno da operação."
               success:
                 type: "boolean"
-                example: true
+                description: "Indica se a operação foi bem-sucedida."
               data:
-                type: "array"
-                items:
-                  type: "object"
-                  properties:
-                    id:
-                      type: "integer"
-                      example: 290
-                    name:
-                      type: "string"
-                      example: "Projeto para predição no setor de creditos"
-                    description:
-                      type: "string"
-                      example: "Este projeto é destinado a realizar o processo de KDD em 3 bases de dados no setor de créditos"
-                    datasets:
-                      type: "array"
-                      items:
-                        type: "object"
-                        properties:
-                          id:
-                            type: "integer"
-                            example: 40
-                          name:
-                            type: "string"
-                            example: "Dataset teste"
-                          description:
-                            type: "string"
-                            example: "Descrição do dataset teste"
-                          file_url:
-                            type: "string"
-                            example: "https://s3.amazonaws.com/bucket-easyminer/datasets/5/file"
-                          size_file:
-                            type: "string"
-                            example: "0.0037MB"
-        403:
-          description: "Não autorizado"
-          schema:
-            type: "object"
-            properties:
-              message:
-                type: "string"
-                example: "Não autorizado."
-              success:
-                type: "boolean"
-                example: false
-              data:
-                type: "null"
-                example: null
+                type: "object"
+                description: "Dados adicionais retornados pela operação."
+          examples:
+            application/json:
+              {
+                "message": "Projetos recuperados com sucesso!",
+                "success": true,
+                "data": [
+                  {
+                    "id": 10,
+                    "name": "Projeto de bases de dados do setor financeiro",
+                    "description": "Esse projeto é destinado a realizar o processo de KDD em 5 bases de dados no setor de finanças",
+                  },
+                  {
+                    "id": 12,
+                    "name": "Projeto de bases de dados do setor de saúde",
+                    "description": "Esse projeto é destinado a realizar o processo de KDD em 3 bases de dados no setor de saúde",
+                  },
+                  {
+                    "id": 14,
+                    "name": "Projeto de bases de dados do setor de créditos",
+                    "description": "Esse projeto é destinado a realizar o processo de KDD em 3 bases de dados no setor de créditos",
+                  }
+                ]
+              }
+
     post:
       tags:
         - "CRUD de Projetos"
@@ -569,7 +803,7 @@ paths:
       parameters:
         - in: "body"
           name: "body"
-          description: "Detalhes do projeto"
+          description: "Informações necessárias para criar um novo projeto."
           required: true
           schema:
             type: "object"
@@ -578,7 +812,7 @@ paths:
             properties:
               name:
                 type: "string"
-                description: "Nome do projeto."
+                description: "Nome do projeto. Deve ser único entre os projetos do usuário."
                 minLength: 2
                 maxLength: 100
                 example: "Projeto financeiro"
@@ -588,30 +822,36 @@ paths:
                 minLength: 10
                 maxLength: 2000
                 example: "Este projeto é destinado a realizar o processo de KDD em 5 bases de dados no setor de finanças"
+
       responses:
         201:
-          description: "Projeto criado com sucesso"
+          description: "Novo registro criado com sucesso."
           schema:
             type: "object"
             properties:
               message:
                 type: "string"
-                example: "Projeto criado com sucesso!"
+                description: "Mensagem de retorno da operação."
               success:
                 type: "boolean"
-                example: true
+                description: "Indica se a operação foi bem-sucedida."
               data:
                 type: "object"
-                properties:
-                  id:
-                    type: "integer"
-                    example: 289
-                  name:
-                    type: "string"
-                    example: "Projeto para predição de doenças"
-                  description:
-                    type: "string"
-                    example: "Este projeto é destinado a realizar o processo de KDD em 3 bases de dados no setor de saúde"
+                description: "Dados adicionais retornados pela operação."
+          examples:
+            application/json:
+              {
+                "message": "Usuário criado com sucesso!",
+                "success": true,
+                "data": [
+                  {
+                    "id": 289,
+                    "name": "Projeto para predição de doenças",
+                    "description": "Este projeto é destinado a realizar o processo de KDD em 3 bases de dados no setor de saúde",
+                  }
+                ]
+              }
+
         422:
           description: "Erros de validação."
           schema:
@@ -619,15 +859,24 @@ paths:
             properties:
               message:
                 type: "string"
-                example: "Dados inválidos!"
+                description: "Mensagem de retorno da operação."
               success:
                 type: "boolean"
-                example: false
+                description: "Indica se a operação foi bem-sucedida."
               data:
                 type: "object"
-                example:
-                  name: "O nome do projeto já existe."
-
+                description: "Dados adicionais retornados pela operação."
+          examples:
+            application/json:
+              {
+                "message": "Dados inválidos!",
+                "success": false,
+                "data": [
+                  {
+                    "name": "O nome do projeto já existe."
+                  }
+                ]
+              }
   /projects/{id}:
     get:
       tags:
@@ -641,81 +890,85 @@ paths:
           type: "integer"
           description: "ID do projeto"
       responses:
+
         200:
-          description: "Operação bem-sucedida"
+          description: "Operação bem sucedida."
           schema:
             type: "object"
             properties:
               message:
                 type: "string"
-                example: "Projeto recuperado com sucesso!"
+                description: "Mensagem de retorno da operação."
               success:
                 type: "boolean"
-                example: true
+                description: "Indica se a operação foi bem-sucedida."
               data:
-                type: "array"
-                items:
-                  type: "object"
-                  properties:
-                    id:
-                      type: "integer"
-                      example: 540
-                    name:
-                      type: "string"
-                      example: "Projeto para predição no setor de creditos"
-                    description:
-                      type: "string"
-                      example: "Este projeto é destinado a realizar o processo de KDD em 3 bases de dados no setor de créditos"
-                    datasets:
-                      type: "array"
-                      items:
-                        type: "object"
-                        properties:
-                          id:
-                            type: "integer"
-                            example: 92
-                          name:
-                            type: "string"
-                            example: "Dataset teste 2"
-                          description:
-                            type: "string"
-                            example: "Descrição do dataset teste 2"
-                          file_url:
-                            type: "string"
-                            example: "https://s3.amazonaws.com/bucket-easyminer/datasets/92/file"
-                          size_file:
-                            type: "string"
-                            example: "0.29MB"
-
-        403:
-          description: "Não autorizado"
-          schema:
-            type: "object"
-            properties:
-              message:
-                type: "string"
-                example: "Não autorizado."
-              success:
-                type: "boolean"
-                example: false
-              data:
-                type: "null"
-                example: null
+                type: "object"
+                description: "Dados adicionais retornados pela operação."
+          examples:
+            application/json:
+              {
+                "message": "Projeto recuperado com sucesso!",
+                "success": true,
+                "data": [
+                  {
+                    "id": 540,
+                    "name": "Projeto para predição no setor de creditos",
+                    "description": "Este projeto é destinado a realizar o processo de KDD em 3 bases de dados no setor de créditos",
+                    "datasets": [
+                      {
+                        "id": 92,
+                        "name": "Dataset teste 2",
+                        "description": "Descrição do dataset teste 2",
+                        "file_url": "https://s3.amazonaws.com/bucket-easyminer/datasets/92/file",
+                        "size_file": "0.29MB"
+                      },
+                        {
+                            "id": 93,
+                            "name": "Dataset teste 3",
+                            "description": "Descrição do dataset teste 3",
+                            "file_url": "https://s3.amazonaws.com/bucket-easyminer/datasets/93/file",
+                            "size_file": "0.29MB"
+                        },
+                        {
+                            "id": 94,
+                            "name": "Dataset teste 4",
+                            "description": "Descrição do dataset teste 4",
+                            "file_url": "https://s3.amazonaws.com/bucket-easyminer/datasets/94/file",
+                            "size_file": "0.29MB"
+                        },
+                      {
+                        "id": 95,
+                        "name": "Dataset teste 5",
+                        "description": "Descrição do dataset teste 5",
+                        "file_url": "https://s3.amazonaws.com/bucket-easyminer/datasets/95/file",
+                        "size_file": "0.29MB"
+                      }
+                    ]
+                  }
+                ]
+              }
         404:
-          description: "Projeto não encontrado"
+          description: "Não encontrado."
           schema:
             type: "object"
             properties:
               message:
                 type: "string"
-                example: "Projeto não encontrado."
+                description: "Mensagem de retorno da operação."
               success:
                 type: "boolean"
-                example: false
+                description: "Indica se a operação foi bem-sucedida."
               data:
-                type: "null"
-                example: null
-
+                type: "object"
+                description: "Dados adicionais retornados pela operação."
+          examples:
+            application/json:
+              {
+                "message": "Projeto não encontrado!",
+                "success": false,
+                "data": null
+              }
     put:
       tags:
         - "CRUD de Projetos"
@@ -736,7 +989,7 @@ paths:
             properties:
               name:
                 type: "string"
-                description: "Nome do projeto."
+                description: "Nome do projeto, este deve ser único entre os projetos do usuário."
                 minLength: 2
                 maxLength: 100
                 example: "Projeto Atualizado"
@@ -745,7 +998,7 @@ paths:
                 description: "Descrição detalhada do projeto."
                 minLength: 10
                 maxLength: 2000
-                example: "Descrição atualizada do projeto..."
+                example: "Descrição atualizada do projeto"
       responses:
         200:
           description: "Projeto atualizado com sucesso"
@@ -769,34 +1022,27 @@ paths:
                   description:
                     type: "string"
                     example: "Descrição atualizada"
-        403:
-          description: "Não autorizado"
-          schema:
-            type: "object"
-            properties:
-              message:
-                type: "string"
-                example: "Não autorizado."
-              success:
-                type: "boolean"
-                example: false
-              data:
-                type: "null"
-                example: null
         404:
-          description: "Projeto não encontrado"
+          description: "Não encontrado."
           schema:
             type: "object"
             properties:
               message:
                 type: "string"
-                example: "Projeto não encontrado."
+                description: "Mensagem de retorno da operação."
               success:
                 type: "boolean"
-                example: false
+                description: "Indica se a operação foi bem-sucedida."
               data:
-                type: "null"
-                example: null
+                type: "object"
+                description: "Dados adicionais retornados pela operação."
+          examples:
+            application/json:
+              {
+                "message": "Projeto não encontrado!",
+                "success": false,
+                "data": null
+              }
         422:
           description: "Erros de validação."
           schema:
@@ -804,19 +1050,30 @@ paths:
             properties:
               message:
                 type: "string"
-                example: "Dados inválidos!"
+                description: "Mensagem de retorno da operação."
               success:
                 type: "boolean"
-                example: false
+                description: "Indica se a operação foi bem-sucedida."
               data:
                 type: "object"
-                example:
-                  description: "Tamanho deve estar entre 11 e 2000 caracteres."
+                description: "Dados adicionais retornados pela operação."
+          examples:
+            application/json:
+              {
+                "message": "Dados inválidos!",
+                "success": false,
+                "data": [
+                  {
+                    "name": "O nome do projeto já existe.",
+                    "description": "O tamanho deve estar entre 11 e 2000",
+                  }
+                ]
+              }
     delete:
       tags:
         - "CRUD de Projetos"
       summary: "Excluir projeto por ID"
-      description: "Exclui um projeto específico do usuário autenticado."
+      description: "Exclui um projeto específico e todas as bases de dados relacionadas ao projeto do usuário autenticado."
       parameters:
         - name: "id"
           in: "path"
@@ -825,56 +1082,53 @@ paths:
           description: "ID do projeto"
       responses:
         200:
-          description: "Projeto excluído com sucesso"
+          description: "Operação bem sucedida."
           schema:
             type: "object"
             properties:
               message:
                 type: "string"
-                example: "Projeto deletado com sucesso!"
+                description: "Mensagem de retorno da operação."
               success:
                 type: "boolean"
-                example: true
+                description: "Indica se a operação foi bem-sucedida."
               data:
                 type: "object"
-                properties:
-                  id:
-                    type: "integer"
-                    example: 5
-                  name:
-                    type: "string"
-                    example: "Projeto numero 5"
-                  description:
-                    type: "string"
-                    example: "Descrição do projeto numero 5"
-        403:
-          description: "Não autorizado"
-          schema:
-            type: "object"
-            properties:
-              message:
-                type: "string"
-                example: "Não autorizado."
-              success:
-                type: "boolean"
-                example: false
-              data:
-                type: "null"
-                example: null
+                description: "Dados adicionais retornados pela operação."
+          examples:
+            application/json:
+              {
+                "message": "Projeto deletado com sucesso!",
+                "success": true,
+                "data": [
+                  {
+                    "id": 10,
+                    "name": "Projeto de bases de dados do setor financeiro",
+                    "description": "Esse projeto é destinado a realizar o processo de KDD em 5 bases de dados no setor de finanças",
+                  }
+                ]
+              }
         404:
-          description: "Projeto não encontrado"
+          description: "Não encontrado."
           schema:
             type: "object"
             properties:
               message:
                 type: "string"
-                example: "Projeto não encontrado."
+                description: "Mensagem de retorno da operação."
               success:
                 type: "boolean"
-                example: false
+                description: "Indica se a operação foi bem-sucedida."
               data:
-                type: "null"
-                example: null
+                type: "object"
+                description: "Dados adicionais retornados pela operação."
+          examples:
+            application/json:
+              {
+                "message": "Projeto não encontrado!",
+                "success": false,
+                "data": null
+              }
 
   # DOCUMENTAÇÃO DE CRUD DE BASES DE DADOS
 
@@ -886,39 +1140,19 @@ paths:
       description: "Retorna uma lista de todas as bases de dados do usuário autenticado."
       responses:
         200:
-          description: "Operação bem-sucedida"
+          description: "Operação bem sucedida."
           schema:
             type: "object"
             properties:
               message:
                 type: "string"
-                example: "Bases de dados recuperadas com sucesso!"
+                description: "Mensagem de retorno da operação."
               success:
                 type: "boolean"
-                example: true
+                description: "Indica se a operação foi bem-sucedida."
               data:
-                type: "array"
-                items:
-                  type: "object"
-                  properties:
-                    id:
-                      type: "integer"
-                      example: 1
-                    name:
-                      type: "string"
-                      example: "Base de dados 1"
-                    description:
-                      type: "string"
-                      example: "Dados de clientes para análise de churn"
-                    size_file:
-                      type: "string"
-                      example: "2.5 MB"
-                    file_url:
-                      type: "string"
-                      example: "https://s3.amazonaws.com/bucket-easyminer/datasets/1/file"
-                    project_id:
-                      type: "integer"
-                      example: 10
+                type: "object"
+                description: "Dados adicionais retornados pela operação."
           examples:
             application/json:
               {
@@ -968,21 +1202,6 @@ paths:
                 ]
               }
 
-        403:
-          description: "Não autorizado"
-          schema:
-            type: "object"
-            properties:
-              message:
-                type: "string"
-                example: "Não autorizado."
-              success:
-                type: "boolean"
-                example: false
-              data:
-                type: "null"
-                example: null
-
     post:
       tags:
         - "CRUD de Bases de Dados"
@@ -1002,7 +1221,7 @@ paths:
         - in: "formData"
           name: "description"
           type: "string"
-          description: "Descrição da base de dados."
+          description: "Descrição do que se trata a base de dados."
           minLength: 11
           maxLength: 2000
           x-example: "Descrição do dataset"
@@ -1143,7 +1362,7 @@ paths:
                 ]
               }
         403:
-          description: "Não autorizado"
+          description: "Não autorizado!"
           schema:
             type: "object"
             properties:
@@ -1233,7 +1452,7 @@ paths:
                     type: "string"
                     example: "https://s3.amazonaws.com/bucket-easyminer/datasets/3/file"
         403:
-          description: "Não autorizado"
+          description: "Não autorizado!"
           schema:
             type: "object"
             properties:
@@ -1292,7 +1511,7 @@ paths:
         204:
           description: "Base de dados excluída com sucesso"
         403:
-          description: "Não autorizado"
+          description: "Não autorizado!"
           schema:
             type: "object"
             properties:
@@ -1395,13 +1614,13 @@ paths:
                 type: string
                 example: None
         403:
-          description: "Não autorizado"
+          description: "Não autorizado!"
           schema:
             type: object
             properties:
               message:
                 type: string
-                example: "Não autorizado"
+                example: "Não autorizado!"
               success:
                 type: boolean
                 example: False
@@ -1480,7 +1699,7 @@ paths:
         201:
           description: "Normalização de dados realizada com sucesso!"
         403:
-          description: "Não autorizado"
+          description: "Não autorizado!"
         404:
           description: "Base de dados não encontrada!"
         422:
@@ -1547,13 +1766,13 @@ paths:
                 type: string
                 example: "Redução de dados realizada com sucesso!"
         403:
-          description: "Não autorizado"
+          description: "Não autorizado!"
           schema:
             type: object
             properties:
               mensagem:
                 type: string
-                example: "Não autorizado!"
+                example: "Não autorizado!!"
         404:
           description: "Base de dados não encontrada!"
           schema:
