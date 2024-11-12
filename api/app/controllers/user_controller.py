@@ -114,5 +114,5 @@ def delete_user_related_data(user_id):
     except Exception as e:
         db.session.rollback()
         return response.handle_internal_server_error_response(
-            error=e, message="Erro ao deletar dados relacionados ao usuário"
+            error=e, message="Erro ao deletar dados relacionados ao usuário!"
         )
