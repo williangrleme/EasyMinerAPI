@@ -8,9 +8,8 @@ from app.models import CleanDataset, Dataset
 from flask_login import current_user
 from sklearn.decomposition import PCA
 
-from api.app.forms.data_mining_forms.preprocessing.data_reduction_forms import (
-    DataReductionForm,
-)
+from api.app.forms.data_mining_forms.preprocessing.data_reduction_forms import \
+    DataReductionForm
 
 
 def remove_existing_clean_dataset(existing_clean_dataset):

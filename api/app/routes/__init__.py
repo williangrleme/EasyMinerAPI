@@ -3,7 +3,8 @@ from flask import Blueprint
 
 def init_routes(app):
     from app.routes.auth_routes import auth_bp
-    from app.routes.data_minig_routes.preprocessing_routes import preprocessing_bp
+    from app.routes.data_minig_routes.preprocessing_routes import \
+        preprocessing_bp
     from app.routes.dataset_routes import dataset_bp
     from app.routes.project_routes import project_bp
     from app.routes.user_routes import user_bp

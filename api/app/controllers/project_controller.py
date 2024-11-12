@@ -1,8 +1,9 @@
 import app.response_handlers as response
 from app import db
-from app.forms.project_form import ProjectFormCreate, ProjectFormUpdate
-from app.models import Project
 from flask_login import current_user
+
+from ..forms.project_form import ProjectFormCreate, ProjectFormUpdate
+from ..models import Project
 
 
 def format_project_data(project, dataset_info=None):

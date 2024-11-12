@@ -1,12 +1,9 @@
-from app.controllers.data_mining.preprocessing.data_cleaning_controller import (
-    data_cleaning,
-)
-from app.controllers.data_mining.preprocessing.data_normalization_controller import (
-    data_normalization,
-)
-from app.controllers.data_mining.preprocessing.data_reduction_controller import (
-    data_reduction,
-)
+from app.controllers.data_mining.preprocessing.data_cleaning_controller import \
+    data_cleaning
+from app.controllers.data_mining.preprocessing.data_normalization_controller import \
+    data_normalization
+from app.controllers.data_mining.preprocessing.data_reduction_controller import \
+    data_reduction
 from flask import Blueprint
 from flask_login import login_required
 
