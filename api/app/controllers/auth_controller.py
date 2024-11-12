@@ -53,7 +53,7 @@ def get_current_user():
     if current_user.is_authenticated:
         user_data = format_user_data(current_user)
         return response.handle_success(
-            "Usuário autenticado!",
+            "Usuário atual recuperado com sucesso!",
             user_data,
         )
 
