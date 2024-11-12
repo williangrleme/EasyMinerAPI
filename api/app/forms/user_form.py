@@ -1,7 +1,8 @@
 from app.models import User
 from flask_wtf import FlaskForm
 from wtforms import PasswordField, StringField
-from wtforms.validators import DataRequired, Email, Length, Optional, ValidationError
+from wtforms.validators import (DataRequired, Email, Length, Optional,
+                                ValidationError)
 
 
 class UserFormBase(FlaskForm):
