@@ -1,12 +1,12 @@
+from app.controllers.dataset_controller import (
+    create_dataset,
+    delete_dataset,
+    get_dataset,
+    get_datasets,
+    update_dataset,
+)
 from flask import Blueprint
 from flask_login import login_required
-from app.controllers.dataset_controller import (
-    get_datasets,
-    get_dataset,
-    create_dataset,
-    update_dataset,
-    delete_dataset,
-)
 
 dataset_bp = Blueprint("datasets", __name__)
 

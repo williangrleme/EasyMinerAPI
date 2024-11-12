@@ -1,12 +1,12 @@
+from app.controllers.project_controller import (
+    create_project,
+    delete_project,
+    get_project,
+    get_projects,
+    update_project,
+)
 from flask import Blueprint
 from flask_login import login_required
-from app.controllers.project_controller import (
-    get_projects,
-    get_project,
-    create_project,
-    update_project,
-    delete_project,
-)
 
 project_bp = Blueprint("projects", __name__)
 

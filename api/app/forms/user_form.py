@@ -1,7 +1,7 @@
-from flask_wtf import FlaskForm
-from wtforms import StringField, PasswordField
-from wtforms.validators import DataRequired, Email, Length, ValidationError
 from app.models import User
+from flask_wtf import FlaskForm
+from wtforms import PasswordField, StringField
+from wtforms.validators import DataRequired, Email, Length, Optional, ValidationError
 
 
 class UserFormBase(FlaskForm):
@@ -69,11 +69,47 @@ class UserFormUpdate(UserFormBase):
         self.user_id = user_id
 
     def validate_phone_number(self, field):
-        if User.query.filter(
-            User.phone_number == field.data, User.id != self.user_id
-        ).first():
-            raise ValidationError(self.ERROR_MESSAGES["phone_number_exists"])
+        if field.data:
+            if User.query.filter(
+                User.phone_number == field.data, User.id != self.user_id
+            ).first():
+                raise ValidationError(self.ERROR_MESSAGES["phone_number_exists"])
 
     def validate_email(self, field):
-        if User.query.filter(User.email == field.data, User.id != self.user_id).first():
-            raise ValidationError(self.ERROR_MESSAGES["email_exists"])
+        if field.data:
+            if User.query.filter(
+                User.email == field.data, User.id != self.user_id
+            ).first():
+                raise ValidationError(self.ERROR_MESSAGES["email_exists"])
+
+    name = StringField(
+        "Nome",
+        validators=[
+            Optional(),
+            Length(min=10, max=150, message=UserFormBase.size_length_message(10, 150)),
+        ],
+    )
+
+    phone_number = StringField(
+        "Número de telefone",
+        validators=[
+            Optional(),
+            Length(min=11, max=20, message=UserFormBase.size_length_message(11, 20)),
+        ],
+    )
+
+    email = StringField(
+        "E-mail",
+        validators=[
+            Optional(),
+            Length(min=6, max=200, message=UserFormBase.size_length_message(6, 200)),
+            Email(message=UserFormBase.ERROR_MESSAGES["invalid_email"]),
+        ],
+    )
+    password = PasswordField(
+        "Senha",
+        validators=[
+            Optional(),
+            Length(min=8, max=30, message=UserFormBase.size_length_message(8, 30)),
+        ],
+    )

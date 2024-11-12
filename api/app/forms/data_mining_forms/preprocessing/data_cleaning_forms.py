@@ -1,8 +1,9 @@
-from flask_wtf import FlaskForm
-from wtforms import StringField, FieldList
-from wtforms.validators import DataRequired, ValidationError, Length
-import pandas as pd
 from enum import Enum
+
+import pandas as pd
+from flask_wtf import FlaskForm
+from wtforms import FieldList, StringField
+from wtforms.validators import DataRequired, Length, ValidationError
 
 
 class MethodEnum(Enum):
