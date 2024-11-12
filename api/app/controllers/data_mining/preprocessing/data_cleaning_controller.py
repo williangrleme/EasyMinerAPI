@@ -1,102 +1,120 @@
+from io import BytesIO
+
+import pandas as pd
 from app import db
 from app.controllers.s3_controller import S3Controller
 from app.forms.data_mining_forms.preprocessing.data_cleaning_forms import (
     DataCleaningForm,
 )
 from app.models import CleanDataset, Dataset
-from collections import OrderedDict
-from flask import Response
 from flask_login import current_user
-import json
-import pandas as pd
-from io import BytesIO
+import app.response_handlers as response
 
 
-def create_response(message, success, data=None, status_code=200):
-    response_data = OrderedDict(
-        [
-            ("message", message),
-            ("success", success),
-            ("data", data),
-        ]
+def remove_existing_clean_dataset(existing_clean_dataset):
+    try:
+        s3 = S3Controller()
+        s3.delete_file_from_s3(existing_clean_dataset.file_url)
+        db.session.delete(existing_clean_dataset)
+        db.session.commit()
+    except Exception as e:
+        db.session.rollback()
+        raise e
+
+
+def format_clean_dataset_data(clean_dataset):
+    return {
+        "clean_dataset": {
+            "id": clean_dataset.id,
+            "size_file": clean_dataset.size_file,
+            "file_url": clean_dataset.file_url,
+            "original_dataset_id": clean_dataset.dataset_id,
+        }
+    }
+
+
+def clean_dataframe(dataset_file_url, features, missing_values, methods):
+    df_original = pd.read_csv(dataset_file_url)
+    df_features = df_original[features].copy()
+    columns_missing_value = identify_columns_with_missing_values(
+        df_features, missing_values
     )
-    response_json = json.dumps(response_data)
-    return Response(response_json, mimetype="application/json", status=status_code)
+
+    for column in columns_missing_value:
+        update_missing_values(df_features, column, methods, missing_values)
+
+    for col in df_features.columns:
+        if df_features[col].dtype != df_original[col].dtype:
+            try:
+                df_features[col] = df_features[col].astype(df_original[col].dtype)
+            except ValueError:
+                response.internal_server_error(
+                    "Erro ao converter os valores para os tipos originais!"
+                )
+
+    df_original.update(df_features)
+    return df_original
 
 
-def data_cleaning(dataset_id):
-    dataset = (
-        Dataset.query.with_entities(Dataset.id, Dataset.file_url)
-        .filter_by(id=dataset_id, user_id=current_user.id)
-        .first()
-    )
-    if dataset is None:
-        return create_response(
-            "Base de dados não encontrada!",
-            False,
-            None,
-            404,
-        )
-
-    form = DataCleaningForm(file_url=dataset.file_url)
-    if form.validate_on_submit():
-        features = form.features.data
-        methods = form.methods.data
-        missing_values = form.missing_values.data
-
-        df_original = pd.read_csv(dataset.file_url)
-        df_features = df_original[features].copy()
-        columns_missing_value = identify_columns_with_missing_values(
-            df_features, missing_values
-        )
-
-        for column in columns_missing_value:
-            update_missing_values(df_features, column, methods, missing_values)
-
-        df_original.update(df_features)
-        file_url, size_file_with_unit = save_clean_dataset(
-            df_original, dataset.file_url
-        )
-
+def save_clean_dataset_info(file_url, size_file_with_unit, dataset_id):
+    try:
         clean_dataset = CleanDataset(
             size_file=size_file_with_unit,
             file_url=file_url,
-            dataset_id=dataset.id,
+            dataset_id=dataset_id,
             user_id=current_user.id,
+        )
+        db.session.add(clean_dataset)
+        db.session.commit()
+        return clean_dataset
+    except Exception as e:
+        db.session.rollback()
+        raise e
+
+
+def data_cleaning(dataset_id):
+    try:
+        dataset = (
+            Dataset.query.with_entities(Dataset.id, Dataset.file_url)
+            .filter_by(id=dataset_id, user_id=current_user.id)
+            .first()
+        )
+        if not dataset:
+            return response.handle_not_found_response("Base de dados não encontrada!")
+
+        form = DataCleaningForm(file_url=dataset.file_url)
+        if not form.validate_on_submit():
+            return response.handle_unprocessable_entity(form.errors)
+
+        df_original = clean_dataframe(
+            dataset.file_url,
+            form.features.data,
+            form.missing_values.data,
+            form.methods.data,
+        )
+        file_url, size_file_with_unit = save_clean_dataset(
+            df_original, dataset.file_url
         )
 
         existing_clean_dataset = CleanDataset.query.filter_by(
             dataset_id=dataset.id
         ).first()
         if existing_clean_dataset:
-            s3 = S3Controller()
-            s3.delete_file_from_s3(existing_clean_dataset.file_url)
-            db.session.delete(existing_clean_dataset)
-            db.session.commit()
+            remove_existing_clean_dataset(existing_clean_dataset)
 
-        db.session.add(clean_dataset)
-        db.session.commit()
+        clean_dataset = save_clean_dataset_info(
+            file_url, size_file_with_unit, dataset.id
+        )
+        clean_dataset_data = format_clean_dataset_data(clean_dataset)
 
-        clean_dataset_data = {
-            "id": clean_dataset.id,
-            "size_file": clean_dataset.size_file,
-            "file_url": clean_dataset.file_url,
-            "original_dataset_id": clean_dataset.dataset_id,
-        }
-
-        return create_response(
-            "Limpeza de dados realizada com sucesso!",
-            True,
-            clean_dataset_data,
-            200,
+        return response.handle_success(
+            "Limpeza de dados realizada com sucesso!", clean_dataset_data
         )
 
-    return create_response(
-        "Dados inválidos!",
-        False,
-        form.errors,
-        422,
-    )
+    except Exception as e:
+        return response.handle_internal_server_error_response(
+            e, "Erro ao realizar a limpeza de dados!"
+        )
 
 
 def convert_missing_values(missing_values):
@@ -119,7 +137,7 @@ def identify_columns_with_missing_values(df, missing_values):
 
 def update_missing_values(df, column, method, missing_values):
     missing_value = convert_missing_values(missing_values)
-    df[column].replace(missing_value, pd.NA, inplace=True)
+    df[column] = df[column].replace(missing_value, pd.NA)
 
     if method == "mediana":
         df[column] = df[column].fillna(df[column].median().round(4))
@@ -128,10 +146,20 @@ def update_missing_values(df, column, method, missing_values):
     elif method == "moda":
         df[column] = df[column].fillna(df[column].mode()[0])
 
+    df[column] = df[column].infer_objects(copy=False)
+
+    try:
+        df[column] = pd.to_numeric(df[column])
+    except ValueError:
+        return response.internal_server_error(
+            "Erro ao converter os valores para numéricos!"
+        )
+
 
 def save_clean_dataset(df, original_file_url):
-    file_hash = original_file_url.split("/")[-1].split("_", 1)[0]
-    clean_file_name = f"{file_hash}_clean.csv"
+    file_name_with_extension = original_file_url.split("/")[-1]
+    file_name = file_name_with_extension.split(".")[0]
+    clean_file_name = f"{file_name}_clean.csv"
 
     csv_buffer = BytesIO()
     df.to_csv(csv_buffer, header=True, index=False)
@@ -143,7 +171,7 @@ def save_clean_dataset(df, original_file_url):
     csv_file.filename = clean_file_name
     csv_file.content_type = "text/csv"
 
-    s3Controller = S3Controller()
-    file_url = s3Controller.upload_file_to_s3(csv_file)
+    s3 = S3Controller()
+    file_url = s3.upload_file_to_s3(csv_file)
 
     return file_url, size_file_with_unit

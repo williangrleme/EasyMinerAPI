@@ -1,91 +1,101 @@
-from api.app.forms.data_mining_forms.preprocessing.data_reduction_forms import (
-    DataReductionForm,
-)
+from io import BytesIO
+
+import pandas as pd
 from app import db
 from app.controllers.s3_controller import S3Controller
 from app.models import CleanDataset, Dataset
-from collections import OrderedDict
-from flask import Response
 from flask_login import current_user
-from io import BytesIO
-import json
-import pandas as pd
+import app.response_handlers as response
 from sklearn.decomposition import PCA
 
-
-def create_response(message, success, data=None, status_code=200):
-    response_data = OrderedDict(
-        [
-            ("message", message),
-            ("success", success),
-            ("data", data),
-        ]
-    )
-    response_json = json.dumps(response_data)
-    return Response(response_json, mimetype="application/json", status=status_code)
+from api.app.forms.data_mining_forms.preprocessing.data_reduction_forms import (
+    DataReductionForm,
+)
 
 
-def data_reduction(dataset_id):
-    dataset = Dataset.query.filter_by(id=dataset_id, user_id=current_user.id).first()
-    if not dataset:
-        return create_response(
-            "Base de dados não encontrada!",
-            False,
-            None,
-            404,
-        )
-
-    file_url = dataset.file_url
-    existing_clean_dataset = CleanDataset.query.filter_by(dataset_id=dataset.id).first()
-
-    if existing_clean_dataset:
-        file_url = existing_clean_dataset.file_url
-
-    form = DataReductionForm(file_url=file_url)
-
-    if not form.validate_on_submit():
-        return create_response(
-            "Dados inválidos!",
-            False,
-            form.errors,
-            422,
-        )
-
-    df = pd.read_csv(file_url)
-    features = form.features.data
-    method = form.methods.data
-
-    reduced_df = reduce_data(df, features, method, form)
-    file_url_reduced, size_file_with_unit = save_reduced_dataset(reduced_df, file_url)
-
-    if existing_clean_dataset:
+def remove_existing_clean_dataset(existing_clean_dataset):
+    try:
         s3 = S3Controller()
         s3.delete_file_from_s3(existing_clean_dataset.file_url)
         db.session.delete(existing_clean_dataset)
         db.session.commit()
+    except Exception as e:
+        db.session.rollback()
+        raise e
 
-    clean_dataset = CleanDataset(
-        size_file=size_file_with_unit,
-        file_url=file_url_reduced,
-        dataset_id=dataset.id,
-        user_id=current_user.id,
-    )
-    db.session.add(clean_dataset)
-    db.session.commit()
 
-    clean_dataset_data = {
-        "id": clean_dataset.id,
-        "size_file": clean_dataset.size_file,
-        "file_url": clean_dataset.file_url,
-        "original_dataset_id": clean_dataset.dataset_id,
+def format_reduced_dataset_data(clean_dataset):
+    return {
+        "reduced_dataset": {
+            "id": clean_dataset.id,
+            "size_file": clean_dataset.size_file,
+            "file_url": clean_dataset.file_url,
+            "original_dataset_id": clean_dataset.dataset_id,
+        }
     }
 
-    return create_response(
-        "Redução de dados realizada com sucesso!",
-        True,
-        clean_dataset_data,
-        200,
-    )
+
+def save_clean_dataset_info(file_url, size_file_with_unit, dataset_id):
+    try:
+        clean_dataset = CleanDataset(
+            size_file=size_file_with_unit,
+            file_url=file_url,
+            dataset_id=dataset_id,
+            user_id=current_user.id,
+        )
+        db.session.add(clean_dataset)
+        db.session.commit()
+        return clean_dataset
+    except Exception as e:
+        db.session.rollback()
+        raise e
+
+
+def data_reduction(dataset_id):
+    try:
+        dataset = Dataset.query.filter_by(
+            id=dataset_id, user_id=current_user.id
+        ).first()
+        if not dataset:
+            return response.handle_not_found_response("Base de dados não encontrada!")
+
+        file_url = dataset.file_url
+        existing_clean_dataset = CleanDataset.query.filter_by(
+            dataset_id=dataset.id
+        ).first()
+
+        if existing_clean_dataset:
+            file_url = existing_clean_dataset.file_url
+
+        form = DataReductionForm(file_url=file_url)
+        if not form.validate_on_submit():
+            return response.handle_unprocessable_entity(form.errors)
+
+        df = pd.read_csv(file_url)
+        features = form.features.data
+        method = form.methods.data
+
+        reduced_df = reduce_data(df, features, method, form)
+        file_url_reduced, size_file_with_unit = save_reduced_dataset(
+            reduced_df, file_url
+        )
+
+        if existing_clean_dataset:
+            remove_existing_clean_dataset(existing_clean_dataset)
+
+        clean_dataset = save_clean_dataset_info(
+            file_url_reduced, size_file_with_unit, dataset.id
+        )
+        clean_dataset_data = format_reduced_dataset_data(clean_dataset)
+
+        return response.handle_success(
+            "Redução de dados realizada com sucesso!", clean_dataset_data
+        )
+
+    except Exception as e:
+        return response.handle_internal_server_error_response(
+            e, "Erro ao realizar a redução de dados!"
+        )
 
 
 def reduce_data(df, features, method, form):
@@ -123,8 +133,11 @@ def systematic_sampling(df, features, form):
 
 
 def save_reduced_dataset(df, original_file_url):
-    file_hash = original_file_url.split("/")[-1].split("_", 1)[0]
-    reduced_file_name = f"{file_hash}_reduced.csv"
+    file_name_with_extension = original_file_url.split("/")[-1]
+    file_name = file_name_with_extension.split(".")[0]
+    file_name = file_name.split("_")[0]
+
+    reduced_file_name = f"{file_name}_reduced.csv"
 
     csv_buffer = BytesIO()
     df.to_csv(csv_buffer, index=False)
