@@ -4,10 +4,10 @@ from flask import Response, current_app
 from werkzeug.exceptions import HTTPException
 
 HTTP_ERROR_MESSAGES = {
-    401: "Não autorizado",
-    404: "Não encontrado",
+    401: "Não autorizado!",
+    404: "Não encontrado!",
     422: "Dados inválidos!",
-    500: "Erro interno do servidor",
+    500: "Erro interno do servidor!",
 }
 
 
