@@ -1,11 +1,9 @@
-from flask_wtf.file import FileField, FileAllowed
-from flask_wtf import FlaskForm
-from wtforms import StringField, IntegerField
-from wtforms.validators import DataRequired, Length, Optional, ValidationError
 from app.models import Dataset, Project
 from flask_login import current_user
-
-from api.app.forms.project_form import BaseProjectForm
+from flask_wtf import FlaskForm
+from flask_wtf.file import FileAllowed, FileField
+from wtforms import IntegerField, StringField
+from wtforms.validators import DataRequired, Length, Optional, ValidationError
 
 
 class DatasetFormBase(FlaskForm):
@@ -15,7 +13,7 @@ class DatasetFormBase(FlaskForm):
         "project_not_found": "O projeto não existe.",
         "access_denied": "Você não tem permissão para acessar esse projeto.",
         "size_length": "Tamanho deve estar entre {} e {}.",
-        "file_allowed": "Apenas arquivos {}  são permitidos.",
+        "file_allowed": "Apenas arquivos {} são permitidos.",
     }
 
     @staticmethod
@@ -54,7 +52,7 @@ class DatasetFormBase(FlaskForm):
     )
 
     def validate_name(self, field):
-        if Dataset.query.filter_by(name=field.data).first():
+        if Dataset.query.filter_by(name=field.data, user_id=current_user.id).first():
             raise ValidationError(self.ERROR_MESSAGES["name_exists"])
 
     def validate_project_id(self, field):
@@ -79,7 +77,7 @@ class DatasetFormUpdate(DatasetFormBase):
         validators=[
             Optional(),
             Length(
-                min=2, max=100, message=BaseProjectForm.size_length_message(10, 100)
+                min=2, max=100, message=DatasetFormBase.size_length_message(10, 100)
             ),
         ],
     )
@@ -103,6 +101,8 @@ class DatasetFormUpdate(DatasetFormBase):
 
     def validate_name(self, field):
         if Dataset.query.filter(
-            Dataset.name == field.data, Dataset.id != self.dataset_id
+            Dataset.name == field.data,
+            Dataset.id != self.dataset_id,
+            Dataset.user_id == current_user.id,
         ).first():
             raise ValidationError(self.ERROR_MESSAGES["name_exists"])

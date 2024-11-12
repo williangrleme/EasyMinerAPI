@@ -1,9 +1,10 @@
-from flask import Flask, jsonify
 from app.config import Config
-from app.extensions import db, migrate, csrf, login_manager, cors, swagger
-from dotenv import load_dotenv
-from app.routes import init_routes
 from app.controllers.s3_controller import S3Controller
+from app.extensions import cors, csrf, db, login_manager, migrate, swagger
+from app.response_handlers import register_response_errors
+from app.routes import init_routes
+from dotenv import load_dotenv
+from flask import Flask, jsonify
 
 load_dotenv()
 
@@ -15,6 +16,7 @@ def create_app():
     register_blueprints(app)
     register_home_route(app)
     initialize_s3_controller(app)
+    register_response_errors(app)
     return app
 
 
