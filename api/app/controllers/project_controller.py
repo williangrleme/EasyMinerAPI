@@ -1,177 +1,132 @@
+import app.response_handlers as response
 from app import db
 from app.forms.project_form import ProjectFormCreate, ProjectFormUpdate
 from app.models import Project
-from collections import OrderedDict
-from flask import Response
 from flask_login import current_user
-import json
 
 
-def create_response(message, success, data=None, status_code=200):
-    response_data = OrderedDict(
-        [
-            ("message", message),
-            ("success", success),
-            ("data", data),
-        ]
-    )
-    response_json = json.dumps(response_data)
-    return Response(response_json, mimetype="application/json", status=status_code)
+def format_project_data(project, dataset_info=None):
+    project_info = {
+        "id": project.id,
+        "name": project.name,
+        "description": project.description,
+    }
+
+    if dataset_info is not None:
+        project_info["datasets"] = dataset_info
+    return project_info
 
 
 def get_projects():
     projects = Project.query.filter_by(user_id=current_user.id).all()
-    projects_list = [
-        OrderedDict(
-            [
-                ("id", project.id),
-                ("name", project.name),
-                ("description", project.description),
-            ]
-        )
-        for project in projects
-    ]
-    return create_response(
+    projects_list = [format_project_data(project) for project in projects]
+    return response.handle_success(
         "Projetos recuperados com sucesso!",
-        True,
         projects_list,
-        200,
     )
+
+
+def get_datasets_info(datasets):
+    return [
+        {
+            "id": dataset.id,
+            "name": dataset.name,
+            "description": dataset.description,
+            "size_file": dataset.size_file,
+            "file_url": dataset.file_url,
+        }
+        for dataset in datasets
+    ]
 
 
 def get_project(project_id):
     project = Project.query.filter_by(id=project_id, user_id=current_user.id).first()
     if project is None:
-        return create_response(
-            "Projeto não encontrado!",
-            False,
-            None,
-            404,
-        )
+        return response.handle_not_found_response(message="Projeto não encontrado!")
 
-    project_data = OrderedDict(
-        [
-            ("id", project.id),
-            ("name", project.name),
-            ("description", project.description),
-            (
-                "datasets",
-                [
-                    OrderedDict(
-                        [
-                            ("id", dataset.id),
-                            ("name", dataset.name),
-                            ("description", dataset.description),
-                            ("size_file", dataset.size_file),
-                            ("file_url", dataset.file_url),
-                        ]
-                    )
-                    for dataset in project.datasets
-                ],
-            ),
-        ]
-    )
-    return create_response(
+    datasets_info = get_datasets_info(project.datasets) if project.datasets else None
+    project_data = format_project_data(project, datasets_info)
+
+    return response.handle_success(
         "Projeto recuperado com sucesso!",
-        True,
         project_data,
-        200,
     )
 
 
 def create_project():
     form = ProjectFormCreate()
-    if form.validate_on_submit():
-        new_project = Project(
-            name=form.name.data,
-            description=form.description.data,
-            user_id=current_user.id,
-        )
+    if not form.validate_on_submit():
+        return response.handle_unprocessable_entity(form.errors)
+
+    new_project = Project(
+        name=form.name.data,
+        description=form.description.data,
+        user_id=current_user.id,
+    )
+
+    try:
         db.session.add(new_project)
         db.session.commit()
-        project_data = OrderedDict(
-            [
-                ("id", new_project.id),
-                ("name", new_project.name),
-                ("description", new_project.description),
-            ]
-        )
-        return create_response(
+        project_data = format_project_data(new_project)
+        return response.handle_success(
             "Projeto criado com sucesso!",
-            True,
             project_data,
-            201,
         )
-    return create_response(
-        "Dados inválidos!",
-        False,
-        form.errors,
-        422,
-    )
+    except Exception as e:
+        db.session.rollback()
+        response.log_error("Erro ao criar projeto", e)
+        return response.handle_internal_server_error_response(
+            error=e, message="Erro ao criar o projeto"
+        )
 
 
 def update_project(project_id):
     project = Project.query.get(project_id)
     if project is None or project.user_id != current_user.id:
-        return create_response(
-            "Projeto não encontrado!",
-            False,
-            None,
-            404,
-        )
+        return response.handle_not_found_response(message="Projeto não encontrado!")
 
     form = ProjectFormUpdate(project_id=project_id)
-    if form.validate_on_submit():
-        updated = False
-        for field_name, field in form._fields.items():
-            if field.data and getattr(project, field_name) != field.data:
-                setattr(project, field_name, field.data)
-                updated = True
-        if updated:
-            db.session.commit()
-        project_data = OrderedDict(
-            [
-                ("id", project.id),
-                ("name", project.name),
-                ("description", project.description),
-            ]
-        )
-        return create_response(
-            "Projeto atualizado com sucesso!",
-            True,
-            project_data,
-            200,
-        )
+    if not form.validate_on_submit():
+        return response.handle_unprocessable_entity(form.errors)
 
-    return create_response(
-        "Dados inválidos!",
-        False,
-        form.errors,
-        422,
-    )
+    updated = False
+    for field_name, field in form._fields.items():
+        if field.data and getattr(project, field_name) != field.data:
+            setattr(project, field_name, field.data)
+            updated = True
+
+    if updated:
+        try:
+            db.session.commit()
+            project_data = format_project_data(project)
+            return response.handle_success(
+                "Projeto atualizado com sucesso!",
+                project_data,
+            )
+        except Exception as e:
+            db.session.rollback()
+            return response.handle_internal_server_error_response(
+                error=e, message="Erro ao atualizar o projeto"
+            )
+
+    return response.handle_success("Nenhuma alteração realizada no projeto.")
 
 
 def delete_project(project_id):
     project = Project.query.get(project_id)
     if project and project.user_id == current_user.id:
-        project_data = OrderedDict(
-            [
-                ("id", project.id),
-                ("name", project.name),
-                ("description", project.description),
-            ]
-        )
-        db.session.delete(project)
-        db.session.commit()
-        return create_response(
-            "Projeto deletado com sucesso!",
-            True,
-            project_data,
-            200,
-        )
-    return create_response(
-        "Projeto não encontrado!",
-        False,
-        None,
-        404,
-    )
+        project_data = format_project_data(project)
+        try:
+            db.session.delete(project)
+            db.session.commit()
+            return response.handle_success(
+                "Projeto deletado com sucesso!",
+                project_data,
+            )
+        except Exception as e:
+            db.session.rollback()
+            return response.handle_internal_server_error_response(
+                error=e, message="Erro ao deletar o projeto"
+            )
+
+    return response.handle_not_found_response(message="Projeto não encontrado!")

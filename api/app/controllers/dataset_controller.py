@@ -1,122 +1,94 @@
 import hashlib
-import json
 import os
-from collections import OrderedDict
-from flask import Response
+
+import app.response_handlers as response
 from flask_login import current_user
-from sqlalchemy.orm import subqueryload
-from app import db
-from app.controllers.s3_controller import S3Controller
-from app.forms.dataset_form import DatasetFormCreate, DatasetFormUpdate
-from app.models import Dataset
+
+from .. import db
+from ..controllers.s3_controller import S3Controller
+from ..forms.dataset_form import DatasetFormCreate, DatasetFormUpdate
+from ..models import Dataset
 
 
-def create_response(message, success, data=None, status_code=200):
-    response_data = OrderedDict(
-        [
-            ("message", message),
-            ("success", success),
-            ("data", data),
-        ]
+def format_dataset_data(dataset, clean_dataset_info=None):
+    dataset_info = {
+        "id": dataset.id,
+        "name": dataset.name,
+        "description": dataset.description,
+        "size_file": dataset.size_file,
+        "file_url": dataset.file_url,
+        "project_id": dataset.project_id,
+    }
+    if clean_dataset_info:
+        dataset_info["clean_dataset"] = clean_dataset_info
+    return dataset_info
+
+
+def format_clean_dataset_data(clean_dataset):
+    return (
+        {
+            "id": clean_dataset.id,
+            "size_file": clean_dataset.size_file,
+            "file_url": clean_dataset.file_url,
+        }
+        if clean_dataset
+        else None
     )
-    response_json = json.dumps(response_data)
-    return Response(response_json, mimetype="application/json", status=status_code)
 
 
-from collections import OrderedDict
+def get_file_size_and_url(csv_file, user_id, dataset_name):
+    csv_file.seek(0, os.SEEK_END)
+    size_file_with_unit = f"{round(csv_file.tell() / (1024 * 1024), 4)}MB"
+    csv_file.seek(0)
+    file_hash = hashlib.md5(f"{user_id}_{dataset_name}".encode("utf-8")).hexdigest()
+    csv_file.filename = f"{file_hash}.csv"
+
+    s3 = S3Controller()
+    file_url = s3.upload_file_to_s3(csv_file)
+    return size_file_with_unit, file_url
 
 
 def get_datasets():
     datasets = Dataset.query.filter_by(user_id=current_user.id).all()
-
-    datasets_list = []
-    for ds in datasets:
-        dataset_info = OrderedDict(
-            [
-                ("id", ds.id),
-                ("name", ds.name),
-                ("description", ds.description),
-                ("size_file", ds.size_file),
-                ("file_url", ds.file_url),
-                ("project_id", ds.project_id),
-            ]
-        )
-
-        datasets_list.append(dataset_info)
-
-    return create_response(
+    datasets_list = [format_dataset_data(ds) for ds in datasets]
+    return response.handle_success(
         "Bases de dados recuperadas com sucesso!",
-        True,
         datasets_list,
-        200,
     )
 
 
 def get_dataset(dataset_id):
     dataset = (
-        Dataset.query.options(subqueryload(Dataset.clean_dataset))
+        Dataset.query.options(db.subqueryload(Dataset.clean_dataset))
         .filter_by(id=dataset_id, user_id=current_user.id)
         .first()
     )
 
     if dataset is None:
-        return create_response(
-            "Base de dados não encontrada!",
-            False,
-            None,
-            404,
-        )
+        return response.handle_not_found_response("Base de dados não encontrada!")
 
-    clean_dataset_info = None
-    if dataset.clean_dataset and (
-        dataset.clean_dataset.size_file
-        or dataset.clean_dataset.name
-        or dataset.clean_dataset.file_url
-    ):
-        clean_dataset_info = OrderedDict(
-            [
-                ("id", dataset.clean_dataset.id),
-                ("size_file", dataset.clean_dataset.size_file),
-                ("file_url", dataset.clean_dataset.file_url),
-            ]
-        )
-
-    dataset_data = OrderedDict(
-        [
-            ("id", dataset.id),
-            ("name", dataset.name),
-            ("description", dataset.description),
-            ("size_file", dataset.size_file),
-            ("file_url", dataset.file_url),
-            ("project_id", dataset.project_id),
-            ("clean_dataset", clean_dataset_info),
-        ]
-    )
-
-    return create_response(
+    clean_dataset_info = format_clean_dataset_data(dataset.clean_dataset)
+    dataset_data = format_dataset_data(dataset, clean_dataset_info)
+    return response.handle_success(
         "Base de dados recuperada com sucesso!",
-        True,
         dataset_data,
-        200,
     )
 
 
 def create_dataset():
     form = DatasetFormCreate()
-    if form.validate_on_submit():
-        csv_file = form.csv_file.data
+    if not form.validate_on_submit():
+        return response.handle_unprocessable_entity(form.errors)
 
-        csv_file.seek(0, os.SEEK_END)
-        size_file_with_unit = f"{round(csv_file.tell() / (1024 * 1024), 4)}MB"
-        csv_file.seek(0)
-
-        file_hash = hashlib.md5(
-            f"{current_user.id}_{form.name.data}".encode("utf-8")
-        ).hexdigest()
-        csv_file.filename = f"{file_hash}.csv"
-
-        s3Controller = S3Controller()
-        file_url = s3Controller.upload_file_to_s3(csv_file)
+    csv_file = form.csv_file.data
+    try:
+        size_file_with_unit, file_url = get_file_size_and_url(
+            csv_file, current_user.id, form.name.data
+        )
+        if file_url is None:
+            return response.handle_internal_server_error_response(
+                message="Erro ao realizar upload para o S3"
+            )
 
         new_dataset = Dataset(
             name=form.name.data,
@@ -128,59 +100,38 @@ def create_dataset():
         )
         db.session.add(new_dataset)
         db.session.commit()
-
-        dataset_data = OrderedDict(
-            [
-                ("id", new_dataset.id),
-                ("name", new_dataset.name),
-                ("description", new_dataset.description),
-                ("size_file", new_dataset.size_file),
-                ("file_url", new_dataset.file_url),
-                ("project_id", new_dataset.project_id),
-            ]
-        )
-        return create_response(
+        dataset_data = format_dataset_data(new_dataset)
+        return response.handle_success(
             "Base de dados criada com sucesso!",
-            True,
             dataset_data,
-            201,
         )
-
-    return create_response(
-        "Dados inválidos!",
-        False,
-        form.errors,
-        422,
-    )
+    except Exception as e:
+        db.session.rollback()
+        response.log_error("Erro ao criar base de dados", e)
+        return response.handle_internal_server_error_response(
+            error=e, message="Erro ao criar a base de dados"
+        )
 
 
 def update_dataset(dataset_id):
     dataset = Dataset.query.get(dataset_id)
     if dataset is None or dataset.user_id != current_user.id:
-        return create_response(
-            "Base de dados não encontrada!",
-            False,
-            None,
-            404,
-        )
+        return response.handle_not_found_response("Base de dados não encontrada!")
 
     form = DatasetFormUpdate(dataset.id)
-    if form.validate_on_submit():
-        s3Controller = S3Controller()
+    if not form.validate_on_submit():
+        return response.handle_unprocessable_entity(form.errors)
 
+    try:
         if form.csv_file.data:
             csv_file = form.csv_file.data
-
-            csv_file.seek(0, os.SEEK_END)
-            size_file_with_unit = f"{round(csv_file.tell() / (1024 * 1024), 4)}MB"
-            csv_file.seek(0)
-
-            file_hash = hashlib.md5(
-                f"{current_user.id}_{form.name.data}".encode("utf-8")
-            ).hexdigest()
-            csv_file.filename = f"{file_hash}.csv"
-
-            file_url = s3Controller.upload_file_to_s3(csv_file)
+            size_file_with_unit, file_url = get_file_size_and_url(
+                csv_file, current_user.id, form.name.data
+            )
+            if file_url is None:
+                return response.handle_internal_server_error_response(
+                    message="Erro ao realizar upload para o S3"
+                )
             dataset.size_file = size_file_with_unit
             dataset.file_url = file_url
 
@@ -189,63 +140,41 @@ def update_dataset(dataset_id):
         dataset.project_id = form.project_id.data or dataset.project_id
 
         db.session.commit()
-        dataset_data = OrderedDict(
-            [
-                ("id", dataset.id),
-                ("name", dataset.name),
-                ("description", dataset.description),
-                ("size_file", dataset.size_file),
-                ("file_url", dataset.file_url),
-            ]
-        )
-        return create_response(
+        dataset_data = format_dataset_data(dataset)
+        return response.handle_success(
             "Base de dados atualizada com sucesso!",
-            True,
             dataset_data,
-            200,
         )
-
-    return create_response(
-        "Dados inválidos!",
-        False,
-        form.errors,
-        422,
-    )
+    except Exception as e:
+        db.session.rollback()
+        response.log_error("Erro ao atualizar base de dados", e)
+        return response.handle_internal_server_error_response(
+            error=e, message="Erro ao atualizar a base de dados"
+        )
 
 
 def delete_dataset(dataset_id):
     dataset = Dataset.query.get(dataset_id)
     if dataset is None or dataset.user_id != current_user.id:
-        return create_response(
-            "Base de dados não encontrada!",
-            False,
-            None,
-            404,
-        )
-    if dataset.file_url:
-        s3Controller = S3Controller()
-        if not s3Controller.delete_file_from_s3(dataset.file_url):
-            return create_response(
-                "Credenciais inválidas para acesso ao S3.",
-                False,
-                None,
-                403,
-            )
+        return response.handle_not_found_response("Base de dados não encontrada!")
 
-    db.session.delete(dataset)
-    db.session.commit()
-    dataset_data = OrderedDict(
-        [
-            ("id", dataset.id),
-            ("name", dataset.name),
-            ("description", dataset.description),
-            ("size_file", dataset.size_file),
-            ("file_url", dataset.file_url),
-        ]
-    )
-    return create_response(
-        "Base de dados deletada com sucesso!",
-        True,
-        dataset_data,
-        200,
-    )
+    try:
+        if dataset.file_url:
+            s3 = S3Controller()
+            if not s3.delete_file_from_s3(dataset.file_url):
+                return response.handle_internal_server_error_response(
+                    message="Erro ao realizar exclusão no servidor AWS"
+                )
+        db.session.delete(dataset)
+        db.session.commit()
+        dataset_data = format_dataset_data(dataset)
+        return response.handle_success(
+            "Base de dados deletada com sucesso!",
+            dataset_data,
+        )
+    except Exception as e:
+        db.session.rollback()
+        response.log_error("Erro ao deletar base de dados", e)
+        return response.handle_internal_server_error_response(
+            error=e, message="Erro ao deletar a base de dados"
+        )
