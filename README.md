@@ -4,10 +4,8 @@ Repositório para o back-end da aplicação EasyMiner.
 
 ## Descrição
 EasyMiner é uma aplicação desenvolvida para facilitar a execução de algoritmos de KDD (Knowledge Discovery in Databases) em conjuntos de dados.
-A aplicação é composta por uma API (repositório atual) e uma interface web.
-
-A API gerencia operações relacionadas a usuários, projetos, datasets e algoritmos de KDD.
-
+A aplicação é se resume a uma API que trabalha com criação, exclusão, edição e listagem de projetos, base de dados, de usuários cadastrados e autenticados.
+Nesses registros criados são aplicados algortimos de KDD em cima das bases de dados cadastradas nos projetos dos usuários.
 
 ## Tecnologias Utilizadas
 
