@@ -38,7 +38,6 @@ def create_user():
         )
     except Exception as e:
         db.session.rollback()
-        response.log_error("Erro ao criar usuário", e)
         return response.handle_internal_server_error_response(
             error=e, message="Falha ao criar o usuário"
         )
@@ -74,7 +73,6 @@ def update_user():
             )
         except Exception as e:
             db.session.rollback()
-            response.log_error("Erro ao atualizar usuário", e)
             return response.handle_internal_server_error_response(
                 error=e, message="Erro ao atualizar o usuário"
             )
@@ -96,9 +94,8 @@ def delete_user():
         )
     except Exception as e:
         db.session.rollback()
-        response.log_error("Erro ao deletar usuário", e)
         return response.handle_internal_server_error_response(
-            error=e, message="Erro ao deletar o usuário"
+            error=e, message="Erro ao deletar o usuário!"
         )
 
 
@@ -116,7 +113,6 @@ def delete_user_related_data(user_id):
         db.session.commit()
     except Exception as e:
         db.session.rollback()
-        response.log_error("Erro ao deletar dados relacionados ao usuário", e)
         return response.handle_internal_server_error_response(
             error=e, message="Erro ao deletar dados relacionados ao usuário"
         )
