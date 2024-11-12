@@ -4,9 +4,8 @@ import app.response_handlers as response
 import pandas as pd
 from app import db
 from app.controllers.s3_controller import S3Controller
-from app.forms.data_mining_forms.preprocessing.data_cleaning_forms import (
-    DataCleaningForm,
-)
+from app.forms.data_mining_forms.preprocessing.data_cleaning_forms import \
+    DataCleaningForm
 from app.models import CleanDataset, Dataset
 from flask_login import current_user
 
