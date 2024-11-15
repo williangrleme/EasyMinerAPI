@@ -7,7 +7,7 @@ from flask_login import current_user
 from .. import db
 from ..controllers.s3_controller import S3Controller
 from ..forms.dataset_form import DatasetFormCreate, DatasetFormUpdate
-from ..models import Dataset
+from ..models import CleanDataset, Dataset
 
 
 def format_dataset_data(dataset, clean_dataset_info=None):
@@ -153,18 +153,42 @@ def update_dataset(dataset_id):
         )
 
 
+def delete_related_clean_dataset(dataset_id):
+    try:
+        clean_dataset = CleanDataset.query.filter_by(dataset_id=dataset_id).first()
+        if clean_dataset and clean_dataset.file_url:
+            s3 = S3Controller()
+            if not s3.delete_file_from_s3(clean_dataset.file_url):
+                return False
+
+        if clean_dataset:
+            db.session.delete(clean_dataset)
+            db.session.commit()
+        return True
+    except Exception as e:
+        db.session.rollback()
+        response.log_error("Erro ao deletar base de dados limpa relacionada", e)
+        return False
+
+
 def delete_dataset(dataset_id):
     dataset = Dataset.query.get(dataset_id)
     if dataset is None or dataset.user_id != current_user.id:
         return response.handle_not_found_response("Base de dados não encontrada!")
 
     try:
+        if not delete_related_clean_dataset(dataset_id):
+            return response.handle_internal_server_error_response(
+                message="Erro ao realizar exclusão da base de dados limpas no servidor AWS"
+            )
+
         if dataset.file_url:
             s3 = S3Controller()
             if not s3.delete_file_from_s3(dataset.file_url):
                 return response.handle_internal_server_error_response(
-                    message="Erro ao realizar exclusão no servidor AWS"
+                    message="Erro ao realizar exclusão da base de dados no servidor AWS"
                 )
+
         db.session.delete(dataset)
         db.session.commit()
         dataset_data = format_dataset_data(dataset)
