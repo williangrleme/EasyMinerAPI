@@ -1,3 +1,4 @@
+openapi: 3.0.0
 info:
   title: EasyMinerAPI
   version: 1.0.0
@@ -481,6 +482,32 @@ paths:
                         }
                       ]
                     }
+        '500':
+          description: "Erro interno do servidor!"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    description: Mensagem de retorno da operação.
+                  success:
+                    type: boolean
+                    description: Indica se a operação foi bem-sucedida.
+                  data:
+                    type: string
+                    description: "Mensagem de erro do servidor."
+              examples:
+                internal_server_error:
+                  summary: Exemplo de resposta.
+                  description: Erro inesperado no servidor.
+                  value:
+                    {
+                      "message": "Erro ao criar o usuário!",
+                      "success": false,
+                      "data": "werkzeug.exceptions.InternalServerError: 500 Internal Server Error"
+                    }
 
     put:
       tags:
@@ -637,7 +664,32 @@ paths:
                       "success": false,
                       "data": null
                     }
-
+        '500':
+          description: "Erro interno do servidor!"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    description: Mensagem de retorno da operação.
+                  success:
+                    type: boolean
+                    description: Indica se a operação foi bem-sucedida.
+                  data:
+                    type: string
+                    description: "Mensagem de erro do servidor."
+              examples:
+                internal_server_error:
+                  summary: Exemplo de resposta 1
+                  description: Erro inesperado no servidor.
+                  value:
+                    {
+                      "message": "Erro ao atualizar o usuário!",
+                      "success": false,
+                      "data": "sqlalchemy.exc.TimeoutError: QueuePool limit of size 5 overflow 10 reached, connection timed out; 30 second timeout"
+                    }
     delete:
       tags:
         - "CRUD de Usuários"
@@ -739,7 +791,7 @@ paths:
               examples:
                 internal_server_error:
                   summary: Exemplo de resposta 1
-                  description: Usuário não encontrado; nenhum dado retornado.
+                  description: Erro inesperado no servidor.
                   value:
                     {
                       "message": "Erro ao deletar o usuário!",
@@ -843,10 +895,10 @@ paths:
               examples:
                 success:
                   summary: Exemplo de resposta
-                  description: Usuário não está autienticado.
+                  description: Usuário não está autenticado.
                   value:
                     {
-                      "message": "Não autorizado",
+                      "message": "Não autorizado!",
                       "success": false,
                       "data": null
                     }
@@ -952,6 +1004,19 @@ paths:
                           type: string
                           description: Mensagem de erro associada ao campo.
               examples:
+                validate_required_name_error:
+                  summary: Exemplo de resposta 2
+                  description: Erro retornado quando o nome do projeto não é fornecido.
+                  value:
+                    {
+                      "message": "Dados inválidos!",
+                      "success": false,
+                      "data": {
+                        "name": [
+                          "O campo é obrigatório."
+                        ]
+                      }
+                    }
                 validate_name_error:
                   summary: Exemplo de resposta 1
                   description: Erro retornado quando o usuário forneceu um nome de projeto que já está sendo utilizado.
@@ -965,18 +1030,59 @@ paths:
                         ]
                       }
                     }
-                validate_size_error:
-                  summary: Exemplo de resposta 2
-                  description: Erro retornado quando o tamanho fornecido para o campo de nome do projeto é inválido.
+        '401':
+          description: Não autorizado.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    description: Mensagem de retorno da operação.
+                  success:
+                    type: boolean
+                    description: Indica se a operação foi bem-sucedida.
+                  data:
+                    type: object
+                    nullable: true
+                    description: Dados adicionais retornados pela operação.
+              examples:
+                success:
+                  summary: Exemplo de resposta
+                  description: Usuário não está autenticado.
                   value:
                     {
-                      "message": "Dados inválidos!",
+                      "message": "Não autorizado!",
                       "success": false,
-                      "data": {
-                        "name": [
-                          "O tamanho deve estar entre 10 e 150 caracteres."
-                        ]
-                      }
+                      "data": null
+                    }
+
+        '500':
+          description: "Erro interno do servidor!"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    description: Mensagem de retorno da operação.
+                  success:
+                    type: boolean
+                    description: Indica se a operação foi bem-sucedida.
+                  data:
+                    type: string
+                    description: "Mensagem de erro do servidor."
+              examples:
+                internal_server_error:
+                  summary: Exemplo de resposta.
+                  description: Conexão com o banco de dados perdida.
+                  value:
+                    {
+                      "message": "Erro ao criar projeto",
+                      "success": false,
+                      "data": "(pymysql.err.OperationalError) (2013, 'Lost connection to MySQL server during query ([Errno 104] Connection reset by peer)')\n[SQL: SELECT users.id AS users_id, users.name AS users_name, users.phone_number AS users_phone_number, users.email AS users_email, users.password_hash AS users_password_hash, users.created_at AS users_created_at, users.updated_at AS users_updated_at \nFROM users \nWHERE users.id = %(pk_1)s]\n[parameters: {'pk_1': 1}]\n(Background on this error at: https://sqlalche.me/e/20/e3q8)"
                     }
 
   /projects/{id}:
@@ -1096,173 +1202,372 @@ paths:
               examples:
                 success:
                   summary: Exemplo de resposta
-                  description: Usuário não está autienticado.
+                  description: Usuário não está autenticado.
+                  value:
+                    {
+                      "message": "Não autorizado!",
+                      "success": false,
+                        "data": null
+                    }
+        '404':
+          description: "Não encontrado."
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    description: Mensagem de retorno da operação.
+                  success:
+                    type: boolean
+                    description: Indica se a operação foi bem-sucedida.
+                  data:
+                    type: object
+                    nullable: true
+                    description: Dados adicionais retornados pela operação.
+              examples:
+                not_found:
+                  summary: Exemplo de resposta
+                  description: Projeto não encontrado; nenhum dado retornado.
+                  value:
+                    {
+                      "message": "Projeto não encontrado!",
+                      "success": false,
+                      "data": null
+                    }
+    put:
+      tags:
+        - "CRUD de Projetos"
+      summary: "Atualizar projeto"
+      description: "Atualiza um projeto existente."
+      parameters:
+        - name: "id"
+          in: "path"
+          required: true
+          schema:
+            type: "integer"
+          description: "ID do projeto"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  description: Nome do projeto.
+                  minLength: 2
+                  maxLength: 100
+                  uniqueItems: true
+                description:
+                  type: string
+                  description: Descrição do que se trata o projeto.
+                  minLength: 10
+                  maxLength: 2000
+            examples:
+              success:
+                summary: Exemplo de requisição
+                value:
+                  {
+                    "name": "Nome atualizado do projeto",
+                  }
+      responses:
+        '200':
+          description: Operação bem sucedida.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: integer
+                    description: ID do projeto.
+                  name:
+                    type: string
+                    description: Nome do projeto.
+              examples:
+                success:
+                  summary: Exemplo de resposta.
+                  description: Operação bem sucedida, retornando as informações do projeto atualizado.
+                  value:
+                    {
+                      "message": "Projeto atualizado com sucesso!",
+                      "success": true,
+                      "data": {
+                        "id": 14,
+                        "name": "Nome atualizado do projeto",
+                        "description": "Descriçào do projeto"
+                      }
+                    }
+        '401':
+          description: Não autorizado.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    description: Mensagem de retorno da operação.
+                  success:
+                    type: boolean
+                    description: Indica se a operação foi bem-sucedida.
+                  data:
+                    type: "null"
+                    description: Dados adicionais retornados pela operação.
+              examples:
+                success:
+                  summary: Exemplo de resposta
+                  description: Usuário não está autenticado.
+                  value:
+                    {
+                      "message": "Não autorizado!",
+                      "success": false,
+                      "data": null
+                    }
+
+        '404':
+          description: "Não encontrado."
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    description: Mensagem de retorno da operação.
+                  success:
+                    type: boolean
+                    description: Indica se a operação foi bem-sucedida.
+                  data:
+                    type: object
+                    nullable: true
+                    description: Dados adicionais retornados pela operação.
+              examples:
+                not_found:
+                  summary: Exemplo de resposta
+                  description: Projeto não encontrado; nenhum dado retornado.
+                  value:
+                    {
+                      "message": "Projeto não encontrado!",
+                      "success": false,
+                      "data": null
+                    }
+        '422':
+          description: Erros de validação.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    description: Mensagem de retorno da operação.
+                  success:
+                    type: boolean
+                    description: Indica se a operação foi bem-sucedida.
+                  data:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        field:
+                          type: string
+                          description: Nome do campo que gerou o erro.
+                        error:
+                          type: string
+                          description: Mensagem de erro associada ao campo.
+              examples:
+                validate_name_error:
+                  summary: Exemplo de resposta 1
+                  description: Erro retornado quando o usuário forneceu um nome de projeto que já está sendo utilizado.
+                  value:
+                    {
+                      "message": "Dados inválidos!",
+                      "success": false,
+                      "data": {
+                        "name": [
+                          "O nome do projeto já existe."
+                        ]
+                      }
+                    }
+                validate_size_error:
+                  summary: Exemplo de resposta 2
+                  description: Erro retornado quando o tamanho fornecido para o campo de nome do projeto é inválido.
+                  value:
+                    {
+                      "message": "Dados inválidos!",
+                      "success": false,
+                      "data": {
+                        "name": [
+                          "O tamanho deve estar entre 10 e 150 caracteres."
+                        ]
+                      }
+                    }
+        '500':
+          description: "Erro interno do servidor!"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    description: Mensagem de retorno da operação.
+                  success:
+                    type: boolean
+                    description: Indica se a operação foi bem-sucedida.
+                  data:
+                    type: string
+                    description: "Mensagem de erro do servidor."
+              examples:
+                internal_server_error_deleted_related_data:
+                  summary: Exemplo de resposta.
+                  description: Conexão com o banco de dados perdida.
+                  value:
+                    {
+                      "message": "Erro ao atualizar o projeto!",
+                      "success": false,
+                      "data": "(pymysql.err.OperationalError) (2013, 'Lost connection to MySQL server during query ([Errno 104] Connection reset by peer)')\n[SQL: SELECT users.id AS users_id, users.name AS users_name, users.phone_number AS users_phone_number, users.email AS users_email, users.password_hash AS users_password_hash, users.created_at AS users_created_at, users.updated_at AS users_updated_at \nFROM users \nWHERE users.id = %(pk_1)s]\n[parameters: {'pk_1': 1}]\n(Background on this error at: https://sqlalche.me/e/20/e3q8)"
+                    }
+
+    delete:
+      tags:
+        - "CRUD de Projetos"
+      summary: "Exclui projeto"
+      description: "Exclui um projeto existente, assim como todos datasets relacionados com o projeto."
+      parameters:
+        - name: "id"
+          in: "path"
+          required: true
+          schema:
+            type: "integer"
+          description: "ID do projeto"
+      responses:
+        '200':
+          description: Operação bem sucedida.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    description: Mensagem de retorno da operação.
+                  success:
+                    type: boolean
+                    description: Indica se a operação foi bem-sucedida.
+                  data:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: integer
+                          description: ID do projeto.
+                        name:
+                          type: string
+                          description: Nome do projeto.
+                        description:
+                          type: string
+                          description: Descrição do que se trata o projeto.
+              examples:
+                success:
+                  summary: Exemplo de resposta
+                  description: Operação bem sucedida, retornando as informações do projeto deletado.
+                  value:
+                    {
+                      "message": "Projeto deletado com sucesso!",
+                      "success": true,
+                      "data": {
+                        "id": 19,
+                        "name": "Projeto com ID 19",
+                        "description": "Descrição teste"
+                      }
+                    }
+        '401':
+          description: Não autorizado.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    description: Mensagem de retorno da operação.
+                  success:
+                    type: boolean
+                    description: Indica se a operação foi bem-sucedida.
+                  data:
+                    type: "null"
+                    description: Dados adicionais retornados pela operação.
+              examples:
+                success:
+                  summary: Exemplo de resposta
+                  description: Usuário não está autenticado.
                   value:
                     {
                       "message": "Não autorizado",
                       "success": false,
-                        "data": null
+                      "data": null
                     }
-#    put:
-#      tags:
-#        - "CRUD de Projetos"
-#      summary: "Atualizar projeto por ID"
-#      description: "Atualiza os detalhes de um projeto específico do usuário autenticado."
-#      parameters:
-#        - name: "id"
-#          in: "path"
-#          required: true
-#          type: "integer"
-#          description: "ID do projeto"
-#        - in: "body"
-#          name: "body"
-#          description: "Detalhes do projeto atualizados"
-#          required: true
-#          schema:
-#            type: "object"
-#            properties:
-#              name:
-#                type: "string"
-#                description: "Nome do projeto, este deve ser único entre os projetos do usuário."
-#                minLength: 2
-#                maxLength: 100
-#                example: "Projeto Atualizado"
-#              description:
-#                type: "string"
-#                description: "Descrição detalhada do projeto."
-#                minLength: 10
-#                maxLength: 2000
-#                example: "Descrição atualizada do projeto"
-#      responses:
-#        200:
-#          description: "Projeto atualizado com sucesso"
-#          schema:
-#            type: "object"
-#            properties:
-#              message:
-#                type: "string"
-#                example: "Projeto atualizado com sucesso!"
-#              success:
-#                type: "boolean"
-#                example: true
-#              data:
-#                type: "object"
-#                properties:
-#                  id:
-#                    type: "integer"
-#                  name:
-#                    type: "string"
-#                    example: "Nome atualizado"
-#                  description:
-#                    type: "string"
-#                    example: "Descrição atualizada"
-#        404:
-#          description: "Não encontrado."
-#          schema:
-#            type: "object"
-#            properties:
-#              message:
-#                type: "string"
-#                description: "Mensagem de retorno da operação."
-#              success:
-#                type: "boolean"
-#                description: "Indica se a operação foi bem-sucedida."
-#              data:
-#                type: "object"
-#                description: "Dados adicionais retornados pela operação."
-#          examples:
-#            application/json:
-#              {
-#                "message": "Projeto não encontrado!",
-#                "success": false,
-#                "data": null
-#              }
-#        422:
-#          description: "Erros de validação."
-#          schema:
-#            type: "object"
-#            properties:
-#              message:
-#                type: "string"
-#                description: "Mensagem de retorno da operação."
-#              success:
-#                type: "boolean"
-#                description: "Indica se a operação foi bem-sucedida."
-#              data:
-#                type: "object"
-#                description: "Dados adicionais retornados pela operação."
-#          examples:
-#            application/json:
-#              {
-#                "message": "Dados inválidos!",
-#                "success": false,
-#                "data": [
-#                  {
-#                    "name": "O nome do projeto já existe.",
-#                    "description": "O tamanho deve estar entre 11 e 2000",
-#                  }
-#                ]
-#              }
-#    delete:
-#      tags:
-#        - "CRUD de Projetos"
-#      summary: "Excluir projeto por ID"
-#      description: "Exclui um projeto específico e todas as bases de dados relacionadas ao projeto do usuário autenticado."
-#      parameters:
-#        - name: "id"
-#          in: "path"
-#          required: true
-#          type: "integer"
-#          description: "ID do projeto"
-#      responses:
-#        200:
-#          description: "Operação bem sucedida."
-#          schema:
-#            type: "object"
-#            properties:
-#              message:
-#                type: "string"
-#                description: "Mensagem de retorno da operação."
-#              success:
-#                type: "boolean"
-#                description: "Indica se a operação foi bem-sucedida."
-#              data:
-#                type: "object"
-#                description: "Dados adicionais retornados pela operação."
-#          examples:
-#            application/json:
-#              {
-#                "message": "Projeto deletado com sucesso!",
-#                "success": true,
-#                "data": [
-#                  {
-#                    "id": 10,
-#                    "name": "Projeto de bases de dados do setor financeiro",
-#                    "description": "Esse projeto é destinado a realizar o processo de KDD em 5 bases de dados no setor de finanças",
-#                  }
-#                ]
-#              }
-#        404:
-#          description: "Não encontrado."
-#          schema:
-#            type: "object"
-#            properties:
-#              message:
-#                type: "string"
-#                description: "Mensagem de retorno da operação."
-#              success:
-#                type: "boolean"
-#                description: "Indica se a operação foi bem-sucedida."
-#              data:
-#                type: "object"
-#                description: "Dados adicionais retornados pela operação."
-#          examples:
-#            application/json:
-#              {
-#                "message": "Projeto não encontrado!",
-#                "success": false,
-#                "data": null
-#              }
+
+        '404':
+          description: "Não encontrado."
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    description: Mensagem de retorno da operação.
+                  success:
+                    type: boolean
+                    description: Indica se a operação foi bem-sucedida.
+                  data:
+                    type: object
+                    nullable: true
+                    description: Dados adicionais retornados pela operação.
+              examples:
+                not_found:
+                  summary: Exemplo de resposta
+                  description: Projeto não encontrado; nenhum dado retornado.
+                  value:
+                    {
+                      "message": "Projeto não encontrado!",
+                      "success": false,
+                      "data": null
+                    }
+
+        '500':
+          description: "Erro interno do servidor!"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    description: Mensagem de retorno da operação.
+                  success:
+                    type: boolean
+                    description: Indica se a operação foi bem-sucedida.
+                  data:
+                    type: string
+                    description: Mensagem de erro do servidor.
+              examples:
+                internal_server_error_related_datasets:
+                  summary: Exemplo de resposta
+                  description: Erro ao deletar bases de dados relacionadas ao projeto.
+                  value:
+                    {
+                      "message": "Erro ao deletar bases de dados relacionadas ao projeto!",
+                      "success": false,
+                      "data": "(sqlalchemy.exc.IntegrityError) (1451, 'Cannot delete or update a parent row: a foreign key constraint fails (`database`.`datasets`, CONSTRAINT `datasets_ibfk_1` FOREIGN KEY (`project_id`) REFERENCES `projects` (`id`))')\n[SQL: DELETE FROM projects WHERE projects.id = %(id)s]\n[parameters: {'id': 1}]\n(Background on this error at: https://sqlalche.me/e/20/gkpj)"
+            }
 
   # DOCUMENTAÇÃO DE CRUD DE BASES DE DADOS
 #
