@@ -129,24 +129,25 @@ def delete_related_datasets(project_id):
 
 def delete_project(project_id):
     project = Project.query.get(project_id)
-    if project and project.user_id == current_user.id:
-        project_data = format_project_data(project)
-        try:
-            if not delete_related_datasets(project_id):
-                return response.handle_internal_server_error_response(
-                    message="Erro ao deletar bases de dados relacionadas ao projeto"
-                )
 
-            db.session.delete(project)
-            db.session.commit()
-            return response.handle_success(
-                "Projeto deletado com sucesso!",
-                project_data,
-            )
-        except Exception as e:
-            db.session.rollback()
+    if project is None or project.user_id != current_user.id:
+        return response.handle_not_found_response("Projeto não encontrado!")
+
+    project_data = format_project_data(project)
+    try:
+        if not delete_related_datasets(project_id):
             return response.handle_internal_server_error_response(
-                error=e, message="Erro ao deletar o projeto"
+                message="Erro ao deletar bases de dados relacionadas ao projeto"
             )
 
-    return response.handle_not_found_response(message="Projeto não encontrado!")
+        db.session.delete(project)
+        db.session.commit()
+        return response.handle_success(
+            "Projeto deletado com sucesso!",
+            project_data,
+        )
+    except Exception as e:
+        db.session.rollback()
+        return response.handle_internal_server_error_response(
+            error=e, message="Erro ao deletar o projeto"
+        )
