@@ -4,7 +4,7 @@ from flask_wtf import FlaskForm
 from flask_wtf.file import FileAllowed, FileField
 from wtforms import IntegerField, StringField
 from wtforms.validators import DataRequired, Length, Optional, ValidationError
-
+from app.config import Config
 
 class DatasetFormBase(FlaskForm):
     ERROR_MESSAGES = {
@@ -14,6 +14,7 @@ class DatasetFormBase(FlaskForm):
         "access_denied": "Você não tem permissão para acessar esse projeto.",
         "size_length": "Tamanho deve estar entre {} e {}.",
         "file_allowed": "Apenas arquivos {} são permitidos.",
+        "file_too_large": f"O arquivo excede o tamanho máximo permitido",
     }
 
     @staticmethod
@@ -50,6 +51,13 @@ class DatasetFormBase(FlaskForm):
             DataRequired(message=ERROR_MESSAGES["required"]),
         ],
     )
+
+    def validate_csv_file(self, field):
+        if field.data:
+            file_size = len(field.data.read())
+            field.data.seek(0)
+            if file_size > Config.MAX_CONTENT_LENGTH:
+                raise ValidationError(self.ERROR_MESSAGES["file_too_large"])
 
     def validate_name(self, field):
         if Dataset.query.filter_by(name=field.data, user_id=current_user.id).first():
