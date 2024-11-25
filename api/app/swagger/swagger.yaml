@@ -1569,415 +1569,853 @@ paths:
                       "data": "(sqlalchemy.exc.IntegrityError) (1451, 'Cannot delete or update a parent row: a foreign key constraint fails (`database`.`datasets`, CONSTRAINT `datasets_ibfk_1` FOREIGN KEY (`project_id`) REFERENCES `projects` (`id`))')\n[SQL: DELETE FROM projects WHERE projects.id = %(id)s]\n[parameters: {'id': 1}]\n(Background on this error at: https://sqlalche.me/e/20/gkpj)"
             }
 
-  # DOCUMENTAÇÃO DE CRUD DE BASES DE DADOS
-#
-#  /datasets:
-#    get:
-#      tags:
-#        - "CRUD de Bases de Dados"
-#      summary: "Obter bases de dados"
-#      description: "Retorna uma lista de todas as bases de dados do usuário autenticado."
-#      responses:
-#        200:
-#          description: "Operação bem sucedida."
-#          schema:
-#            type: "object"
-#            properties:
-#              message:
-#                type: "string"
-#                description: "Mensagem de retorno da operação."
-#              success:
-#                type: "boolean"
-#                description: "Indica se a operação foi bem-sucedida."
-#              data:
-#                type: "object"
-#                description: "Dados adicionais retornados pela operação."
-#          examples:
-#            application/json:
-#              {
-#                "message": "Bases de dados recuperadas com sucesso!",
-#                "success": true,
-#                "data": [
-#                  {
-#                    "id": 1,
-#                    "name": "Base de dados 1",
-#                    "description": "Dados de clientes para análise de churn",
-#                    "size_file": "2.5 MB",
-#                    "file_url": "https://s3.amazonaws.com/bucket-easyminer/datasets/1/file",
-#                    "project_id": 10
-#                  },
-#                  {
-#                    "id": 2,
-#                    "name": "Base de dados 2",
-#                    "description": "Dados de vendas do último ano",
-#                    "size_file": "3.7 MB",
-#                    "file_url": "https://s3.amazonaws.com/bucket-easyminer/datasets/2/file",
-#                    "project_id": 10
-#                  },
-#                  {
-#                    "id": 3,
-#                    "name": "Base de dados 3",
-#                    "description": "Informações de acessos ao sistema",
-#                    "size_file": "1.1 MB",
-#                    "file_url": "https://s3.amazonaws.com/bucket-easyminer/datasets/3/file",
-#                    "project_id": 12
-#                  },
-#                  {
-#                    "id": 4,
-#                    "name": "Base de dados 4",
-#                    "description": "Registros de transações financeiras",
-#                    "size_file": "4.0 MB",
-#                    "file_url": "https://s3.amazonaws.com/bucket-easyminer/datasets/4/file",
-#                    "project_id": 13
-#                  },
-#                  {
-#                    "id": 5,
-#                    "name": "Base de dados 5",
-#                    "description": "Dados de inventário",
-#                    "size_file": "1.2 MB",
-#                    "file_url": "https://s3.amazonaws.com/bucket-easyminer/datasets/5/file",
-#                    "project_id": 15
-#                  }
-#                ]
-#              }
-#
-#    post:
-#      tags:
-#        - "CRUD de Bases de Dados"
-#      summary: "Criar base de dados"
-#      description: "Cria uma nova base de dados."
-#      consumes:
-#        - "multipart/form-data"
-#      parameters:
-#        - in: "formData"
-#          name: "name"
-#          type: "string"
-#          description: "Nome da base de dados."
-#          required: true
-#          minLength: 3
-#          maxLength: 255
-#          x-example: "Dataset 1"
-#        - in: "formData"
-#          name: "description"
-#          type: "string"
-#          description: "Descrição do que se trata a base de dados."
-#          minLength: 11
-#          maxLength: 2000
-#          x-example: "Descrição do dataset"
-#        - in: "formData"
-#          name: "project_id"
-#          type: "integer"
-#          description: "ID do projeto associado."
-#          required: true
-#          x-example: 1
-#        - in: "formData"
-#          name: "csv_file"
-#          type: "file"
-#          description: "Arquivo CSV contendo os dados."
-#          required: true
-#      responses:
-#        201:
-#          description: "Base de dados criada com sucesso"
-#          schema:
-#            type: "object"
-#            properties:
-#              message:
-#                type: "string"
-#                example: "Base de dados criada com sucesso!"
-#              success:
-#                type: "boolean"
-#                example: true
-#              data:
-#                type: "object"
-#                properties:
-#                  id:
-#                    type: "integer"
-#                    example: 5
-#                  name:
-#                    type: "string"
-#                    example: "Base de dados 1"
-#                  description:
-#                    type: "string"
-#                    example: "Descrição da base de dados"
-#                  size_file:
-#                    type: "string"
-#                    example: "0.25 MB"
-#                  file_url:
-#                    type: "string"
-#                    example: "https://s3.amazonaws.com/bucket-easyminer/datasets/5/file"
-#        422:
-#          description: "Erros de validação."
-#          schema:
-#            type: "object"
-#            properties:
-#              message:
-#                type: "string"
-#                example: "Dados inválidos!"
-#              success:
-#                type: "boolean"
-#                example: false
-#              data:
-#                type: "object"
-#                example:
-#                  csv_file: "Apenas arquivos CSV são permitidos."
-#                  name: "O nome da base de dados já existe."
-#
-#  /datasets/{id}:
-#    get:
-#      tags:
-#        - "CRUD de Bases de Dados"
-#      summary: "Obter base de dados por ID"
-#      description: "Retorna os detalhes de uma base de dados específica do usuário autenticado, assim como a relação com uma base uma base de dados pré-processada, caso ela exista."
-#      parameters:
-#        - name: "id"
-#          in: "path"
-#          required: true
-#          type: "integer"
-#          description: "ID da base de dados"
-#      responses:
-#        200:
-#          description: "Operação bem-sucedida"
-#          schema:
-#            type: "object"
-#            properties:
-#              message:
-#                type: "string"
-#                example: "Base de dados recuperada com sucesso!"
-#              success:
-#                type: "boolean"
-#                example: true
-#              data:
-#                type: "object"
-#                properties:
-#                  id:
-#                    type: "integer"
-#                    example: 2
-#                  name:
-#                    type: "string"
-#                    example: "Base de dados 1"
-#                  description:
-#                    type: "string"
-#                    example: "Descrição da base de dados"
-#                  size_file:
-#                    type: "string"
-#                    example: "1.2 MB"
-#                  file_url:
-#                    type: "string"
-#                    example: "https://s3.amazonaws.com/bucket-easyminer/datasets/2/file"
-#                  project_id:
-#                    type: "integer"
-#                    example: 29
-#                  clean_dataset:
-#                    type: "object"
-#                    properties:
-#                      id:
-#                        type: "integer"
-#                        example: 1
-#                      size_file:
-#                        type: "string"
-#                        example: "0.5 MB"
-#                      file_url:
-#                        type: "string"
-#                        example: "https://s3.amazonaws.com/bucket-easyminer/clean_datasets/1/file"
-#          examples:
-#            application/json:
-#              {
-#                "message": "Base de dados recuperada com sucesso!",
-#                "success": true,
-#                "data": [
-#                  {
-#                    "id": 190,
-#                    "name": "Base de dados 190",
-#                    "description": "Dados de clientes para análise de churn",
-#                    "size_file": "2.5 MB",
-#                    "file_url": "https://s3.amazonaws.com/bucket-easyminer/datasets/10/file",
-#                    "project_id": 10,
-#                    "clean_dataset": {
-#                      "id": 1,
-#                      "size_file": "0.0222MB",
-#                      "file_url": "https://s3.amazonaws.com/bucket-easyminer/datasets/10_clean/file",
-#                    }
-#                  }
-#                ]
-#              }
-#        403:
-#          description: "Não autorizado!"
-#          schema:
-#            type: "object"
-#            properties:
-#              message:
-#                type: "string"
-#                example: "Você não tem permissão para acessar essa base de dados."
-#              success:
-#                type: "boolean"
-#                example: false
-#              data:
-#                type: "null"
-#                example: null
-#        404:
-#          description: "Base de dados não encontrada"
-#          schema:
-#            type: "object"
-#            properties:
-#              message:
-#                type: "string"
-#                example: "Base de dados não encontrada!"
-#              success:
-#                type: "boolean"
-#                example: false
-#              data:
-#                type: "null"
-#                example: null
-#
-#    put:
-#      tags:
-#        - "CRUD de Bases de Dados"
-#      summary: "Atualizar base de dados por ID"
-#      description: "Atualiza os detalhes de uma base de dados específica do usuário autenticado."
-#      consumes:
-#        - "multipart/form-data"
-#      parameters:
-#        - in: "formData"
-#          name: "name"
-#          type: "string"
-#          description: "Nome da base de dados."
-#          minLength: 3
-#          maxLength: 255
-#          x-example: "Dataset Atualizado"
-#        - in: "formData"
-#          name: "description"
-#          type: "string"
-#          description: "Descrição da base de dados."
-#          minLength: 11
-#          maxLength: 2000
-#          x-example: "Descrição atualizada do dataset"
-#        - in: "formData"
-#          name: "project_id"
-#          type: "integer"
-#          description: "ID do projeto associado."
-#          x-example: 1
-#        - in: "formData"
-#          name: "csv_file"
-#          type: "file"
-#          description: "Arquivo CSV atualizado contendo os dados."
-#      responses:
-#        200:
-#          description: "Base de dados atualizada com sucesso"
-#          schema:
-#            type: "object"
-#            properties:
-#              message:
-#                type: "string"
-#                example: "Base de dados atualizada com sucesso!"
-#              success:
-#                type: "boolean"
-#                example: true
-#              data:
-#                type: "object"
-#                properties:
-#                  id:
-#                    type: "integer"
-#                    example: 3
-#                  name:
-#                    type: "string"
-#                    example: "Base de dados 3"
-#                  description:
-#                    type: "string"
-#                    example: "Descrição da base de dados"
-#                  size_file:
-#                    type: "string"
-#                    example: "1.3 MB"
-#                  file_url:
-#                    type: "string"
-#                    example: "https://s3.amazonaws.com/bucket-easyminer/datasets/3/file"
-#        403:
-#          description: "Não autorizado!"
-#          schema:
-#            type: "object"
-#            properties:
-#              message:
-#                type: "string"
-#                example: "Você não tem permissão para acessar essa base de dados."
-#              success:
-#                type: "boolean"
-#                example: false
-#              data:
-#                type: "null"
-#                example: null
-#        404:
-#          description: "Base de dados não encontrada"
-#          schema:
-#            type: "object"
-#            properties:
-#              message:
-#                type: "string"
-#                example: "Base de dados não encontrada!"
-#              success:
-#                type: "boolean"
-#                example: false
-#              data:
-#                type: "null"
-#                example: null
-#        422:
-#          description: "Erros de validação."
-#          schema:
-#            type: "object"
-#            properties:
-#              message:
-#                type: "string"
-#                example: "Dados inválidos!"
-#              success:
-#                type: "boolean"
-#                example: false
-#              data:
-#                type: "object"
-#                example:
-#                  description: "O tamanho deve estar entre 11 e 2000 caracteres."
-#                  project_id: "O projeto não existe."
-#
-#    delete:
-#      tags:
-#        - "CRUD de Bases de Dados"
-#      summary: "Excluir base de dados por ID"
-#      description: "Exclui uma base de dados específica do usuário autenticado."
-#      parameters:
-#        - name: "id"
-#          in: "path"
-#          required: true
-#          type: "integer"
-#          description: "ID da base de dados"
-#      responses:
-#        204:
-#          description: "Base de dados excluída com sucesso"
-#        403:
-#          description: "Não autorizado!"
-#          schema:
-#            type: "object"
-#            properties:
-#              message:
-#                type: "string"
-#                example: "Você não tem permissão para excluir essa base de dados."
-#              success:
-#                type: "boolean"
-#                example: false
-#              data:
-#                type: "null"
-#                example: null
-#        404:
-#          description: "Base de dados não encontrada"
-#          schema:
-#            type: "object"
-#            properties:
-#              message:
-#                type: "string"
-#                example: "Base de dados não encontrada!"
-#              success:
-#                type: "boolean"
-#                example: false
-#              data:
-#                type: "null"
-#                example: null
-#
+#   DOCUMENTAÇÃO DE CRUD DE BASES DE DADOS
+
+  /datasets:
+    get:
+      tags:
+        - "CRUD de Base de dados"
+      summary: "Listagem de base de dados"
+      description: "Retorna uma lista de todas as bases de dados do usuário autenticado."
+      responses:
+        '200':
+          description: Operação bem sucedida.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    description: Mensagem de retorno da operação.
+                  success:
+                    type: boolean
+                    description: Indica se a operação foi bem-sucedida.
+                  data:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: integer
+                          description: ID da base de dados.
+                        name:
+                          type: string
+                          description: Nome da base de dados.
+                        description:
+                          type: string
+                          description: Descrição da base de dados.
+                        size_file:
+                          type: string
+                          description: Tamanho do arquivo da base de dados.
+                        file_url:
+                          type: string
+                          description: URL do arquivo da base de dados.
+                        project_id:
+                          type: integer
+                          description: ID do projeto ao qual a base de dados esta associada.
+              examples:
+                success:
+                  summary: Exemplo de resposta
+                  description: Operação bem sucedida, retornando a listagem de bases de dados do usuário autenticado.
+                  value:
+                    {
+                      "message": "Bases de dados recuperadas com sucesso!",
+                      "success": true,
+                      "data": [
+                        {
+                          "id": 1,
+                          "name": "Base de dados 1",
+                          "description": "Dados de clientes para análise de churn",
+                          "size_file": "2.5 MB",
+                          "file_url": "https://s3.amazonaws.com/bucket-easyminer/datasets/1/file",
+                          "project_id": 10
+                        },
+                        {
+                          "id": 2,
+                          "name": "Base de dados 2",
+                          "description": "Dados de vendas do último ano",
+                          "size_file": "3.7 MB",
+                          "file_url": "https://s3.amazonaws.com/bucket-easyminer/datasets/2/file",
+                          "project_id": 10
+                        },
+                        {
+                          "id": 3,
+                          "name": "Base de dados 3",
+                          "description": "Informações de acessos ao sistema",
+                          "size_file": "1.1 MB",
+                          "file_url": "https://s3.amazonaws.com/bucket-easyminer/datasets/3/file",
+                          "project_id": 12
+                        },
+                        {
+                          "id": 4,
+                          "name": "Base de dados 4",
+                          "description": "Registros de transações financeiras",
+                          "size_file": "4.0 MB",
+                          "file_url": "https://s3.amazonaws.com/bucket-easyminer/datasets/4/file",
+                          "project_id": 13
+                        },
+                        {
+                          "id": 5,
+                          "name": "Base de dados 5",
+                          "description": "Dados de inventário",
+                          "size_file": "1.2 MB",
+                          "file_url": "https://s3.amazonaws.com/bucket-easyminer/datasets/5/file",
+                          "project_id": 15
+                        }
+                      ]
+                    }
+        '401':
+          description: Não autorizado.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    description: Mensagem de retorno da operação.
+                  success:
+                    type: boolean
+                    description: Indica se a operação foi bem-sucedida.
+                  data:
+                    type: "null"
+                    description: Dados adicionais retornados pela operação.
+              examples:
+                success:
+                  summary: Exemplo de resposta
+                  description: Usuário não está autenticado.
+                  value:
+                    {
+                      "message": "Não autorizado",
+                      "success": false,
+                      "data": null
+                    }
+
+    post:
+      tags:
+        - "CRUD de Base de dados"
+      summary: "Criar base de dados"
+      description: "Cria uma nova base de dados para ser usada nos processos de KDD"
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required:
+                - name
+                - project_id
+                - csv_file
+              properties:
+                name:
+                  type: string
+                  description: "Nome da base de dados. Deve ser único para o usuário atual."
+                  minLength: 2
+                  maxLength: 100
+                  example: "Base de dados do setor financeiro"
+                description:
+                  type: string
+                  description: "Descrição do que se trata a base de dados (opcional)."
+                  minLength: 10
+                  maxLength: 2000
+                  example: "Base de dados para análise de transações financeiras."
+                project_id:
+                  type: integer
+                  description: "ID do projeto associado. Deve ser válido e o usuário deve ter acesso ao projeto."
+                  example: 123
+                csv_file:
+                  type: string
+                  format: binary
+                  description: "Arquivo CSV contendo os dados. Deve ser menor que 16MB."
+      responses:
+        '201':
+          description: "Novo registro criado com sucesso."
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    description: "Mensagem de retorno da operação."
+                  success:
+                    type: boolean
+                    description: "Indica se a operação foi bem-sucedida."
+                  data:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: integer
+                          description: "ID da base de dados."
+                        name:
+                          type: string
+                          description: "Nome da base de dados."
+                        description:
+                          type: string
+                          description: "Descrição da base de dados."
+                        size_file:
+                          type: string
+                          description: "Tamanho da base de dados em MB."
+                        file_url:
+                          type: string
+                          description: "URL do arquivo da base de dados."
+                        project_id:
+                          type: integer
+                          description: "ID do projeto associado."
+              examples:
+                success:
+                  summary: "Exemplo de resposta"
+                  description: "Base de dados criada, os detalhes do novo projeto são retornados."
+                  value:
+                    message: "Base de dados criada com sucesso!"
+                    success: true
+                    data:
+                      id: 76
+                      name: "teste de cadastro de dataset"
+                      description: "descrição teste"
+                      size_file: "0.0037MB"
+                      file_url: "https://s3.amazonaws.com/bucket-easyminer/datasets/5/file"
+                      project_id: 12
+
+        '401':
+          description: Não autorizado.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    description: Mensagem de retorno da operação.
+                  success:
+                    type: boolean
+                    description: Indica se a operação foi bem-sucedida.
+                  data:
+                    type: "null"
+                    description: Dados adicionais retornados pela operação.
+              examples:
+                success:
+                  summary: Exemplo de resposta
+                  description: Usuário não está autenticado.
+                  value:
+                    {
+                      "message": "Não autorizado!",
+                      "success": false,
+                      "data": null
+                    }
+
+        '422':
+          description: Erros de validação.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    description: Mensagem de retorno da operação.
+                  success:
+                    type: boolean
+                    description: Indica se a operação foi bem-sucedida.
+                  data:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        field:
+                          type: string
+                          description: Nome do campo que gerou o erro.
+                        error:
+                          type: string
+                          description: Mensagem de erro associada ao campo.
+              examples:
+                validation_error_size_csv:
+                  summary: Exemplo de resposta 1
+                  description: Erro retornado quando o usuário faz o upload de uma base de dados com tamanho superior a 16MB.
+                  value:
+                    {
+                      "message": "Dados inválidos!",
+                      "success": false,
+                      "data": [
+                        {
+                          "csv_file": "O arquivo excede o tamanho máximo permitido."
+                        }
+                      ]
+                    }
+                validation_error_type_file:
+                  summary: Exemplo de resposta 2
+                  description: Erro retornado quando o usuário faz o upload de uma base de dados com uma extensão proibida.
+                  value:
+                    {
+                      "message": "Dados inválidos!",
+                      "success": false,
+                      "data": [
+                        {
+                          "csv_file": "Apenas arquivos CSV são permitidos."
+                        }
+                      ]
+                    }
+
+                validation_error_name:
+                  summary: Exemplo de resposta 3
+                  description: Erro retornado quando o usuário fornece um nome que ja existe para a base de dados.
+                  value:
+                    {
+                      "message": "Dados inválidos!",
+                      "success": false,
+                      "data": [
+                        {
+                          "name": "O nome da base de dados já existe."
+                        }
+                      ]
+                    }
+
+        '500':
+          description: "Erro interno do servidor!"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    description: Mensagem de retorno da operação.
+                  success:
+                    type: boolean
+                    description: Indica se a operação foi bem-sucedida.
+                  data:
+                    type: string
+                    description: "Mensagem de erro do servidor."
+              examples:
+                internal_server_error:
+                  summary: Exemplo de resposta.
+                  description: Erro ao enviar o arquivo para a AWS.
+                  value:
+                    {
+                      "message": "Erro ao realizar upload para o S3",
+                      "success": false,
+                      "data": "An error occurred (AccessDenied) when calling the PutObject operation: Access Denied"
+                    }
+
+  /datasets/{id}:
+    get:
+      tags:
+        - "CRUD de Base de dados"
+      summary: "Exibição de base de dados"
+      description: "Retorna os detalhes de uma base de dados específica do usuário autenticado."
+      parameters:
+        - name: "id"
+          in: "path"
+          required: true
+          schema:
+            type: "integer"
+          description: "ID da base de dados"
+      responses:
+        '200':
+          description: Operação bem sucedida.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    description: Mensagem de retorno da operação.
+                  success:
+                    type: boolean
+                    description: Indica se a operação foi bem-sucedida.
+                  data:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: integer
+                          description: ID da base de dados.
+                        name:
+                          type: string
+                          description: Nome da base de dados.
+                        description:
+                          type: string
+                          description: Descrição da base de dados.
+                        size_file:
+                          type: string
+                          description: Tamanho do arquivo da base de dados.
+                        file_url:
+                          type: string
+                          description: URL do arquivo da base de dados.
+                        project_id:
+                          type: integer
+                          description: ID do projeto ao qual a base de dados esta associada.
+                        clean_dataset:
+                          type: object
+                          properties:
+                            id:
+                              type: integer
+                              description: ID do dataset limpo.
+                            size_file:
+                              type: string
+                              description: Tamanho do arquivo do dataset limpo.
+                            file_url:
+                              type: string
+                              description: URL do arquivo do dataset limpo.
+              examples:
+                success:
+                  summary: Exemplo de resposta
+                  description: Operação bem sucedida, retornando a listagem de bases de dados do usuário autenticado.
+                  value:
+                    {
+                      "message": "Base de dados recuperada com sucesso!",
+                      "success": true,
+                      "data": {
+                        "id": 73,
+                        "name": "teste de cadastro de datasethdfh",
+                        "description": "oi teste master",
+                        "size_file": "0.0228MB",
+                        "file_url": "https://easy-miner-api.s3.amazonaws.com/bd7029523acb6f24f91a3346f330fb7e.csv",
+                        "project_id": 12,
+                        "clean_dataset": {
+                          "id": 53,
+                          "size_file": "0.0231MB",
+                          "file_url": "https://s3.amazonaws.com/bucket-easyminer/datasets/5/file"
+                        }
+                      }
+                    }
+        '401':
+          description: Não autorizado.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    description: Mensagem de retorno da operação.
+                  success:
+                    type: boolean
+                    description: Indica se a operação foi bem-sucedida.
+                  data:
+                    type: object
+                    nullable: true
+                    description: Dados adicionais retornados pela operação.
+              examples:
+                success:
+                  summary: Exemplo de resposta
+                  description: Usuário não está autenticado.
+                  value:
+                    {
+                      "message": "Não autorizado!",
+                      "success": false,
+                      "data": null
+                    }
+        '404':
+          description: "Não encontrado."
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    description: Mensagem de retorno da operação.
+                  success:
+                    type: boolean
+                    description: Indica se a operação foi bem-sucedida.
+                  data:
+                    type: object
+                    nullable: true
+                    description: Dados adicionais retornados pela operação.
+              examples:
+                not_found:
+                  summary: Exemplo de resposta
+                  description: Projeto não encontrado; nenhum dado retornado.
+                  value:
+                    {
+                      "message": "Base de dados não encontrada!",
+                      "success": false,
+                      "data": null
+                    }
+
+    put:
+      tags:
+        - "CRUD de Base de dados"
+      summary: "Atualizar base de dados"
+      description: "Atualiza uma base de dados existente."
+      parameters:
+        - name: "id"
+          in: "path"
+          required: true
+          schema:
+            type: "integer"
+          description: "ID da base de dados"
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  description: "Nome da base de dados. Deve ser único para o usuário atual."
+                  minLength: 2
+                  maxLength: 100
+                  example: "Base de dados do setor de saude"
+                description:
+                  type: string
+                  description: "Descrição do que se trata a base de dados."
+                  minLength: 10
+                  maxLength: 2000
+                  example: "Base de dados para análise de pacientes."
+                project_id:
+                  type: integer
+                  description: "ID do projeto associado. Deve ser válido e o usuário deve ter acesso ao projeto."
+                  example: 6534
+                csv_file:
+                  type: string
+                  format: binary
+                  description: "Arquivo CSV contendo os dados. Deve ser menor que 16MB."
+            examples:
+              success:
+                summary: Exemplo de requisição
+                value:
+                  {
+                    "csv_file": "Novo arquivo CSV",
+                  }
+      responses:
+        '200':
+          description: "Registro atualizado com sucesso."
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    description: "Mensagem de retorno da operação."
+                  success:
+                    type: boolean
+                    description: "Indica se a operação foi bem-sucedida."
+                  data:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: integer
+                          description: "ID da base de dados."
+                        name:
+                          type: string
+                          description: "Nome da base de dados."
+                        description:
+                          type: string
+                          description: "Descrição da base de dados."
+                        size_file:
+                          type: string
+                          description: "Tamanho da base de dados em MB."
+                        file_url:
+                          type: string
+                          description: "URL do arquivo da base de dados."
+                        project_id:
+                          type: integer
+                          description: "ID do projeto associado."
+              examples:
+                success:
+                  summary: "Exemplo de resposta"
+                  description: "Base de dados atualizada, os detalhes do novo projeto são retornados."
+                  value:
+                    message: "Base de dados criada com sucesso!"
+                    success: true
+                    data:
+                      id: 76
+                      name: "teste de alteração de dataset"
+                      description: "descrição teste"
+                      size_file: "0.0037MB"
+                      file_url: "https://s3.amazonaws.com/bucket-easyminer/datasets/5/file"
+                      project_id: 12
+
+        '401':
+          description: Não autorizado.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    description: Mensagem de retorno da operação.
+                  success:
+                    type: boolean
+                    description: Indica se a operação foi bem-sucedida.
+                  data:
+                    type: "null"
+                    description: Dados adicionais retornados pela operação.
+              examples:
+                success:
+                  summary: Exemplo de resposta
+                  description: Usuário não está autenticado.
+                  value:
+                    {
+                      "message": "Não autorizado!",
+                      "success": false,
+                      "data": null
+                    }
+
+        '422':
+          description: Erros de validação.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    description: Mensagem de retorno da operação.
+                  success:
+                    type: boolean
+                    description: Indica se a operação foi bem-sucedida.
+                  data:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        field:
+                          type: string
+                          description: Nome do campo que gerou o erro.
+                        error:
+                          type: string
+                          description: Mensagem de erro associada ao campo.
+              examples:
+                validation_error_size_csv:
+                  summary: Exemplo de resposta 1
+                  description: Erro retornado quando o usuário faz o upload de uma base de dados com tamanho superior a 16MB.
+                  value:
+                    {
+                      "message": "Dados inválidos!",
+                      "success": false,
+                      "data": [
+                        {
+                          "csv_file": "O arquivo excede o tamanho máximo permitido."
+                        }
+                      ]
+                    }
+                validation_error_type_file:
+                  summary: Exemplo de resposta 2
+                  description: Erro retornado quando o usuário faz o upload de uma base de dados com uma extensão proibida.
+                  value:
+                    {
+                      "message": "Dados inválidos!",
+                      "success": false,
+                      "data": [
+                        {
+                          "csv_file": "Apenas arquivos CSV são permitidos."
+                        }
+                      ]
+                    }
+
+                validation_error_name:
+                  summary: Exemplo de resposta 3
+                  description: Erro retornado quando o usuário fornece um nome que ja existe para a base de dados.
+                  value:
+                    {
+                      "message": "Dados inválidos!",
+                      "success": false,
+                      "data": [
+                        {
+                          "name": "O nome da base de dados já existe."
+                        }
+                      ]
+                    }
+
+        '500':
+          description: "Erro interno do servidor!"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    description: Mensagem de retorno da operação.
+                  success:
+                    type: boolean
+                    description: Indica se a operação foi bem-sucedida.
+                  data:
+                    type: string
+                    description: "Mensagem de erro do servidor."
+              examples:
+                internal_server_error:
+                  summary: Exemplo de resposta.
+                  description: Erro ao enviar o arquivo para a AWS.
+                  value:
+                    {
+                      "message": "Erro ao realizar upload para o S3",
+                      "success": false,
+                      "data": "An error occurred (AccessDenied) when calling the PutObject operation: Access Denied"
+                    }
+    delete:
+      tags:
+        - "CRUD de Base de dados"
+      summary: "Exclui base de dados"
+      description: "Exclui uma base de dados existente, assim como todos datasets limpos relacionados."
+      parameters:
+        - name: "id"
+          in: "path"
+          required: true
+          schema:
+            type: "integer"
+          description: "ID da base de dados"
+
+      responses:
+        '200':
+          description: Operação bem sucedida.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    description: Mensagem de retorno da operação.
+                  success:
+                    type: boolean
+                    description: Indica se a operação foi bem-sucedida.
+                  data:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: integer
+                          description: ID da base de dados.
+                        name:
+                          type: string
+                          description: Nome da base de dados.
+                        description:
+                          type: string
+                          description: Descrição da base de dados.
+                        size_file:
+                          type: string
+                          description: Tamanho do arquivo da base de dados.
+                        file_url:
+                          type: string
+                          description: URL do arquivo da base de dados.
+                        project_id:
+                          type: integer
+                          description: ID do projeto ao qual a base de dados esta associada.
+              examples:
+                success:
+                  summary: Exemplo de resposta
+                  description: Operação bem sucedida, retornando as informações do projeto deletado.
+                  value:
+                    {
+                      "message": "Base de dados deletada com sucesso!",
+                      "success": true,
+                      "data": {
+                        "id": 73,
+                        "name": "Base de dados excluida",
+                        "description": "Descrição da base de dados",
+                        "size_file": "0.0228MB",
+                        "file_url": "https://s3.amazonaws.com/bucket-easyminer/datasets/3/file",
+                        "project_id": 12
+                      }
+                    }
+        '401':
+          description: Não autorizado.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    description: Mensagem de retorno da operação.
+                  success:
+                    type: boolean
+                    description: Indica se a operação foi bem-sucedida.
+                  data:
+                    type: "null"
+                    description: Dados adicionais retornados pela operação.
+              examples:
+                success:
+                  summary: Exemplo de resposta
+                  description: Usuário não está autenticado.
+                  value:
+                    {
+                      "message": "Não autorizado",
+                      "success": false,
+                      "data": null
+                    }
+
+        '404':
+          description: "Não encontrado."
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    description: Mensagem de retorno da operação.
+                  success:
+                    type: boolean
+                    description: Indica se a operação foi bem-sucedida.
+                  data:
+                    type: object
+                    nullable: true
+                    description: Dados adicionais retornados pela operação.
+              examples:
+                not_found:
+                  summary: Exemplo de resposta
+                  description: Base de dados não encontrada; nenhum dado retornado.
+                  value:
+                    {
+                      "message": "Não encontrado!",
+                      "success": false,
+                      "data": "Base de dados não encontrada!"
+                    }
+
+        '500':
+          description: "Erro interno do servidor!"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    description: Mensagem de retorno da operação.
+                  success:
+                    type: boolean
+                    description: Indica se a operação foi bem-sucedida.
+                  data:
+                    type: string
+                    description: Mensagem de erro do servidor.
+              examples:
+                internal_server_error_s3_delete_object:
+                  summary: Exemplo de resposta 1.
+                  description: Erro interno ao tentar excluir um arquivo do bucket no Amazon S3 devido a falha interna.
+                  value:
+                    {
+                      "message": "Erro ao realizar exclusão da base de dados no servidor AWS!",
+                      "success": false,
+                      "data": "An error occurred (InternalError) when calling the DeleteObject operation: We encountered an internal error while deleting the object. Please try again later. (RequestId: example-request-id, HostId: example-host-id)"
+                    }
+
+                internal_server_error_related_clean_dataset:
+                  summary: Exemplo de resposta 2.
+                  description: Erro interno ao tentar excluir um dataset.
+                  value:
+                    {
+                      "message": "Erro ao deletar registros relacionados ao dataset!",
+                      "success": false,
+                      "data": "(sqlalchemy.exc.IntegrityError) (1451, 'Cannot delete or update a parent row: a foreign key constraint fails (`database`.`clean_dataset`, CONSTRAINT `clean_dataset_ibfk_1` FOREIGN KEY (`dataset_id`) REFERENCES `dataset` (`id`))')\n[SQL: DELETE FROM dataset WHERE dataset.id = %(id)s]\n[parameters: {'id': 1}]\n(Background on this error at: https://sqlalche.me/e/20/gkpj)"
+                    }
+
+
 #  /preprocessing/data-cleaning/{id}:
 #    post:
 #      tags:
