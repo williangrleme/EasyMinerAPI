@@ -2508,7 +2508,7 @@ paths:
               examples:
                 success:
                   summary: "Exemplo de resposta"
-                  description: "Pré-processamento realizado com sucesso, os detalhes do dataset limpo são retornados."
+                  description: "Limpeza de dados realizada com sucesso na etapa de pré-processamento, os detalhes do dataset limpo são retornados."
                   value:
                     {
                         "message": "Limpeza de dados realizada com sucesso!",
@@ -2670,189 +2670,505 @@ paths:
                       "success": false,
                       "data": "An error occurred (AccessDenied) when calling the PostObject operation: Access Denied"
                     }
-#        403:
-#          description: "Não autorizado!"
-#          schema:
-#            type: object
-#            properties:
-#              message:
-#                type: string
-#                example: "Não autorizado!"
-#              success:
-#                type: boolean
-#                example: False
-#              data:
-#                type: string
-#                example: None
-#        404:
-#          description: "Base de dados não encontrada!"
-#          schema:
-#            type: object
-#            properties:
-#              message:
-#                type: string
-#                example: "Base de dados não encontrada!"
-#              success:
-#                type: boolean
-#                example: False
-#              data:
-#                type: string
-#                example: None
-#        422:
-#          description: "Erros de validação."
-#          schema:
-#            type: object
-#            properties:
-#              message:
-#                type: string
-#                example: "Dados inválidos!"
-#              success:
-#                type: boolean
-#                example: False
-#              data:
-#                type: array
-#                items:
-#                  type: string
-#                  example: "Os seguintes campos não estão registrados na sua base de dados: COLUNA 1, COLUNA 2"
-#
-#  /preprocessing/data-normalization/{id}:
-#    post:
-#      tags:
-#        - "Pré-processamento"
-#      summary: "Realizar normalização de dados"
-#      description: >
-#        Aplica a normalização de dados em um dataset específico. O usuário deve
-#        fornecer os métodos de normalização a serem aplicados nas features escolhidas.
-#        Métodos aceitos: `minmax`, `zscore`.
-#      parameters:
-#        - name: id
-#          in: path
-#          required: true
-#          type: integer
-#          description: "ID do dataset a ser normalizado."
-#        - in: body
-#          name: body
-#          description: >
-#            Detalhes da normalização de dados.
-#          required: true
-#          schema:
-#            type: object
-#            required:
-#              - methods
-#              - features
-#            properties:
-#              methods:
-#                type: string
-#                description: "Método de normalização a ser aplicado."
-#                enum:
-#                  - minmax
-#                  - zscore
-#              features:
-#                type: array
-#                items:
-#                  type: string
-#                description: "Lista de features a serem normalizadas."
-#      responses:
-#        201:
-#          description: "Normalização de dados realizada com sucesso!"
-#        403:
-#          description: "Não autorizado!"
-#        404:
-#          description: "Base de dados não encontrada!"
-#        422:
-#          description: "Erros de validação."
-#
-#  /preprocessing/data-reduction/{id}:
-#    post:
-#      tags:
-#        - "Pré-processamento"
-#      summary: "Realizar redução de dados"
-#      description: >
-#        Aplica técnicas de redução de dados em um dataset específico. O usuário deve
-#        fornecer as features e o método de redução de dados a ser aplicado.
-#        Métodos aceitos: `pca`, `amostragem_aleatoria`, `amostragem_sistematica`.
-#      parameters:
-#        - name: id
-#          in: path
-#          required: true
-#          type: integer
-#          description: "ID do dataset a ser reduzido."
-#        - in: body
-#          name: body
-#          description: >
-#            Parâmetros necessários para realizar a redução de dados, incluindo
-#            as colunas alvo (features) e o método de redução de dados a ser aplicado.
-#          required: true
-#          schema:
-#            type: object
-#            required:
-#              - features
-#              - methods
-#            properties:
-#              features:
-#                type: array
-#                items:
-#                  type: string
-#                description: "Lista de features (colunas) para realizar a redução de dados."
-#                example: [ "coluna1", "coluna2" ]
-#              methods:
-#                type: string
-#                description: >
-#                  Método de redução de dados a ser aplicado.
-#                  Pode ser 'pca', 'amostragem_aleatoria', ou 'amostragem_sistematica'.
-#                example: "amostragem_sistematica"
-#              systematic_records:
-#                type: integer
-#                description: >
-#                  Número de registros a serem extraídos em uma amostragem sistemática.
-#                  Obrigatório se o método escolhido for 'amostragem_sistematica'.
-#                example: 50
-#              systematic_method:
-#                type: string
-#                description: >
-#                  Método sistemático a ser aplicado na amostragem.
-#                  Pode ser 'maiores' ou 'menores'.
-#                example: "maiores"
-#      responses:
-#        201:
-#          description: "Redução de dados realizada com sucesso!"
-#          schema:
-#            type: object
-#            properties:
-#              mensagem:
-#                type: string
-#                example: "Redução de dados realizada com sucesso!"
-#        403:
-#          description: "Não autorizado!"
-#          schema:
-#            type: object
-#            properties:
-#              mensagem:
-#                type: string
-#                example: "Não autorizado!!"
-#        404:
-#          description: "Base de dados não encontrada!"
-#          schema:
-#            type: object
-#            properties:
-#              mensagem:
-#                type: string
-#                example: "Base de dados não encontrada!"
-#        422:
-#          description: "Erros de validação."
-#          schema:
-#            type: object
-#            properties:
-#              mensagem:
-#                type: string
-#                example: "Dados inválidos!"
-#              erros:
-#                type: object
-#                properties:
-#                  features:
-#                    type: array
-#                    items:
-#                      type: string
-#                    example: [
-#                      "O campo enviado não está registrado na sua base de dados."
-#                    ]
+
+  /preprocessing/data-normalization/{id}:
+    post:
+      tags:
+        - "Pré-processamento"
+      summary: "Realizar normalização de dados"
+      description: "Aplica a normalização de dados em um dataset específico. O usuário deve fornecer os métodos de normalização a serem aplicados nas features escolhidas."
+      parameters:
+        - name: "id"
+          in: "path"
+          required: true
+          schema:
+            type: "integer"
+          description: "ID da base de dados"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - features
+                - methods
+              properties:
+                features:
+                  type: array
+                  items:
+                    type: string
+                  description: "Lista de features a serem normalizadas."
+                methods:
+                  type: string
+                  description: "Método de normalização a ser aplicado."
+                  enum:
+                    - minmax
+                    - zscore
+            examples:
+              success:
+                summary: Exemplo de requisição
+                value:
+                  {
+                    "features-0": "Coluna 1",
+                    "features-1": "Coluna 2",
+                    "methods": "minmax"
+                  }
+      responses:
+        '200':
+          description: Normalização de dados realizada com sucesso na etapa de pré-processamento
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    description: "Mensagem de retorno da operação."
+                  success:
+                    type: boolean
+                    description: "Indica se a operação foi bem-sucedida."
+                  data:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        normalized_dataset:
+                          type: object
+                          properties:
+                            id:
+                              type: integer
+                              description: ID do dataset normalizado.
+                            size_file:
+                              type: string
+                              description: Tamanho do arquivo do dataset normalizado.
+                            file_url:
+                              type: string
+                              description: URL do arquivo do dataset normalizado.
+              examples:
+                success:
+                  summary: "Exemplo de resposta"
+                  description: "Normalização de dados realizada com sucesso na etapa de pré-processamento, os detalhes do dataset normalizado são retornados."
+                  value:
+                    {
+                      "message": "Normalização de dados realizada com sucesso!",
+                      "success": true,
+                      "data": {
+                        "normalized_dataset": {
+                          "id": 65,
+                          "size_file": "0.0255MB",
+                               "file_url": "https://s3.amazonaws.com/bucket-easyminer/datasets/5/file_normalized",
+                        }
+                      }
+                    }
+
+        '422':
+          description: Erros de validação.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    description: Mensagem de retorno da operação.
+                  success:
+                    type: boolean
+                    description: Indica se a operação foi bem-sucedida.
+                  data:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        field:
+                          type: string
+                          description: Nome do campo que gerou o erro.
+                        error:
+                          type: string
+                          description: Mensagem de erro associada ao campo.
+              examples:
+                validation_error_features:
+                  summary: Exemplo de resposta 1
+                  description: Erro retornado quando é fornecido uma coluna que não pertence ao dataset.
+                  value:
+                    {
+                      "message": "Dados inválidos!",
+                      "success": false,
+                      "data": {
+                        "features": [
+                          "Os seguintes campos não estão registrados na sua base de dados: COLUNA_ERRADA1, COLUNA_ERRADA2"
+                        ]
+                      }
+                    }
+                validation_error_method:
+                  summary: Exemplo de resposta 2
+                  description: Erro retornado quando é fornecido um método inválido de normalização de dados.
+                  value:
+                    {
+                      "message": "Dados inválidos!",
+                      "success": false,
+                      "data": {
+                        "methods": [
+                          "Método inválido: METODO-ERRADO. Selecione uma opção válida."
+                        ]
+                      }
+                    }
+
+        '404':
+          description: "Não encontrado."
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    description: Mensagem de retorno da operação.
+                  success:
+                    type: boolean
+                    description: Indica se a operação foi bem-sucedida.
+                  data:
+                    type: object
+                    nullable: true
+                    description: Dados adicionais retornados pela operação.
+              examples:
+                not_found:
+                  summary: Exemplo de resposta
+                  description: Base de dados não encontrada; nenhum dado retornado.
+                  value:
+                    {
+                      "message": "Base de dados não encontrada!",
+                      "success": false,
+                      "data": null
+                    }
+
+        '401':
+          description: Não autorizado!.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    description: Mensagem de retorno da operação.
+                  success:
+                    type: boolean
+                    description: Indica se a operação foi bem-sucedida.
+                  data:
+                    type: "null"
+                    description: Dados adicionais retornados pela operação.
+              examples:
+                success:
+                  summary: Exemplo de resposta
+                  description: Usuário não está autenticado.
+                  value:
+                    {
+                      "message": "Não autorizado",
+                      "success": false,
+                      "data": null
+                    }
+
+        '500':
+          description: "Erro interno do servidor!"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    description: Mensagem de retorno da operação.
+                  success:
+                    type: boolean
+                    description: Indica se a operação foi bem-sucedida.
+                  data:
+                    type: string
+                    description: "Mensagem de erro do servidor."
+              examples:
+                internal_server_error:
+                  summary: Exemplo de resposta.
+                  description: Erro ao enviar o arquivo para a AWS.
+                  value:
+                    {
+                      "message": "Erro ao realizar upload para o S3",
+                      "success": false,
+                      "data": "An error occurred (AccessDenied) when calling the PostObject operation: Access Denied"
+                    }
+
+  /preprocessing/data-reduction/{id}:
+    post:
+      tags:
+        - "Pré-processamento"
+      summary: "Realiza a redução de dados"
+      description: "Aplica a redução de dados em um dataset específico. O usuário deve fornecer os métodos de redução a serem aplicados nas features escolhidas."
+      parameters:
+        - name: "id"
+          in: "path"
+          required: true
+          schema:
+            type: "integer"
+          description: "ID da base de dados"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - features
+                - methods
+              properties:
+                features:
+                  type: array
+                  items:
+                    type: string
+                  description: >
+                    Lista de features a serem consideradas para a redução dimensional. 
+                    Se o método escolhido for PCA, recomenda-se incluir todas as features. 
+                    Para amostragem, apenas uma coluna deve ser usada.
+                methods:
+                  type: string
+                  description: Método de redução a ser aplicado.
+                  enum:
+                    - pca
+                    - amostragem_aleatoria
+                    - amostragem_sistematica
+                random_records:
+                  type: integer
+                  description: >
+                    Quantidade de registros para a amostragem aleatória. 
+                    Deve ser menor ou igual ao total de registros disponíveis no dataset.
+                systematic_records:
+                  type: integer
+                  description: >
+                    Quantidade de registros para a amostragem sistemática. 
+                    Deve ser menor ou igual ao total de registros disponíveis no dataset.
+                    Deve ser aplicado a **SOMENTE** uma feature(coluna).
+                systematic_method:
+                  type: string
+                  description: >
+                    Critério para a seleção de registros na amostragem sistemática. 
+                    Define se os maiores ou menores valores serão escolhidos.
+                  enum:
+                    - maiores
+                    - menores
+            examples:
+              success:
+                summary: Exemplo de requisição
+                value:
+                  {
+                    "features-0": "Coluna 1",
+                    "methods": "amostragem_sistematica",
+                    "systematic_records": 5000,
+                    "systematic_method": "maiores"
+                  }
+      responses:
+        '200':
+          description: Redução de dados realizada com sucesso na etapa de pré-processamento
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    description: "Mensagem de retorno da operação."
+                  success:
+                    type: boolean
+                    description: "Indica se a operação foi bem-sucedida."
+                  data:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        reduced_dataset:
+                          type: object
+                          properties:
+                            id:
+                              type: integer
+                              description: ID do dataset reduzido.
+                            size_file:
+                              type: string
+                              description: Tamanho do arquivo do dataset reduzido.
+                            file_url:
+                              type: string
+                              description: URL do arquivo do dataset reduzido.
+              examples:
+                success:
+                  summary: "Exemplo de resposta"
+                  description: "Redução de dados realizada com sucesso na etapa de pré-processamento, os detalhes do dataset reduzido são retornados."
+                  value:
+                    {
+                      "message": "Redução de dados realizada com sucesso!",
+                      "success": true,
+                      "data": {
+                        "reduced_dataset": {
+                          "id": 68,
+                          "size_file": "0.0279MB",
+                          "file_url": "https://s3.amazonaws.com/bucket-easyminer/datasets/5/file_reduced",
+                          "original_dataset_id": 77
+                        }
+                      }
+                    }
+
+        '422':
+          description: Erros de validação.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    description: Mensagem de retorno da operação.
+                  success:
+                    type: boolean
+                    description: Indica se a operação foi bem-sucedida.
+                  data:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        field:
+                          type: string
+                          description: Nome do campo que gerou o erro.
+                        error:
+                          type: string
+                          description: Mensagem de erro associada ao campo.
+              examples:
+                validation_error_feature_selection:
+                  summary: Exemplo de resposta 1
+                  description: Erro retornado quando é fornecido mais de uma coluna.
+                  value:
+                    {
+                      "message": "Dados inválidos!",
+                      "success": false,
+                      "data": {
+                        "features": [
+                          "Apenas uma feature deve ser selecionada."
+                        ]
+                      }
+                    }
+
+                validation_error_sample_size_exceeds_records:
+                  summary: Exemplo de resposta 2
+                  description: Erro retornado quando é fornecido uma amostra de dados maior do que a quantidade de registros do dataset.
+                  value:
+                    {
+                      "message": "Dados inválidos!",
+                      "success": false,
+                      "data": {
+                        "systematic_records": [
+                          "Amostra maior que o número de registros disponíveis."
+                        ]
+                      }
+                    }
+                validation_error_features:
+                  summary: Exemplo de resposta 3
+                  description: Erro retornado quando é fornecido uma coluna que não pertence ao dataset.
+                  value:
+                    {
+                      "message": "Dados inválidos!",
+                      "success": false,
+                      "data": {
+                        "features": [
+                          "Os seguintes campos não estão registrados na sua base de dados: COLUNA_ERRADA1, COLUNA_ERRADA2"
+                        ]
+                      }
+                    }
+                validation_error_method:
+                  summary: Exemplo de resposta 4
+                  description: Erro retornado quando é fornecido um método inválido de redução de dados.
+                  value:
+                    {
+                      "message": "Dados inválidos!",
+                      "success": false,
+                      "data": {
+                        "methods": [
+                          "Método inválido: METODO-ERRADO. Selecione uma opção válida."
+                        ]
+                      }
+                    }
+
+        '404':
+          description: "Não encontrado."
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    description: Mensagem de retorno da operação.
+                  success:
+                    type: boolean
+                    description: Indica se a operação foi bem-sucedida.
+                  data:
+                    type: object
+                    nullable: true
+                    description: Dados adicionais retornados pela operação.
+              examples:
+                not_found:
+                  summary: Exemplo de resposta
+                  description: Base de dados não encontrada; nenhum dado retornado.
+                  value:
+                    {
+                      "message": "Base de dados não encontrada!",
+                      "success": false,
+                      "data": null
+                    }
+
+        '401':
+          description: Não autorizado!.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    description: Mensagem de retorno da operação.
+                  success:
+                    type: boolean
+                    description: Indica se a operação foi bem-sucedida.
+                  data:
+                    type: "null"
+                    description: Dados adicionais retornados pela operação.
+              examples:
+                success:
+                  summary: Exemplo de resposta
+                  description: Usuário não está autenticado.
+                  value:
+                    {
+                      "message": "Não autorizado",
+                      "success": false,
+                      "data": null
+                    }
+
+        '500':
+          description: "Erro interno do servidor!"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    description: Mensagem de retorno da operação.
+                  success:
+                    type: boolean
+                    description: Indica se a operação foi bem-sucedida.
+                  data:
+                    type: string
+                    description: "Mensagem de erro do servidor."
+              examples:
+                internal_server_error:
+                  summary: Exemplo de resposta.
+                  description: Erro ao enviar o arquivo para a AWS.
+                  value:
+                    {
+                      "message": "Erro ao realizar upload para o S3",
+                      "success": false,
+                      "data": "An error occurred (AccessDenied) when calling the PostObject operation: Access Denied"
+                    }
