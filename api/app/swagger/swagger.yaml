@@ -1897,7 +1897,7 @@ paths:
                     {
                       "message": "Erro ao realizar upload para o S3",
                       "success": false,
-                      "data": "An error occurred (AccessDenied) when calling the PutObject operation: Access Denied"
+                      "data": "An error occurred (AccessDenied) when calling the PostObject operation: Access Denied"
                     }
 
   /datasets/{id}:
@@ -1975,12 +1975,12 @@ paths:
                         "name": "teste de cadastro de datasethdfh",
                         "description": "oi teste master",
                         "size_file": "0.0228MB",
-                        "file_url": "https://easy-miner-api.s3.amazonaws.com/bd7029523acb6f24f91a3346f330fb7e.csv",
+                        "file_url": "https://s3.amazonaws.com/bucket-easyminer/datasets/5/file",
                         "project_id": 12,
                         "clean_dataset": {
                           "id": 53,
                           "size_file": "0.0231MB",
-                          "file_url": "https://s3.amazonaws.com/bucket-easyminer/datasets/5/file"
+                          "file_url": "https://s3.amazonaws.com/bucket-easyminer/datasets/5/file_clean"
                         }
                       }
                     }
@@ -2416,80 +2416,260 @@ paths:
                     }
 
 
-#  /preprocessing/data-cleaning/{id}:
-#    post:
-#      tags:
-#        - "Pré-processamento"
-#      summary: "Realizar limpeza de dados"
-#      description: >
-#        Realiza a limpeza de dados em um dataset específico. O usuário deve
-#        fornecer os métodos de limpeza a serem aplicados nas features escolhidas,
-#        assim como os valores faltantes a serem substituídos.
-#      parameters:
-#        - name: id
-#          in: path
-#          required: true
-#          type: integer
-#          description: "ID do dataset a ser limpo."
-#        - in: body
-#          name: body
-#          description: >
-#            Parâmetros necessários para realizar a limpeza dos dados, incluindo
-#            a coluna alvo, features, o método de substituição de valores faltantes e os valores faltantes.
-#          required: true
-#          schema:
-#            type: object
-#            required:
-#              - features
-#              - methods
-#              - missing_values
-#            properties:
-#              features:
-#                type: array
-#                items:
-#                  type: string
-#                description: "Lista de features a serem limpas."
-#                example: [
-#                  "COLUNA 1",
-#                  "COLUNA 2"
-#                ]
-#              methods:
-#                type: string
-#                description: "Método de limpeza a ser aplicado."
-#                enum:
-#                  - media
-#                  - mediana
-#                  - moda
-#                example: "media"
-#              missing_values:
-#                type: array
-#                items:
-#                  type: string
-#                  enum:
-#                    - "0"
-#                    - "null"
-#                    - ""
-#                    - "?"
-#                description: "Valores a serem substituídos."
-#                example: [
-#                  "0",
-#                  "?"
-#                ]
-#      responses:
-#        200:
-#          description: "Limpeza de dados realizada com sucesso!"
-#          schema:
-#            type: object
-#            properties:
-#              message:
-#                type: string
-#                example: "Limpeza de dados realizada com sucesso!"
-#              success:
-#                type: boolean
-#                example: true
-#              data:
-#                type: string
-#                example: None
+  /preprocessing/data-cleaning/{id}:
+    post:
+      tags:
+        - "Pré-processamento"
+      summary: "Realizar limpeza de dados"
+      description: "Realiza a limpeza de dados em um dataset específico. O usuário deve fornecer os métodos de limpeza a serem aplicados nas features escolhidas, assim como os valores faltantes a serem substituídos."
+      parameters:
+        - name: "id"
+          in: "path"
+          required: true
+          schema:
+            type: "integer"
+          description: "ID da base de dados"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - features
+                - methods
+                - missing_values
+              properties:
+                features:
+                  type: array
+                  items:
+                    type: string
+                  description: "Lista de features a serem limpas."
+                methods:
+                  type: string
+                  description: "Método de limpeza a ser aplicado."
+                  enum:
+                    - media
+                    - mediana
+                    - moda
+                missing_values:
+                  type: array
+                  items:
+                    type: string
+                    enum:
+                      - "0"
+                      - "null"
+                      - ""
+                      - "?"
+                  description: "Valores a serem substituídos."
+            examples:
+              success:
+                summary: Exemplo de requisição
+                value:
+                  {
+                    "features-0": "Coluna 1",
+                    "features-1": "Coluna 2",
+                    "missing_values-0": "0",
+                    "missing_values-1": "null",
+                    "missing_values-2": "?",
+                    "methods": "media"
+                  }
+      responses:
+        '200':
+          description: Limpeza de dados realizada com sucesso na etapa de pré-processamento
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    description: "Mensagem de retorno da operação."
+                  success:
+                    type: boolean
+                    description: "Indica se a operação foi bem-sucedida."
+                  data:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        clean_dataset:
+                          type: object
+                          properties:
+                            id:
+                              type: integer
+                              description: ID do dataset limpo.
+                            size_file:
+                              type: string
+                              description: Tamanho do arquivo do dataset limpo.
+                            file_url:
+                              type: string
+                              description: URL do arquivo do dataset limpo.
+              examples:
+                success:
+                  summary: "Exemplo de resposta"
+                  description: "Pré-processamento realizado com sucesso, os detalhes do dataset limpo são retornados."
+                  value:
+                    {
+                        "message": "Limpeza de dados realizada com sucesso!",
+                        "success": true,
+                        "data": {
+                            "clean_dataset": {
+                                "id": 64,
+                                "size_file": "0.0231MB",
+                                "file_url": "https://s3.amazonaws.com/bucket-easyminer/datasets/5/file_clean",
+                            }
+                        }
+                    }
+
+        '422':
+          description: Erros de validação.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    description: Mensagem de retorno da operação.
+                  success:
+                    type: boolean
+                    description: Indica se a operação foi bem-sucedida.
+                  data:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        field:
+                          type: string
+                          description: Nome do campo que gerou o erro.
+                        error:
+                          type: string
+                          description: Mensagem de erro associada ao campo.
+              examples:
+                validation_error_features:
+                  summary: Exemplo de resposta 1
+                  description: Erro retornado quando é fornecido uma coluna que não pertence ao dataset.
+                  value:
+                    {
+                      "message": "Dados inválidos!",
+                      "success": false,
+                      "data": [
+                        {
+                          "features": [
+                            "Os seguintes campos não estão registrados na sua base de dados: COLUNA_ERRADA1, COLUNA_ERRADA2"
+                          ]
+                        }
+                      ]
+                    }
+                validation_error_method:
+                  summary: Exemplo de resposta 2
+                  description: Erro retornado quando é fornecido um método inválido de limpeza de dados.
+                  value:
+                    {
+                      "message": "Dados inválidos!",
+                      "success": false,
+                      "data": {
+                        "methods": [
+                          "Opção inválida: METODO INEXISTENTE. Selecione uma opção válida."
+                        ]
+                      }
+                    }
+                validation_error_invalid_missing_values:
+                  summary: Exemplo de resposta 2
+                  description: Erro retornado quando é fornecido valores faltantes que não são aceitáveis pelo sistema.
+                  value:
+                    {
+                      "message": "Dados inválidos!",
+                      "success": false,
+                      "data": {
+                        "missing_values": [
+                          "Opção inválida: VALOR FALTANTE ERRONEO. Selecione uma opção válida."
+                        ]
+                      }
+                    }
+
+        '404':
+          description: "Não encontrado."
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    description: Mensagem de retorno da operação.
+                  success:
+                    type: boolean
+                    description: Indica se a operação foi bem-sucedida.
+                  data:
+                    type: object
+                    nullable: true
+                    description: Dados adicionais retornados pela operação.
+              examples:
+                not_found:
+                  summary: Exemplo de resposta
+                  description: Base de dados não encontrada; nenhum dado retornado.
+                  value:
+                    {
+                      "message": "Base de dados não encontrada!",
+                      "success": false,
+                      "data": null
+                    }
+
+        '401':
+          description: Não autorizado!.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    description: Mensagem de retorno da operação.
+                  success:
+                    type: boolean
+                    description: Indica se a operação foi bem-sucedida.
+                  data:
+                    type: "null"
+                    description: Dados adicionais retornados pela operação.
+              examples:
+                success:
+                  summary: Exemplo de resposta
+                  description: Usuário não está autenticado.
+                  value:
+                    {
+                      "message": "Não autorizado",
+                      "success": false,
+                      "data": null
+                    }
+
+        '500':
+          description: "Erro interno do servidor!"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    description: Mensagem de retorno da operação.
+                  success:
+                    type: boolean
+                    description: Indica se a operação foi bem-sucedida.
+                  data:
+                    type: string
+                    description: "Mensagem de erro do servidor."
+              examples:
+                internal_server_error:
+                  summary: Exemplo de resposta.
+                  description: Erro ao enviar o arquivo para a AWS.
+                  value:
+                    {
+                      "message": "Erro ao realizar upload para o S3",
+                      "success": false,
+                      "data": "An error occurred (AccessDenied) when calling the PostObject operation: Access Denied"
+                    }
 #        403:
 #          description: "Não autorizado!"
 #          schema:
