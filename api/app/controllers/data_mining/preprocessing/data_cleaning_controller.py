@@ -27,7 +27,6 @@ def format_clean_dataset_data(clean_dataset):
             "id": clean_dataset.id,
             "size_file": clean_dataset.size_file,
             "file_url": clean_dataset.file_url,
-            "original_dataset_id": clean_dataset.dataset_id,
         }
     }
 
