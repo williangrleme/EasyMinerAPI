@@ -22,18 +22,18 @@ def frequency_distribution(dataset_id):
         if not form.validate_on_submit():
             return response.handle_unprocessable_entity(form.errors)
 
-        frequency_distribution_data = get_frequency_distribution(
-            dataset.file_url, form.features.data
-        )
+        results = {}
+        for feature in form.features.data:
+            results[feature] = get_frequency_distribution(dataset.file_url, feature)
 
         return response.handle_success(
-            "Distriuição de frequencia realizada com sucesso!",
-            frequency_distribution_data,
+            "Distribuição de frequência realizada com sucesso!",
+            results,
         )
 
     except Exception as e:
         return response.handle_internal_server_error_response(
-            e, "Erro ao gerar distribuição de frequencia!"
+            e, "Erro ao gerar distribuição de frequência!"
         )
 
 
@@ -63,4 +63,4 @@ def get_frequency_distribution(file_url, feature):
         }
         return results
     except Exception as e:
-        raise ValueError(f"Erro ao calcular distribuição de frequencia: {e}")
+        raise ValueError(f"Erro ao calcular distribuição de frequência: {e}")
