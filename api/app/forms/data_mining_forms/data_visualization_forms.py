@@ -1,16 +1,14 @@
-from enum import Enum
-
 import pandas as pd
 from flask_wtf import FlaskForm
-from wtforms import FieldList, StringField
-from wtforms.validators import DataRequired, Length, ValidationError
-
+from wtforms import FieldList, StringField, BooleanField
+from wtforms.validators import DataRequired
 
 class DataVisualizationForm(FlaskForm):
     ERROR_MESSAGES = {
         "required": "O campo é obrigatório.",
         "column_access": "Não foi possível acessar as colunas da base de dados.",
         "invalid_features": "Os seguintes campos não estão registrados na sua base de dados: {}",
+        "invalid_boolean": "O valor deve ser True ou False.",
     }
 
     features = FieldList(
@@ -18,6 +16,8 @@ class DataVisualizationForm(FlaskForm):
             "Feature", validators=[DataRequired(message=ERROR_MESSAGES["required"])]
         )
     )
+
+    use_clean_dataset = BooleanField("Usar dataset Limpo")
 
     def __init__(self, file_url: str, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -58,3 +58,4 @@ class DataVisualizationForm(FlaskForm):
             )
             return False
         return True
+
