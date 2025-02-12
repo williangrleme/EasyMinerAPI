@@ -1,16 +1,14 @@
 import app.response_handlers as response
 import numpy as np
 import pandas as pd
-from app.forms.data_mining_forms.data_visualization_forms import \
-    DataVisualizationForm
+from app.forms.data_mining_forms.data_visualization_forms import DataVisualizationForm
 from app.models import CleanDataset, Dataset
 from flask_login import current_user
-
 
 def frequency_distribution(dataset_id):
     try:
         dataset = (
-            Dataset.query.with_entities(Dataset.id, Dataset.file_url)
+            Dataset.query.with_entities(Dataset.id, Dataset.file_url, CleanDataset)
             .filter_by(id=dataset_id, user_id=current_user.id)
             .first()
         )
@@ -22,9 +20,17 @@ def frequency_distribution(dataset_id):
         if not form.validate_on_submit():
             return response.handle_unprocessable_entity(form.errors)
 
+        if form.use_clean_dataset.data:
+            if dataset.CleanDataset:
+                file_url = dataset.CleanDataset.file_url
+            else:
+                return response.handle_not_found_response("Dataset limpo não encontrado!")
+        else:
+            file_url = dataset.file_url
+
         results = {}
         for feature in form.features.data:
-            results[feature] = get_frequency_distribution(dataset.file_url, feature)
+            results[feature] = get_frequency_distribution(file_url, feature)
 
         return response.handle_success(
             "Distribuição de frequência realizada com sucesso!",
