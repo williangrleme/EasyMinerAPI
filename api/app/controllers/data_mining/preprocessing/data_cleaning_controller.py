@@ -7,6 +7,7 @@ from app.controllers.s3_controller import S3Controller
 from app.forms.data_mining_forms.preprocessing.data_cleaning_forms import \
     DataCleaningForm
 from app.models import CleanDataset, Dataset
+from flask import current_app
 from flask_login import current_user
 
 
