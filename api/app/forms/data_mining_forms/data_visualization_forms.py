@@ -1,7 +1,8 @@
 import pandas as pd
 from flask_wtf import FlaskForm
-from wtforms import FieldList, StringField, BooleanField
+from wtforms import BooleanField, FieldList, StringField
 from wtforms.validators import DataRequired
+
 
 class DataVisualizationForm(FlaskForm):
     ERROR_MESSAGES = {
@@ -58,4 +59,3 @@ class DataVisualizationForm(FlaskForm):
             )
             return False
         return True
-

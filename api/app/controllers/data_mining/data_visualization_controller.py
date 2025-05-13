@@ -1,9 +1,11 @@
 import app.response_handlers as response
 import numpy as np
 import pandas as pd
-from app.forms.data_mining_forms.data_visualization_forms import DataVisualizationForm
+from app.forms.data_mining_forms.data_visualization_forms import \
+    DataVisualizationForm
 from app.models import CleanDataset, Dataset
 from flask_login import current_user
+
 
 def frequency_distribution(dataset_id):
     try:
@@ -24,7 +26,9 @@ def frequency_distribution(dataset_id):
             if dataset.CleanDataset:
                 file_url = dataset.CleanDataset.file_url
             else:
-                return response.handle_not_found_response("Dataset limpo não encontrado!")
+                return response.handle_not_found_response(
+                    "Dataset limpo não encontrado!"
+                )
         else:
             file_url = dataset.file_url
 
