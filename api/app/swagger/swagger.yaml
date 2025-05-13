@@ -3174,7 +3174,7 @@ paths:
                     }
 
 
-  /data_visualization/frequency_distribution/{id}:
+  /data-visualization/frequency-distribution/{id}:
     post:
       tags:
         - "Visualização de Dados"
