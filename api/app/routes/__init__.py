@@ -16,4 +16,4 @@ def init_routes(app):
     app.register_blueprint(project_bp, url_prefix="/api/projects")
     app.register_blueprint(dataset_bp, url_prefix="/api/datasets")
     app.register_blueprint(preprocessing_bp, url_prefix="/api/preprocessing")
-    app.register_blueprint(data_visualization_bp, url_prefix="/api/data_visualization")
+    app.register_blueprint(data_visualization_bp, url_prefix="/api/data-visualization")
