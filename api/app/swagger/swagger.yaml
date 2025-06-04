@@ -3209,7 +3209,7 @@ paths:
                   description: |
                     Indica se o dataset limpo deve ser usado. 
                     - `true`: Usa o dataset limpo (se disponível).
-                    - `undefined(campo ausente)`: Usa o dataset original.
+                    - `false`: Usa o dataset original.
             examples:
               success:
                 summary: Exemplo de requisição
@@ -3431,4 +3431,213 @@ paths:
                       "message": "Erro ao calcular a distribuição de frequência!",
                       "success": false,
                       "data": "Erro ao calcular distribuição de frequência: module 'numpy' has no attribute 'log5265235'"
+                    }
+
+  /data-visualization/mode/{id}:
+    post:
+      tags:
+        - "Visualização de Dados"
+      summary: "Realiza o cálculo da moda"
+      description: |
+        Realiza o cálculo da moda em um dataset específico. O usuário pode escolher entre usar o dataset original ou o dataset limpo (se disponível).
+        A moda é calculada para as colunas (features) especificadas.
+      parameters:
+        - name: "id"
+          in: "path"
+          required: true
+          schema:
+            type: "integer"
+          description: "ID da base de dados."
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - features
+                - use_clean_dataset
+              properties:
+                features:
+                  type: array
+                  items:
+                    type: string
+                  description: "Lista de colunas (features) para as quais a moda será calculada."
+                use_clean_dataset:
+                  type: boolean
+                  description: |
+                    Indica se o dataset limpo deve ser usado. 
+                    - `true`: Usa o dataset limpo (se disponível).
+                    - `false`: Usa o dataset original.
+            examples:
+              success:
+                summary: Exemplo de requisição
+                value:
+                  {
+                    "features": [ "Coluna 1", "Coluna 2" ],
+                    "use_clean_dataset": true
+                  }
+      responses:
+        '200':
+          description: Cálculo de moda realizado com sucesso
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    description: "Mensagem de retorno da operação."
+                  success:
+                    type: boolean
+                    description: "Indica se a operação foi bem-sucedida."
+                  data:
+                    type: object
+                    additionalProperties:
+                      type: array
+                      description: "Array com os valores da moda para cada feature."
+              examples:
+                success:
+                  summary: "Exemplo de resposta"
+                  description: "Cálculo de moda realizado com sucesso"
+                  value:
+                    {
+                      "message": "Cálculo de moda realizado com sucesso!",
+                      "success": true,
+                      "data": {
+                        "Coluna 1": [ 10, 20 ],
+                        "Coluna 2": [ 35 ],
+                        "Coluna 3": [ 42, 56, 78 ]
+                      }
+                    }
+
+        '422':
+          description: Erros de validação.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    description: "Mensagem de retorno da operação."
+                  success:
+                    type: boolean
+                    description: "Indica se a operação foi bem-sucedida."
+                  data:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        field:
+                          type: string
+                          description: "Nome do campo que gerou o erro."
+                        error:
+                          type: string
+                          description: "Mensagem de erro associada ao campo."
+              examples:
+                validation_error_features:
+                  summary: Exemplo de resposta 1
+                  description: Erro retornado quando uma coluna fornecida não existe no dataset.
+                  value:
+                    {
+                      "message": "Dados inválidos!",
+                      "success": false,
+                      "data": [
+                        {
+                          "field": "features",
+                          "error": "A coluna 'Coluna Inexistente' não foi encontrada no dataset."
+                        }
+                      ]
+                    }
+
+        '404':
+          description: "Não encontrado."
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    description: "Mensagem de retorno da operação."
+                  success:
+                    type: boolean
+                    description: "Indica se a operação foi bem-sucedida."
+                  data:
+                    type: object
+                    nullable: true
+                    description: "Dados adicionais retornados pela operação."
+              examples:
+                not_found:
+                  summary: Exemplo de resposta
+                  description: Base de dados não encontrada; nenhum dado retornado.
+                  value:
+                    {
+                      "message": "Base de dados não encontrada!",
+                      "success": false,
+                      "data": null
+                    }
+                clean_dataset_not_found:
+                  summary: Exemplo de resposta 2
+                  description: Dataset limpo não encontrado.
+                  value:
+                    {
+                      "message": "Dataset limpo não encontrado!",
+                      "success": false,
+                      "data": null
+                    }
+
+        '401':
+          description: "Não autorizado."
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    description: "Mensagem de retorno da operação."
+                  success:
+                    type: boolean
+                    description: "Indica se a operação foi bem-sucedida."
+                  data:
+                    type: "null"
+                    description: "Dados adicionais retornados pela operação."
+              examples:
+                unauthorized:
+                  summary: Exemplo de resposta
+                  description: Usuário não está autenticado.
+                  value:
+                    {
+                      "message": "Não autorizado",
+                      "success": false,
+                      "data": null
+                    }
+
+        '500':
+          description: "Erro interno do servidor."
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    description: "Mensagem de retorno da operação."
+                  success:
+                    type: boolean
+                    description: "Indica se a operação foi bem-sucedida."
+                  data:
+                    type: string
+                    description: "Mensagem de erro do servidor."
+              examples:
+                internal_server_error:
+                  summary: Exemplo de resposta
+                  description: Erro ao calcular a moda.
+                  value:
+                    {
+                      "message": "Erro ao calcular a moda!",
+                      "success": false,
+                      "data": "Erro ao calcular a moda: Cannot compute mode of empty array"
                     }
