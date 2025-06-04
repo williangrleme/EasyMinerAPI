@@ -10,10 +10,16 @@ from flask_login import current_user
 def frequency_distribution(dataset_id):
     try:
         dataset = (
-            Dataset.query.with_entities(Dataset.id, Dataset.file_url, CleanDataset)
-            .filter_by(id=dataset_id, user_id=current_user.id)
+            Dataset.query.outerjoin(CleanDataset, Dataset.id == CleanDataset.dataset_id)
+            .filter(Dataset.id == dataset_id, Dataset.user_id == current_user.id)
+            .with_entities(
+                Dataset.id,
+                Dataset.file_url,
+                CleanDataset.file_url.label("clean_file_url"),
+            )
             .first()
         )
+
         if not dataset:
             return response.handle_not_found_response("Base de dados não encontrada!")
 
@@ -23,8 +29,8 @@ def frequency_distribution(dataset_id):
             return response.handle_unprocessable_entity(form.errors)
 
         if form.use_clean_dataset.data:
-            if dataset.CleanDataset:
-                file_url = dataset.CleanDataset.file_url
+            if dataset.clean_file_url:
+                file_url = dataset.clean_file_url
             else:
                 return response.handle_not_found_response(
                     "Dataset limpo não encontrado!"
@@ -74,3 +80,55 @@ def get_frequency_distribution(file_url, feature):
         return results
     except Exception as e:
         raise ValueError(f"Erro ao calcular distribuição de frequência: {e}")
+
+
+def mode(dataset_id):
+    try:
+        dataset = (
+            Dataset.query.outerjoin(CleanDataset, Dataset.id == CleanDataset.dataset_id)
+            .filter(Dataset.id == dataset_id, Dataset.user_id == current_user.id)
+            .with_entities(
+                Dataset.id,
+                Dataset.file_url,
+                CleanDataset.file_url.label("clean_file_url"),
+            )
+            .first()
+        )
+
+        if not dataset:
+            return response.handle_not_found_response("Base de dados não encontrada!")
+
+        form = DataVisualizationForm(file_url=dataset.file_url)
+
+        if not form.validate_on_submit():
+            return response.handle_unprocessable_entity(form.errors)
+
+        if form.use_clean_dataset.data:
+            if dataset.clean_file_url:
+                file_url = dataset.clean_file_url
+            else:
+                return response.handle_not_found_response(
+                    "Dataset limpo não encontrado!"
+                )
+        else:
+            file_url = dataset.file_url
+
+        df = pd.read_csv(file_url)
+        results = {}
+
+        for feature in form.features.data:
+            if feature in df.columns:
+                mode_values = df[feature].mode().tolist()
+                results[feature] = mode_values
+            else:
+                results[feature] = None
+
+        return response.handle_success(
+            "Cálculo de moda realizado com sucesso!",
+            results,
+        )
+
+    except Exception as e:
+        return response.handle_internal_server_error_response(
+            e, "Erro ao calcular a moda!"
+        )
