@@ -185,6 +185,7 @@ def midpoint(dataset_id):
             e, "Erro ao calcular o ponto médio!"
         )
 
+
 def median(dataset_id):
     try:
         dataset = (
@@ -236,6 +237,7 @@ def median(dataset_id):
             e, "Erro ao calcular a mediana!"
         )
 
+
 def weighted_average(dataset_id):
     try:
         dataset = (
@@ -286,3 +288,100 @@ def weighted_average(dataset_id):
         return response.handle_internal_server_error_response(
             e, "Erro ao calcular a média ponderada!"
         )
+
+
+def mean_frequency_distribution(dataset_id):
+    try:
+        dataset = (
+            Dataset.query.outerjoin(CleanDataset, Dataset.id == CleanDataset.dataset_id)
+            .filter(Dataset.id == dataset_id, Dataset.user_id == current_user.id)
+            .with_entities(
+                Dataset.id,
+                Dataset.file_url,
+                CleanDataset.file_url.label("clean_file_url"),
+            )
+            .first()
+        )
+
+        if not dataset:
+            return response.handle_not_found_response("Base de dados não encontrada!")
+
+        form = DataVisualizationForm(file_url=dataset.file_url)
+
+        if not form.validate_on_submit():
+            return response.handle_unprocessable_entity(form.errors)
+
+        if form.use_clean_dataset.data:
+            if dataset.clean_file_url:
+                file_url = dataset.clean_file_url
+            else:
+                return response.handle_not_found_response(
+                    "Dataset limpo não encontrado!"
+                )
+        else:
+            file_url = dataset.file_url
+
+        results = {}
+        for feature in form.features.data:
+            freq_dist = get_frequency_distribution(file_url, feature)
+            results[feature] = calculate_mean_by_class(
+                freq_dist["frequency_distribution"]
+            )
+
+        return response.handle_success(
+            "Distribuição de frequência média realizada com sucesso!",
+            results,
+        )
+
+    except Exception as e:
+        return response.handle_internal_server_error_response(
+            e, "Erro ao gerar distribuição de frequência média!"
+        )
+
+
+def calculate_mean_by_class(frequency_distribution):
+    try:
+        class_means = []
+
+        for item in frequency_distribution:
+            interval = item["interval"]
+            frequency = item["frequency"]
+
+            limits = interval.split(" - ")
+            lower_limit = float(limits[0])
+            upper_limit = float(limits[1])
+
+            class_mean = (lower_limit + upper_limit) / 2
+
+            class_means.append(
+                {
+                    "interval": interval,
+                    "frequency": frequency,
+                    "class_mean": round(class_mean, 2),
+                }
+            )
+
+        return {
+            "frequency_distribution_with_means": class_means,
+            "overall_mean": calculate_overall_mean_from_classes(class_means),
+        }
+
+    except Exception as e:
+        raise ValueError(f"Erro ao calcular média por classe: {e}")
+
+
+def calculate_overall_mean_from_classes(class_means):
+    try:
+        total_freq = sum(item["frequency"] for item in class_means)
+        if total_freq == 0:
+            return 0
+
+        weighted_sum = sum(
+            item["class_mean"] * item["frequency"] for item in class_means
+        )
+        overall_mean = weighted_sum / total_freq
+
+        return round(overall_mean, 2)
+
+    except Exception as e:
+        raise ValueError(f"Erro ao calcular média geral: {e}")
