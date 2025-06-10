@@ -1,5 +1,5 @@
 from app.controllers.data_mining.data_visualization_controller import (
-    frequency_distribution, mode)
+    frequency_distribution, mode, midpoint)
 from flask import Blueprint
 from flask_login import login_required
 
@@ -11,4 +11,8 @@ data_visualization_bp.route(
 
 data_visualization_bp.route("/mode/<int:dataset_id>", methods=["POST"])(
     login_required(mode)
+)
+
+data_visualization_bp.route("/midpoint/<int:dataset_id>", methods=["POST"])(
+    login_required(midpoint)
 )
