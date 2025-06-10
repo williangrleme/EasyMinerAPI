@@ -235,3 +235,54 @@ def median(dataset_id):
         return response.handle_internal_server_error_response(
             e, "Erro ao calcular a mediana!"
         )
+
+def weighted_average(dataset_id):
+    try:
+        dataset = (
+            Dataset.query.outerjoin(CleanDataset, Dataset.id == CleanDataset.dataset_id)
+            .filter(Dataset.id == dataset_id, Dataset.user_id == current_user.id)
+            .with_entities(
+                Dataset.id,
+                Dataset.file_url,
+                CleanDataset.file_url.label("clean_file_url"),
+            )
+            .first()
+        )
+
+        if not dataset:
+            return response.handle_not_found_response("Base de dados não encontrada!")
+
+        form = DataVisualizationForm(file_url=dataset.file_url)
+
+        if not form.validate_on_submit():
+            return response.handle_unprocessable_entity(form.errors)
+
+        if form.use_clean_dataset.data:
+            if dataset.clean_file_url:
+                file_url = dataset.clean_file_url
+            else:
+                return response.handle_not_found_response(
+                    "Dataset limpo não encontrado!"
+                )
+        else:
+            file_url = dataset.file_url
+
+        df = pd.read_csv(file_url)
+        results = {}
+
+        for feature in form.features.data:
+            if feature in df.columns:
+                weighted_avg = np.average(df[feature], weights=df.index + 1)
+                results[feature] = round(weighted_avg, 2)
+            else:
+                results[feature] = None
+
+        return response.handle_success(
+            "Cálculo de média ponderada realizado com sucesso!",
+            results,
+        )
+
+    except Exception as e:
+        return response.handle_internal_server_error_response(
+            e, "Erro ao calcular a média ponderada!"
+        )

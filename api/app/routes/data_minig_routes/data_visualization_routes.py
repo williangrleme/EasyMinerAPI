@@ -1,5 +1,5 @@
 from app.controllers.data_mining.data_visualization_controller import (
-    frequency_distribution, midpoint, mode, median)
+    frequency_distribution, midpoint, mode, median, weighted_average)
 from flask import Blueprint
 from flask_login import login_required
 
@@ -17,7 +17,7 @@ data_visualization_bp.route("/midpoint/<int:dataset_id>", methods=["POST"])(
     login_required(midpoint)
 )
 
-data_visualization_bp.route("/median/<int:dataset_id>", methods=["POST"])(
-    login_required(median)
+data_visualization_bp.route("/weighted-average/<int:dataset_id>", methods=["POST"])(
+    login_required(weighted_average)
 )
 
