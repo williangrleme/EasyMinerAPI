@@ -3641,3 +3641,82 @@ paths:
                       "success": false,
                       "data": "Erro ao calcular a moda: Cannot compute mode of empty array"
                     }
+
+  /data-visualization/midpoint/{id}:
+    post:
+      tags:
+        - "Visualização de Dados"
+      summary: "Realiza o cálculo do ponto médio"
+      description: |
+        Realiza o cálculo do ponto médio em um dataset específico. O usuário pode escolher entre usar o dataset original ou o dataset limpo (se disponível).
+        O ponto médio é calculado para as colunas (features) especificadas.
+      parameters:
+        - name: "id"
+          in: "path"
+          required: true
+          schema:
+            type: "integer"
+          description: "ID da base de dados."
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - features
+                - use_clean_dataset
+              properties:
+                features:
+                  type: array
+                  items:
+                    type: string
+                  description: "Lista de colunas (features) para as quais o ponto médio será calculado."
+                use_clean_dataset:
+                  type: boolean
+                  description: |
+                    Indica se o dataset limpo deve ser usado. 
+                    - `true`: Usa o dataset limpo (se disponível).
+                    - `false`: Usa o dataset original.
+            examples:
+              success:
+                summary: Exemplo de requisição
+                value:
+                  {
+                    "features": [ "Coluna 1", "Coluna 2" ],
+                    "use_clean_dataset": true
+                  }
+      responses:
+        '200':
+          description: Cálculo de ponto médio realizado com sucesso
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    description: "Mensagem de retorno da operação."
+                  success:
+                    type: boolean
+                    description: "Indica se a operação foi bem-sucedida."
+                  data:
+                    type: object
+                    additionalProperties:
+                      type: number
+                      description: "Valor do ponto médio para cada feature."
+              examples:
+                success:
+                  summary: "Exemplo de resposta"
+                  description: "Cálculo de ponto médio realizado com sucesso"
+                  value:
+                    value:
+                      {
+                        "message": "Cálculo de ponto médio realizado com sucesso!",
+                        "success": true,
+                        "data": {
+                          "Coluna 1": 15.5,
+                          "Coluna 2": 25.0,
+                          "Coluna 3": 42.0
+                        }
+                      }
