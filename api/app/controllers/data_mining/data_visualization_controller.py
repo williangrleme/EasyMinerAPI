@@ -385,3 +385,56 @@ def calculate_overall_mean_from_classes(class_means):
 
     except Exception as e:
         raise ValueError(f"Erro ao calcular média geral: {e}")
+
+def geometric_mean(dataset_id):
+    try:
+        dataset = (
+            Dataset.query.outerjoin(CleanDataset, Dataset.id == CleanDataset.dataset_id)
+            .filter(Dataset.id == dataset_id, Dataset.user_id == current_user.id)
+            .with_entities(
+                Dataset.id,
+                Dataset.file_url,
+                CleanDataset.file_url.label("clean_file_url"),
+            )
+            .first()
+        )
+
+        if not dataset:
+            return response.handle_not_found_response("Base de dados não encontrada!")
+
+        form = DataVisualizationForm(file_url=dataset.file_url)
+
+        if not form.validate_on_submit():
+            return response.handle_unprocessable_entity(form.errors)
+
+        if form.use_clean_dataset.data:
+            if dataset.clean_file_url:
+                file_url = dataset.clean_file_url
+            else:
+                return response.handle_not_found_response(
+                    "Dataset limpo não encontrado!"
+                )
+        else:
+            file_url = dataset.file_url
+
+        df = pd.read_csv(file_url)
+        results = {}
+
+        for feature in form.features.data:
+            if feature in df.columns:
+                geometric_mean_value = round(
+                    np.exp(np.log(df[feature].replace(0, np.nan)).mean()), 2
+                )
+                results[feature] = geometric_mean_value
+            else:
+                results[feature] = None
+
+        return response.handle_success(
+            "Cálculo de média geométrica realizado com sucesso!",
+            results,
+        )
+
+    except Exception as e:
+        return response.handle_internal_server_error_response(
+            e, "Erro ao calcular a média geométrica!"
+        )

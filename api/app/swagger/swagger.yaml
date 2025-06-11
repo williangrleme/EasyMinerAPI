@@ -3719,6 +3719,101 @@ paths:
                         "Coluna 3": 42.0
                       }
                     }
+        '401':
+          description: "Não autorizado."
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  success:
+                    type: boolean
+                  data:
+                    type: object
+              examples:
+                unauthorized:
+                  summary: Exemplo de resposta
+                  description: Usuário não está autenticado.
+                  value:
+                    message: "Não autorizado!"
+                    success: false
+                    data: null
+
+        '404':
+          description: "Não encontrado."
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  success:
+                    type: boolean
+                  data:
+                    type: object
+              examples:
+                not_found:
+                  summary: Exemplo de resposta
+                  description: Base de dados não encontrada; nenhum dado retornado.
+                  value:
+                    message: "Base de dados não encontrada!"
+                    success: false
+                    data: null
+                clean_dataset_not_found:
+                  summary: Exemplo de resposta 2
+                  description: Dataset limpo não encontrado.
+                  value:
+                    message: "Dataset limpo não encontrado!"
+                    success: false
+                    data: null
+
+        '422':
+          description: Erros de validação.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  success:
+                    type: boolean
+                  data:
+                    type: object
+              examples:
+                validation_error_features:
+                  summary: Exemplo de resposta 1
+                  description: Erro retornado quando uma coluna fornecida não existe no dataset.
+                  value:
+                    message: "Dados inválidos!"
+                    success: false
+                    data:
+                      features: [ "Coluna não encontrada no dataset." ]
+
+        '500':
+          description: "Erro interno do servidor."
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  success:
+                    type: boolean
+                  data:
+                    type: object
+              examples:
+                internal_server_error:
+                  summary: Exemplo de resposta
+                  description: Erro ao calcular o ponto médio.
+                  value:
+                    message: "Erro ao calcular o ponto médio!"
+                    success: false
+                    data: "Erro ao calcular ponto médio: <detalhes do erro>"
 
   /data-visualization/median/{id}:
     post:
@@ -3797,6 +3892,101 @@ paths:
                         "Coluna 3": 42.0
                         }
                     }
+        '401':
+          description: "Não autorizado."
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  success:
+                    type: boolean
+                  data:
+                    type: object
+              examples:
+                unauthorized:
+                  summary: Exemplo de resposta
+                  description: Usuário não está autenticado.
+                  value:
+                    message: "Não autorizado!"
+                    success: false
+                    data: null
+
+        '404':
+          description: "Não encontrado."
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  success:
+                    type: boolean
+                  data:
+                    type: object
+              examples:
+                not_found:
+                  summary: Exemplo de resposta
+                  description: Base de dados não encontrada; nenhum dado retornado.
+                  value:
+                    message: "Base de dados não encontrada!"
+                    success: false
+                    data: null
+                clean_dataset_not_found:
+                  summary: Exemplo de resposta 2
+                  description: Dataset limpo não encontrado.
+                  value:
+                    message: "Dataset limpo não encontrado!"
+                    success: false
+                    data: null
+
+        '422':
+          description: Erros de validação.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  success:
+                    type: boolean
+                  data:
+                    type: object
+              examples:
+                validation_error_features:
+                  summary: Exemplo de resposta 1
+                  description: Erro retornado quando uma coluna fornecida não existe no dataset.
+                  value:
+                    message: "Dados inválidos!"
+                    success: false
+                    data:
+                      features: [ "Coluna não encontrada no dataset." ]
+
+        '500':
+          description: "Erro interno do servidor."
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  success:
+                    type: boolean
+                  data:
+                    type: object
+              examples:
+                internal_server_error:
+                  summary: Exemplo de resposta
+                  description: Erro ao calcular a mediana.
+                  value:
+                    message: "Erro ao calcular a mediana!"
+                    success: false
+                    data: "Erro ao calcular mediana: <detalhes do erro>"
 
   /data-visualization/weighted-average/{id}:
     post:
@@ -3876,12 +4066,108 @@ paths:
                     {
                       "message": "Cálculo de média ponderada realizado com sucesso!",
                       "success": true,
-                        "data": {
-                          "Coluna 1": 15.5,
-                          "Coluna 2": 25.0,
-                          "Coluna 3": 42.0
-                        }
+                      "data": {
+                        "Coluna 1": 15.5,
+                        "Coluna 2": 25.0,
+                        "Coluna 3": 42.0
+                      }
                     }
+        '401':
+          description: "Não autorizado."
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  success:
+                    type: boolean
+                  data:
+                    type: object
+              examples:
+                unauthorized:
+                  summary: Exemplo de resposta
+                  description: Usuário não está autenticado.
+                  value:
+                    message: "Não autorizado!"
+                    success: false
+                    data: null
+
+        '404':
+          description: "Não encontrado."
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  success:
+                    type: boolean
+                  data:
+                    type: object
+              examples:
+                not_found:
+                  summary: Exemplo de resposta
+                  description: Base de dados não encontrada; nenhum dado retornado.
+                  value:
+                    message: "Base de dados não encontrada!"
+                    success: false
+                    data: null
+                clean_dataset_not_found:
+                  summary: Exemplo de resposta 2
+                  description: Dataset limpo não encontrado.
+                  value:
+                    message: "Dataset limpo não encontrado!"
+                    success: false
+                    data: null
+
+        '422':
+          description: Erros de validação.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  success:
+                    type: boolean
+                  data:
+                    type: object
+              examples:
+                validation_error_features:
+                  summary: Exemplo de resposta 1
+                  description: Erro retornado quando uma coluna fornecida não existe no dataset.
+                  value:
+                    message: "Dados inválidos!"
+                    success: false
+                    data:
+                      features: [ "Coluna não encontrada no dataset." ]
+
+        '500':
+          description: "Erro interno do servidor."
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  success:
+                    type: boolean
+                  data:
+                    type: object
+              examples:
+                internal_server_error:
+                  summary: Exemplo de resposta
+                  description: Erro ao calcular a média ponderada.
+                  value:
+                    message: "Erro ao calcular a média ponderada!"
+                    success: false
+                    data: "Erro ao calcular média ponderada: <detalhes do erro>"
+
   /data-visualization/mean-frequency-distribution/{id}:
     post:
       tags:
@@ -4079,5 +4365,175 @@ paths:
                     success: false
                     data: "Erro ao calcular média por classe: <detalhes do erro>"
 
+  /data-visualization/geometric-mean/{id}:
+    post:
+      tags:
+        - "Visualização de Dados"
+      summary: "Realiza o cálculo da média geométrica"
+      description: |
+        Realiza o cálculo da média geométrica em um dataset específico. O usuário pode escolher entre usar o dataset original ou o dataset limpo (se disponível).
+        A média geométrica é calculada para as colunas (features) especificadas.
+      parameters:
+        - name: "id"
+          in: "path"
+          required: true
+          schema:
+            type: "integer"
+          description: "ID da base de dados."
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - features
+                - use_clean_dataset
+              properties:
+                features:
+                  type: array
+                  items:
+                    type: string
+                  description: "Lista de colunas (features) para as quais a média geométrica será calculada."
+                use_clean_dataset:
+                  type: boolean
+                  description: |
+                    Indica se o dataset limpo deve ser usado. 
+                    - `true`: Usa o dataset limpo (se disponível).
+                    - `false`: Usa o dataset original.
+            examples:
+              success:
+                summary: Exemplo de requisição
+                value:
+                  {
+                    "features": [ "Coluna 1", "Coluna 2" ],
+                    "use_clean_dataset": true
+                  }
+      responses:
+        '200':
+          description: Cálculo de média geométrica realizado com sucesso
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    description: "Mensagem de retorno da operação."
+                  success:
+                    type: boolean
+                    description: "Indica se a operação foi bem-sucedida."
+                  data:
+                    type: object
+                    additionalProperties:
+                      type: number
+                      description: "Valor da média geométrica para cada feature."
+              examples:
+                success:
+                  summary: "Exemplo de resposta"
+                  description: "Cálculo de média geométrica realizado com sucesso"
+                  value:
+                    {
+                      "message": "Cálculo de média geométrica realizado com sucesso!",
+                      "success": true,
+                      "data": {
+                        "Coluna 1": 15.5,
+                        "Coluna 2": 25.0,
+                        "Coluna 3": 42.0
+                        }
+                    }
+        '401':
+          description: "Não autorizado."
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  success:
+                    type: boolean
+                  data:
+                    type: object
+              examples:
+                unauthorized:
+                  summary: Exemplo de resposta
+                  description: Usuário não está autenticado.
+                  value:
+                    message: "Não autorizado!"
+                    success: false
+                    data: null
 
+        '404':
+          description: "Não encontrado."
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  success:
+                    type: boolean
+                  data:
+                    type: object
+              examples:
+                not_found:
+                  summary: Exemplo de resposta
+                  description: Base de dados não encontrada; nenhum dado retornado.
+                  value:
+                    message: "Base de dados não encontrada!"
+                    success: false
+                    data: null
+                clean_dataset_not_found:
+                  summary: Exemplo de resposta 2
+                  description: Dataset limpo não encontrado.
+                  value:
+                    message: "Dataset limpo não encontrado!"
+                    success: false
+                    data: null
 
+        '422':
+          description: Erros de validação.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  success:
+                    type: boolean
+                  data:
+                    type: object
+              examples:
+                validation_error_features:
+                  summary: Exemplo de resposta 1
+                  description: Erro retornado quando uma coluna fornecida não existe no dataset.
+                  value:
+                    message: "Dados inválidos!"
+                    success: false
+                    data:
+                      features: [ "Coluna não encontrada no dataset." ]
+
+        '500':
+          description: "Erro interno do servidor."
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  success:
+                    type: boolean
+                  data:
+                    type: object
+              examples:
+                internal_server_error:
+                  summary: Exemplo de resposta
+                  description: Erro ao calcular a média geométrica.
+                  value:
+                    message: "Erro ao calcular a média geométrica!"
+                    success: false
+                    data: "Erro ao calcular média geométrica: <detalhes do erro>"
