@@ -1,6 +1,6 @@
 from app.controllers.data_mining.data_visualization_controller import (
     frequency_distribution, mean_frequency_distribution, median, midpoint,
-    mode, weighted_average, geometric_mean)
+    mode, weighted_average, geometric_mean, harmonic_mean)
 from flask import Blueprint
 from flask_login import login_required
 
@@ -34,4 +34,9 @@ data_visualization_bp.route(
 data_visualization_bp.route(
     "/geometric-mean/<int:dataset_id>", methods=["POST"]
 )(login_required(geometric_mean))
+
+data_visualization_bp.route(
+    "/harmonic-mean/<int:dataset_id>", methods=["POST"]
+)(login_required(harmonic_mean))
+
 
