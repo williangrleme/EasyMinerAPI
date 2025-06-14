@@ -2924,8 +2924,8 @@ paths:
                   items:
                     type: string
                   description: >
-                    Lista de features a serem consideradas para a redução dimensional. 
-                    Se o método escolhido for PCA, recomenda-se incluir todas as features. 
+                    Lista de features a serem consideradas para a redução dimensional.
+                    Se o método escolhido for PCA, recomenda-se incluir todas as features.
                     Para amostragem, apenas uma coluna deve ser usada.
                 methods:
                   type: string
@@ -2937,18 +2937,18 @@ paths:
                 random_records:
                   type: integer
                   description: >
-                    Quantidade de registros para a amostragem aleatória. 
+                    Quantidade de registros para a amostragem aleatória.
                     Deve ser menor ou igual ao total de registros disponíveis no dataset.
                 systematic_records:
                   type: integer
                   description: >
-                    Quantidade de registros para a amostragem sistemática. 
+                    Quantidade de registros para a amostragem sistemática.
                     Deve ser menor ou igual ao total de registros disponíveis no dataset.
                     Deve ser aplicado a **SOMENTE** uma feature(coluna).
                 systematic_method:
                   type: string
                   description: >
-                    Critério para a seleção de registros na amostragem sistemática. 
+                    Critério para a seleção de registros na amostragem sistemática.
                     Define se os maiores ou menores valores serão escolhidos.
                   enum:
                     - maiores
@@ -3174,16 +3174,31 @@ paths:
                     }
 
 
-  /data-visualization/frequency-distribution/{id}:
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  /data-visualization/visualize/{dataset_id}:
     post:
       tags:
         - "Visualização de Dados"
-      summary: "Realiza a distribuição de frequência"
+      summary: "Realiza visualizações de dados"
       description: |
-        Realiza a distribuição de frequência em um dataset específico. O usuário pode escolher entre usar o dataset original ou o dataset limpo (se disponível).
-        A distribuição de frequência é calculada para as colunas (features) especificadas.
+        Realiza diferentes tipos de visualização de dados em um dataset específico. O usuário pode escolher entre usar o dataset original ou o dataset limpo (se disponível).
+        O tipo de visualização é especificado pelo parâmetro `visualization_method`.
       parameters:
-        - name: "id"
+        - name: "dataset_id"
           in: "path"
           required: true
           schema:
@@ -3198,29 +3213,201 @@ paths:
               required:
                 - features
                 - use_clean_dataset
+                - visualization_method
               properties:
                 features:
                   type: array
                   items:
                     type: string
-                  description: "Lista de colunas (features) para as quais a distribuição de frequência será calculada."
+                  description: "Lista de colunas (features) para as quais a visualização será realizada."
                 use_clean_dataset:
                   type: boolean
                   description: |
-                    Indica se o dataset limpo deve ser usado. 
+                    Indica se o dataset limpo deve ser usado.
                     - `true`: Usa o dataset limpo (se disponível).
                     - `false`: Usa o dataset original.
+                visualization_method:
+                  type: string
+                  description: |
+                    Método de visualização a ser aplicado.
+                    - `frequency_distribution`: Distribuição de frequência
+                    - `mode`: Moda
+                    - `midpoint`: Ponto médio
+                    - `median`: Mediana
+                    - `weighted_average`: Média ponderada
+                    - `mean_frequency_distribution`: Média por classe na distribuição de frequência
+                    - `geometric_mean`: Média geométrica
+                    - `harmonic_mean`: Média harmônica
+                  enum:
+                    - frequency_distribution
+                    - mode
+                    - midpoint
+                    - median
+                    - weighted_average
+                    - mean_frequency_distribution
+                    - geometric_mean
+                    - harmonic_mean
             examples:
               success:
                 summary: Exemplo de requisição
                 value:
                   {
                     "features": [ "Coluna 1", "Coluna 2" ],
-                    "use_clean_dataset": true
+                    "use_clean_dataset": true,
+                    "visualization_method": "frequency_distribution"
                   }
       responses:
         '200':
-          description: Distribuição de frequência realizada com sucesso
+          description: Visualização de dados realizada com sucesso
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    description: "Mensagem de retorno da operação."
+                  success:
+                    type: boolean
+                    description: "Indica se a operação foi bem-sucedida."
+                  data:
+                    type: object
+                    description: "Dados resultantes da visualização. O formato varia de acordo com o método escolhido."
+              examples:
+                frequency_distribution:
+                  summary: "Exemplo de resposta para distribuição de frequência"
+                  description: "Distribuição de frequência realizada com sucesso"
+                  value:
+                    {
+                      "message": "Visualização de dados realizada com sucesso!",
+                      "success": true,
+                      "data": {
+                        "Coluna 1": {
+                          "frequency_distribution": [
+                            {
+                              "interval": "0 - 20",
+                              "frequency": 5
+                            },
+                            {
+                              "interval": "20 - 40",
+                              "frequency": 0
+                            }
+                          ]
+                        },
+                        "Coluna 2": {
+                          "frequency_distribution": [
+                            {
+                              "interval": "0 - 10",
+                              "frequency": 231
+                            },
+                            {
+                              "interval": "10 - 20",
+                              "frequency": 107
+                            }
+                          ]
+                        }
+                      }
+                    }
+                mode:
+                  summary: "Exemplo de resposta para moda"
+                  description: "Cálculo de moda realizado com sucesso"
+                  value:
+                    {
+                      "message": "Visualização de dados realizada com sucesso!",
+                      "success": true,
+                      "data": {
+                        "Coluna 1": [ 10, 20 ],
+                        "Coluna 2": [ 35 ]
+                      }
+                    }
+                midpoint:
+                  summary: "Exemplo de resposta para ponto médio"
+                  description: "Cálculo de ponto médio realizado com sucesso"
+                  value:
+                    {
+                      "message": "Visualização de dados realizada com sucesso!",
+                      "success": true,
+                      "data": {
+                        "Coluna 1": 15.5,
+                        "Coluna 2": 25.0
+                      }
+                    }
+                median:
+                  summary: "Exemplo de resposta para mediana"
+                  description: "Cálculo de mediana realizado com sucesso"
+                  value:
+                    {
+                      "message": "Visualização de dados realizada com sucesso!",
+                      "success": true,
+                      "data": {
+                        "Coluna 1": 15.0,
+                        "Coluna 2": 25.0
+                      }
+                    }
+                weighted_average:
+                  summary: "Exemplo de resposta para média ponderada"
+                  description: "Cálculo de média ponderada realizado com sucesso"
+                  value:
+                    {
+                      "message": "Visualização de dados realizada com sucesso!",
+                      "success": true,
+                      "data": {
+                        "Coluna 1": 15.5,
+                        "Coluna 2": 25.0
+                      }
+                    }
+                mean_frequency_distribution:
+                  summary: "Exemplo de resposta para média por classe"
+                  description: "Cálculo de média por classe realizado com sucesso"
+                  value:
+                    {
+                      "message": "Visualização de dados realizada com sucesso!",
+                      "success": true,
+                      "data": {
+                        "Coluna 1": {
+                          "frequency_distribution_with_means": [
+                            {
+                              "interval": "20 - 30",
+                              "frequency": 5,
+                              "class_mean": 25.0
+                            },
+                            {
+                              "interval": "31 - 40",
+                              "frequency": 10,
+                              "class_mean": 35.5
+                            }
+                          ],
+                          "overall_mean": 32.0
+                        }
+                      }
+                    }
+                geometric_mean:
+                  summary: "Exemplo de resposta para média geométrica"
+                  description: "Cálculo de média geométrica realizado com sucesso"
+                  value:
+                    {
+                      "message": "Visualização de dados realizada com sucesso!",
+                      "success": true,
+                      "data": {
+                        "Coluna 1": 15.5,
+                        "Coluna 2": 25.0
+                      }
+                    }
+                harmonic_mean:
+                  summary: "Exemplo de resposta para média harmônica"
+                  description: "Cálculo de média harmônica realizado com sucesso"
+                  value:
+                    {
+                      "message": "Visualização de dados realizada com sucesso!",
+                      "success": true,
+                      "data": {
+                        "Coluna 1": 115.05,
+                        "Coluna 2": 35.56
+                      }
+                    }
+
+        '422':
+          description: Erros de validação.
           content:
             application/json:
               schema:
@@ -3235,97 +3422,16 @@ paths:
                   data:
                     type: object
                     properties:
-                      frequency_distribution:
+                      features:
                         type: array
                         items:
-                          type: object
-                          properties:
-                            feature:
-                              type: string
-                              description: "Nome da coluna (feature) analisada."
-                            intervals:
-                              type: array
-                              items:
-                                type: object
-                                properties:
-                                  interval:
-                                    type: string
-                                    description: "Intervalo da distribuição de frequência (ex: '10 - 20')."
-                                  frequency:
-                                    type: integer
-                                    description: "Frequência de valores no intervalo."
-              examples:
-                success:
-                  summary: "Exemplo de resposta"
-                  description: "Distribuição de frequência realizada com sucesso"
-                  value:
-                    {
-                      "message": "Distribuição de frequência realizada com sucesso!",
-                      "success": true,
-                      "data": {
-                        "Coluna 1": {
-                          "frequency_distribution": [
-                            {
-                              "interval": "0 - 20",
-                              "frequency": 5
-                            },
-                            {
-                              "interval": "20 - 40",
-                              "frequency": 0
-                            },
-                            {
-                              "interval": "40 - 60",
-                              "frequency": 4
-                            },
-                            {
-                              "interval": "60 - 80",
-                              "frequency": 32
-                            }
-                          ]
-                        },
-                        "Coluna 2": {
-                          "frequency_distribution": [
-                            {
-                              "interval": "0 - 10",
-                              "frequency": 231
-                            },
-                            {
-                              "interval": "10 - 20",
-                              "frequency": 107
-                            },
-                            {
-                              "interval": "20 - 30",
-                              "frequency": 165
-                            }
-                          ]
-                        }
-                      }
-                    }
-
-        '422':
-          description: Erros de validação.
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  message:
-                    type: string
-                    description: "Mensagem de retorno da operação."
-                  success:
-                    type: boolean
-                    description: "Indica se a operação foi bem-sucedida."
-                  data:
-                    type: array
-                    items:
-                      type: object
-                      properties:
-                        field:
                           type: string
-                          description: "Nome do campo que gerou o erro."
-                        error:
+                        description: "Erros relacionados às features."
+                      visualization_method:
+                        type: array
+                        items:
                           type: string
-                          description: "Mensagem de erro associada ao campo."
+                        description: "Erros relacionados ao método de visualização."
               examples:
                 validation_error_features:
                   summary: Exemplo de resposta 1
@@ -3334,12 +3440,24 @@ paths:
                     {
                       "message": "Dados inválidos!",
                       "success": false,
-                      "data": [
-                        {
-                          "field": "features",
-                          "error": "A coluna 'Coluna Inexistente' não foi encontrada no dataset."
-                        }
-                      ]
+                      "data": {
+                        "features": [
+                          "Os seguintes campos não estão registrados na sua base de dados: Coluna Inexistente"
+                        ]
+                      }
+                    }
+                validation_error_method:
+                  summary: Exemplo de resposta 2
+                  description: Erro retornado quando o método de visualização é inválido.
+                  value:
+                    {
+                      "message": "Dados inválidos!",
+                      "success": false,
+                      "data": {
+                        "visualization_method": [
+                          "Método 'método_inválido' não é válido. Métodos válidos: frequency_distribution, mode, midpoint, median, weighted_average, mean_frequency_distribution, geometric_mean, harmonic_mean"
+                        ]
+                      }
                     }
 
         '404':
@@ -3425,1289 +3543,10 @@ paths:
               examples:
                 internal_server_error:
                   summary: Exemplo de resposta
-                  description: Erro ao calcular a distribuição de frequência.
+                  description: Erro ao processar visualização de dados.
                   value:
                     {
-                      "message": "Erro ao calcular a distribuição de frequência!",
+                      "message": "Erro ao processar visualização de dados!",
                       "success": false,
-                      "data": "Erro ao calcular distribuição de frequência: module 'numpy' has no attribute 'log5265235'"
+                      "data": "Detalhes do erro"
                     }
-
-  /data-visualization/mode/{id}:
-    post:
-      tags:
-        - "Visualização de Dados"
-      summary: "Realiza o cálculo da moda"
-      description: |
-        Realiza o cálculo da moda em um dataset específico. O usuário pode escolher entre usar o dataset original ou o dataset limpo (se disponível).
-        A moda é calculada para as colunas (features) especificadas.
-      parameters:
-        - name: "id"
-          in: "path"
-          required: true
-          schema:
-            type: "integer"
-          description: "ID da base de dados."
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              required:
-                - features
-                - use_clean_dataset
-              properties:
-                features:
-                  type: array
-                  items:
-                    type: string
-                  description: "Lista de colunas (features) para as quais a moda será calculada."
-                use_clean_dataset:
-                  type: boolean
-                  description: |
-                    Indica se o dataset limpo deve ser usado. 
-                    - `true`: Usa o dataset limpo (se disponível).
-                    - `false`: Usa o dataset original.
-            examples:
-              success:
-                summary: Exemplo de requisição
-                value:
-                  {
-                    "features": [ "Coluna 1", "Coluna 2" ],
-                    "use_clean_dataset": true
-                  }
-      responses:
-        '200':
-          description: Cálculo de moda realizado com sucesso
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  message:
-                    type: string
-                    description: "Mensagem de retorno da operação."
-                  success:
-                    type: boolean
-                    description: "Indica se a operação foi bem-sucedida."
-                  data:
-                    type: object
-                    additionalProperties:
-                      type: array
-                      description: "Array com os valores da moda para cada feature."
-              examples:
-                success:
-                  summary: "Exemplo de resposta"
-                  description: "Cálculo de moda realizado com sucesso"
-                  value:
-                    {
-                      "message": "Cálculo de moda realizado com sucesso!",
-                      "success": true,
-                      "data": {
-                        "Coluna 1": [ 10, 20 ],
-                        "Coluna 2": [ 35 ],
-                        "Coluna 3": [ 42, 56, 78 ]
-                      }
-                    }
-
-        '422':
-          description: Erros de validação.
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  message:
-                    type: string
-                    description: "Mensagem de retorno da operação."
-                  success:
-                    type: boolean
-                    description: "Indica se a operação foi bem-sucedida."
-                  data:
-                    type: array
-                    items:
-                      type: object
-                      properties:
-                        field:
-                          type: string
-                          description: "Nome do campo que gerou o erro."
-                        error:
-                          type: string
-                          description: "Mensagem de erro associada ao campo."
-              examples:
-                validation_error_features:
-                  summary: Exemplo de resposta 1
-                  description: Erro retornado quando uma coluna fornecida não existe no dataset.
-                  value:
-                    {
-                      "message": "Dados inválidos!",
-                      "success": false,
-                      "data": [
-                        {
-                          "field": "features",
-                          "error": "A coluna 'Coluna Inexistente' não foi encontrada no dataset."
-                        }
-                      ]
-                    }
-
-        '404':
-          description: "Não encontrado."
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  message:
-                    type: string
-                    description: "Mensagem de retorno da operação."
-                  success:
-                    type: boolean
-                    description: "Indica se a operação foi bem-sucedida."
-                  data:
-                    type: object
-                    nullable: true
-                    description: "Dados adicionais retornados pela operação."
-              examples:
-                not_found:
-                  summary: Exemplo de resposta
-                  description: Base de dados não encontrada; nenhum dado retornado.
-                  value:
-                    {
-                      "message": "Base de dados não encontrada!",
-                      "success": false,
-                      "data": null
-                    }
-                clean_dataset_not_found:
-                  summary: Exemplo de resposta 2
-                  description: Dataset limpo não encontrado.
-                  value:
-                    {
-                      "message": "Dataset limpo não encontrado!",
-                      "success": false,
-                      "data": null
-                    }
-
-        '401':
-          description: "Não autorizado."
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  message:
-                    type: string
-                    description: "Mensagem de retorno da operação."
-                  success:
-                    type: boolean
-                    description: "Indica se a operação foi bem-sucedida."
-                  data:
-                    type: "null"
-                    description: "Dados adicionais retornados pela operação."
-              examples:
-                unauthorized:
-                  summary: Exemplo de resposta
-                  description: Usuário não está autenticado.
-                  value:
-                    {
-                      "message": "Não autorizado",
-                      "success": false,
-                      "data": null
-                    }
-
-        '500':
-          description: "Erro interno do servidor."
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  message:
-                    type: string
-                    description: "Mensagem de retorno da operação."
-                  success:
-                    type: boolean
-                    description: "Indica se a operação foi bem-sucedida."
-                  data:
-                    type: string
-                    description: "Mensagem de erro do servidor."
-              examples:
-                internal_server_error:
-                  summary: Exemplo de resposta
-                  description: Erro ao calcular a moda.
-                  value:
-                    {
-                      "message": "Erro ao calcular a moda!",
-                      "success": false,
-                      "data": "Erro ao calcular a moda: Cannot compute mode of empty array"
-                    }
-
-  /data-visualization/midpoint/{id}:
-    post:
-      tags:
-        - "Visualização de Dados"
-      summary: "Realiza o cálculo do ponto médio"
-      description: |
-        Realiza o cálculo do ponto médio em um dataset específico. O usuário pode escolher entre usar o dataset original ou o dataset limpo (se disponível).
-        O ponto médio é calculado para as colunas (features) especificadas.
-      parameters:
-        - name: "id"
-          in: "path"
-          required: true
-          schema:
-            type: "integer"
-          description: "ID da base de dados."
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              required:
-                - features
-                - use_clean_dataset
-              properties:
-                features:
-                  type: array
-                  items:
-                    type: string
-                  description: "Lista de colunas (features) para as quais o ponto médio será calculado."
-                use_clean_dataset:
-                  type: boolean
-                  description: |
-                    Indica se o dataset limpo deve ser usado. 
-                    - `true`: Usa o dataset limpo (se disponível).
-                    - `false`: Usa o dataset original.
-            examples:
-              success:
-                summary: Exemplo de requisição
-                value:
-                  {
-                    "features": [ "Coluna 1", "Coluna 2" ],
-                    "use_clean_dataset": true
-                  }
-      responses:
-        '200':
-          description: Cálculo de ponto médio realizado com sucesso
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  message:
-                    type: string
-                    description: "Mensagem de retorno da operação."
-                  success:
-                    type: boolean
-                    description: "Indica se a operação foi bem-sucedida."
-                  data:
-                    type: object
-                    additionalProperties:
-                      type: number
-                      description: "Valor do ponto médio para cada feature."
-              examples:
-                success:
-                  summary: "Exemplo de resposta"
-                  description: "Cálculo de ponto médio realizado com sucesso"
-                  value:
-                    {
-                      "message": "Cálculo de ponto médio realizado com sucesso!",
-                      "success": true,
-                      "data": {
-                        "Coluna 1": 15.5,
-                        "Coluna 2": 25.0,
-                        "Coluna 3": 42.0
-                      }
-                    }
-        '401':
-          description: "Não autorizado."
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  message:
-                    type: string
-                  success:
-                    type: boolean
-                  data:
-                    type: object
-              examples:
-                unauthorized:
-                  summary: Exemplo de resposta
-                  description: Usuário não está autenticado.
-                  value:
-                    message: "Não autorizado!"
-                    success: false
-                    data: null
-
-        '404':
-          description: "Não encontrado."
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  message:
-                    type: string
-                  success:
-                    type: boolean
-                  data:
-                    type: object
-              examples:
-                not_found:
-                  summary: Exemplo de resposta
-                  description: Base de dados não encontrada; nenhum dado retornado.
-                  value:
-                    message: "Base de dados não encontrada!"
-                    success: false
-                    data: null
-                clean_dataset_not_found:
-                  summary: Exemplo de resposta 2
-                  description: Dataset limpo não encontrado.
-                  value:
-                    message: "Dataset limpo não encontrado!"
-                    success: false
-                    data: null
-
-        '422':
-          description: Erros de validação.
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  message:
-                    type: string
-                  success:
-                    type: boolean
-                  data:
-                    type: object
-              examples:
-                validation_error_features:
-                  summary: Exemplo de resposta 1
-                  description: Erro retornado quando uma coluna fornecida não existe no dataset.
-                  value:
-                    message: "Dados inválidos!"
-                    success: false
-                    data:
-                      features: [ "Coluna não encontrada no dataset." ]
-
-        '500':
-          description: "Erro interno do servidor."
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  message:
-                    type: string
-                  success:
-                    type: boolean
-                  data:
-                    type: object
-              examples:
-                internal_server_error:
-                  summary: Exemplo de resposta
-                  description: Erro ao calcular o ponto médio.
-                  value:
-                    message: "Erro ao calcular o ponto médio!"
-                    success: false
-                    data: "Erro ao calcular ponto médio: <detalhes do erro>"
-
-  /data-visualization/median/{id}:
-    post:
-      tags:
-        - "Visualização de Dados"
-      summary: "Realiza o cálculo da mediana"
-      description: |
-        Realiza o cálculo da mediana em um dataset específico. O usuário pode escolher entre usar o dataset original ou o dataset limpo (se disponível).
-        A mediana é calculada para as colunas (features) especificadas.
-      parameters:
-        - name: "id"
-          in: "path"
-          required: true
-          schema:
-            type: "integer"
-          description: "ID da base de dados."
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              required:
-                - features
-                - use_clean_dataset
-              properties:
-                features:
-                  type: array
-                  items:
-                    type: string
-                  description: "Lista de colunas (features) para as quais a mediana será calculada."
-                use_clean_dataset:
-                  type: boolean
-                  description: |
-                    Indica se o dataset limpo deve ser usado. 
-                    - `true`: Usa o dataset limpo (se disponível).
-                    - `false`: Usa o dataset original.
-            examples:
-              success:
-                summary: Exemplo de requisição
-                value:
-                  {
-                    "features": [ "Coluna 1", "Coluna 2" ],
-                    "use_clean_dataset": true
-                  }
-      responses:
-        '200':
-          description: Cálculo de mediana realizado com sucesso
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  message:
-                    type: string
-                    description: "Mensagem de retorno da operação."
-                  success:
-                    type: boolean
-                    description: "Indica se a operação foi bem-sucedida."
-                  data:
-                    type: object
-                    additionalProperties:
-                      type: number
-                      description: "Valor da mediana para cada feature."
-              examples:
-                success:
-                  summary: "Exemplo de resposta"
-                  description: "Cálculo de mediana realizado com sucesso"
-                  value:
-                    {
-                      "message": "Cálculo de mediana realizado com sucesso!",
-                      "success": true,
-                      "data": {
-                        "Coluna 1": 15.0,
-                        "Coluna 2": 25.0,
-                        "Coluna 3": 42.0
-                        }
-                    }
-        '401':
-          description: "Não autorizado."
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  message:
-                    type: string
-                  success:
-                    type: boolean
-                  data:
-                    type: object
-              examples:
-                unauthorized:
-                  summary: Exemplo de resposta
-                  description: Usuário não está autenticado.
-                  value:
-                    message: "Não autorizado!"
-                    success: false
-                    data: null
-
-        '404':
-          description: "Não encontrado."
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  message:
-                    type: string
-                  success:
-                    type: boolean
-                  data:
-                    type: object
-              examples:
-                not_found:
-                  summary: Exemplo de resposta
-                  description: Base de dados não encontrada; nenhum dado retornado.
-                  value:
-                    message: "Base de dados não encontrada!"
-                    success: false
-                    data: null
-                clean_dataset_not_found:
-                  summary: Exemplo de resposta 2
-                  description: Dataset limpo não encontrado.
-                  value:
-                    message: "Dataset limpo não encontrado!"
-                    success: false
-                    data: null
-
-        '422':
-          description: Erros de validação.
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  message:
-                    type: string
-                  success:
-                    type: boolean
-                  data:
-                    type: object
-              examples:
-                validation_error_features:
-                  summary: Exemplo de resposta 1
-                  description: Erro retornado quando uma coluna fornecida não existe no dataset.
-                  value:
-                    message: "Dados inválidos!"
-                    success: false
-                    data:
-                      features: [ "Coluna não encontrada no dataset." ]
-
-        '500':
-          description: "Erro interno do servidor."
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  message:
-                    type: string
-                  success:
-                    type: boolean
-                  data:
-                    type: object
-              examples:
-                internal_server_error:
-                  summary: Exemplo de resposta
-                  description: Erro ao calcular a mediana.
-                  value:
-                    message: "Erro ao calcular a mediana!"
-                    success: false
-                    data: "Erro ao calcular mediana: <detalhes do erro>"
-
-  /data-visualization/weighted-average/{id}:
-    post:
-      tags:
-        - "Visualização de Dados"
-      summary: "Realiza o cálculo da média ponderada"
-      description: |
-        Realiza o cálculo da média ponderada em um dataset específico. O usuário pode escolher entre usar o dataset original ou o dataset limpo (se disponível).
-        A média ponderada é calculada para as colunas (features) especificadas.
-      parameters:
-        - name: "id"
-          in: "path"
-          required: true
-          schema:
-            type: "integer"
-          description: "ID da base de dados."
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              required:
-                - features
-                - weights
-                - use_clean_dataset
-              properties:
-                features:
-                  type: array
-                  items:
-                    type: string
-                  description: "Lista de colunas (features) para as quais a média ponderada será calculada."
-                weights:
-                  type: array
-                  items:
-                    type: number
-                  description: "Lista de pesos correspondentes às colunas especificadas."
-                use_clean_dataset:
-                  type: boolean
-                  description: |
-                    Indica se o dataset limpo deve ser usado. 
-                    - `true`: Usa o dataset limpo (se disponível).
-                    - `false`: Usa o dataset original.
-            examples:
-              success:
-                summary: Exemplo de requisição
-                value:
-                  {
-                    "features": [ "Coluna 1", "Coluna 2" ],
-                    "weights": [ 0.6, 0.4 ],
-                    "use_clean_dataset": true
-                  }
-      responses:
-        '200':
-          description: Cálculo de média ponderada realizado com sucesso
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  message:
-                    type: string
-                    description: "Mensagem de retorno da operação."
-                  success:
-                    type: boolean
-                    description: "Indica se a operação foi bem-sucedida."
-                  data:
-                    type: object
-                    additionalProperties:
-                      type: number
-                      description: "Valor da média ponderada para cada feature."
-              examples:
-                success:
-                  summary: "Exemplo de resposta"
-                  description: "Cálculo de média ponderada realizado com sucesso"
-                  value:
-                    {
-                      "message": "Cálculo de média ponderada realizado com sucesso!",
-                      "success": true,
-                      "data": {
-                        "Coluna 1": 15.5,
-                        "Coluna 2": 25.0,
-                        "Coluna 3": 42.0
-                      }
-                    }
-        '401':
-          description: "Não autorizado."
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  message:
-                    type: string
-                  success:
-                    type: boolean
-                  data:
-                    type: object
-              examples:
-                unauthorized:
-                  summary: Exemplo de resposta
-                  description: Usuário não está autenticado.
-                  value:
-                    message: "Não autorizado!"
-                    success: false
-                    data: null
-
-        '404':
-          description: "Não encontrado."
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  message:
-                    type: string
-                  success:
-                    type: boolean
-                  data:
-                    type: object
-              examples:
-                not_found:
-                  summary: Exemplo de resposta
-                  description: Base de dados não encontrada; nenhum dado retornado.
-                  value:
-                    message: "Base de dados não encontrada!"
-                    success: false
-                    data: null
-                clean_dataset_not_found:
-                  summary: Exemplo de resposta 2
-                  description: Dataset limpo não encontrado.
-                  value:
-                    message: "Dataset limpo não encontrado!"
-                    success: false
-                    data: null
-
-        '422':
-          description: Erros de validação.
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  message:
-                    type: string
-                  success:
-                    type: boolean
-                  data:
-                    type: object
-              examples:
-                validation_error_features:
-                  summary: Exemplo de resposta 1
-                  description: Erro retornado quando uma coluna fornecida não existe no dataset.
-                  value:
-                    message: "Dados inválidos!"
-                    success: false
-                    data:
-                      features: [ "Coluna não encontrada no dataset." ]
-
-        '500':
-          description: "Erro interno do servidor."
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  message:
-                    type: string
-                  success:
-                    type: boolean
-                  data:
-                    type: object
-              examples:
-                internal_server_error:
-                  summary: Exemplo de resposta
-                  description: Erro ao calcular a média ponderada.
-                  value:
-                    message: "Erro ao calcular a média ponderada!"
-                    success: false
-                    data: "Erro ao calcular média ponderada: <detalhes do erro>"
-
-  /data-visualization/mean-frequency-distribution/{id}:
-    post:
-      tags:
-        - "Visualização de Dados"
-      summary: "Realiza o cálculo da média por classe na distribuição de frequência"
-      description: |
-        Calcula a média por classe na distribuição de frequência para um dataset específico. O usuário pode escolher entre usar o dataset original ou o dataset limpo (se disponível).
-        O cálculo é feito para as colunas (features) especificadas.
-      parameters:
-        - name: "id"
-          in: "path"
-          required: true
-          schema:
-            type: "integer"
-          description: "ID da base de dados."
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              required:
-                - features
-                - use_clean_dataset
-              properties:
-                features:
-                  type: array
-                  items:
-                    type: string
-                  description: "Lista de colunas (features) para as quais a média por classe será calculada."
-                use_clean_dataset:
-                  type: boolean
-                  description: |
-                    Indica se o dataset limpo deve ser usado.
-                    - `true`: Usa o dataset limpo (se disponível).
-                    - `false`: Usa o dataset original.
-            examples:
-              success:
-                summary: Exemplo de requisição
-                value:
-                  features: [ "idade", "salario" ]
-                  use_clean_dataset: true
-      responses:
-        '200':
-          description: Cálculo de média por classe realizado com sucesso
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  message:
-                    type: string
-                    description: "Mensagem de retorno da operação."
-                  success:
-                    type: boolean
-                    description: "Indica se a operação foi bem-sucedida."
-                  data:
-                    type: object
-                    additionalProperties:
-                      type: object
-                      properties:
-                        frequency_distribution_with_means:
-                          type: array
-                          items:
-                            type: object
-                            properties:
-                              interval:
-                                type: string
-                                description: "Intervalo da classe."
-                              frequency:
-                                type: integer
-                                description: "Frequência da classe."
-                              class_mean:
-                                type: number
-                                description: "Média da classe."
-                        overall_mean:
-                          type: number
-                          description: "Média geral ponderada pelas frequências das classes."
-              examples:
-                success:
-                  summary: Exemplo de resposta
-                  description: "Cálculo de média por classe realizado com sucesso"
-                  value:
-                    message: "Distribuição de frequência média realizada com sucesso!"
-                    success: true
-                    data:
-                      idade:
-                        frequency_distribution_with_means:
-                          - interval: "20 - 30"
-                            frequency: 5
-                            class_mean: 25.0
-                          - interval: "31 - 40"
-                            frequency: 10
-                            class_mean: 35.5
-                        overall_mean: 32.0
-                      salario:
-                        frequency_distribution_with_means:
-                          - interval: "1000 - 2000"
-                            frequency: 8
-                            class_mean: 1500.0
-                          - interval: "2001 - 3000"
-                            frequency: 7
-                            class_mean: 2500.5
-                        overall_mean: 1964.71
-        '422':
-          description: Erros de validação.
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  message:
-                    type: string
-                  success:
-                    type: boolean
-                  data:
-                    type: object
-              examples:
-                validation_error_features:
-                  summary: Exemplo de resposta 1
-                  description: Erro retornado quando uma coluna fornecida não existe no dataset.
-                  value:
-                    message: "Dados inválidos!"
-                    success: false
-                    data:
-                      features: [ "Coluna não encontrada no dataset." ]
-        '404':
-          description: "Não encontrado."
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  message:
-                    type: string
-                  success:
-                    type: boolean
-                  data:
-                    type: object
-              examples:
-                not_found:
-                  summary: Exemplo de resposta
-                  description: Base de dados não encontrada; nenhum dado retornado.
-                  value:
-                    message: "Base de dados não encontrada!"
-                    success: false
-                    data: null
-                clean_dataset_not_found:
-                  summary: Exemplo de resposta 2
-                  description: Dataset limpo não encontrado.
-                  value:
-                    message: "Dataset limpo não encontrado!"
-                    success: false
-                    data: null
-        '401':
-          description: "Não autorizado."
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  message:
-                    type: string
-                  success:
-                    type: boolean
-                  data:
-                    type: object
-              examples:
-                unauthorized:
-                  summary: Exemplo de resposta
-                  description: Usuário não está autenticado.
-                  value:
-                    message: "Não autorizado!"
-                    success: false
-                    data: null
-        '500':
-          description: "Erro interno do servidor."
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  message:
-                    type: string
-                  success:
-                    type: boolean
-                  data:
-                    type: object
-              examples:
-                internal_server_error:
-                  summary: Exemplo de resposta
-                  description: Erro ao calcular a média por classe.
-                  value:
-                    message: "Erro ao gerar distribuição de frequência média!"
-                    success: false
-                    data: "Erro ao calcular média por classe: <detalhes do erro>"
-
-  /data-visualization/geometric-mean/{id}:
-    post:
-      tags:
-        - "Visualização de Dados"
-      summary: "Realiza o cálculo da média geométrica"
-      description: |
-        Realiza o cálculo da média geométrica em um dataset específico. O usuário pode escolher entre usar o dataset original ou o dataset limpo (se disponível).
-        A média geométrica é calculada para as colunas (features) especificadas.
-      parameters:
-        - name: "id"
-          in: "path"
-          required: true
-          schema:
-            type: "integer"
-          description: "ID da base de dados."
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              required:
-                - features
-                - use_clean_dataset
-              properties:
-                features:
-                  type: array
-                  items:
-                    type: string
-                  description: "Lista de colunas (features) para as quais a média geométrica será calculada."
-                use_clean_dataset:
-                  type: boolean
-                  description: |
-                    Indica se o dataset limpo deve ser usado. 
-                    - `true`: Usa o dataset limpo (se disponível).
-                    - `false`: Usa o dataset original.
-            examples:
-              success:
-                summary: Exemplo de requisição
-                value:
-                  {
-                    "features": [ "Coluna 1", "Coluna 2" ],
-                    "use_clean_dataset": true
-                  }
-      responses:
-        '200':
-          description: Cálculo de média geométrica realizado com sucesso
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  message:
-                    type: string
-                    description: "Mensagem de retorno da operação."
-                  success:
-                    type: boolean
-                    description: "Indica se a operação foi bem-sucedida."
-                  data:
-                    type: object
-                    additionalProperties:
-                      type: number
-                      description: "Valor da média geométrica para cada feature."
-              examples:
-                success:
-                  summary: "Exemplo de resposta"
-                  description: "Cálculo de média geométrica realizado com sucesso"
-                  value:
-                    {
-                      "message": "Cálculo de média geométrica realizado com sucesso!",
-                      "success": true,
-                      "data": {
-                        "Coluna 1": 15.5,
-                        "Coluna 2": 25.0,
-                        "Coluna 3": 42.0
-                        }
-                    }
-        '401':
-          description: "Não autorizado."
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  message:
-                    type: string
-                  success:
-                    type: boolean
-                  data:
-                    type: object
-              examples:
-                unauthorized:
-                  summary: Exemplo de resposta
-                  description: Usuário não está autenticado.
-                  value:
-                    message: "Não autorizado!"
-                    success: false
-                    data: null
-
-        '404':
-          description: "Não encontrado."
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  message:
-                    type: string
-                  success:
-                    type: boolean
-                  data:
-                    type: object
-              examples:
-                not_found:
-                  summary: Exemplo de resposta
-                  description: Base de dados não encontrada; nenhum dado retornado.
-                  value:
-                    message: "Base de dados não encontrada!"
-                    success: false
-                    data: null
-                clean_dataset_not_found:
-                  summary: Exemplo de resposta 2
-                  description: Dataset limpo não encontrado.
-                  value:
-                    message: "Dataset limpo não encontrado!"
-                    success: false
-                    data: null
-
-        '422':
-          description: Erros de validação.
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  message:
-                    type: string
-                  success:
-                    type: boolean
-                  data:
-                    type: object
-              examples:
-                validation_error_features:
-                  summary: Exemplo de resposta 1
-                  description: Erro retornado quando uma coluna fornecida não existe no dataset.
-                  value:
-                    message: "Dados inválidos!"
-                    success: false
-                    data:
-                      features: [ "Coluna não encontrada no dataset." ]
-
-        '500':
-          description: "Erro interno do servidor."
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  message:
-                    type: string
-                  success:
-                    type: boolean
-                  data:
-                    type: object
-              examples:
-                internal_server_error:
-                  summary: Exemplo de resposta
-                  description: Erro ao calcular a média geométrica.
-                  value:
-                    message: "Erro ao calcular a média geométrica!"
-                    success: false
-                    data: "Erro ao calcular média geométrica: <detalhes do erro>"
-
-  /data-visualization/harmonic-mean/{id}:
-    post:
-      tags:
-        - "Visualização de Dados"
-      summary: "Realiza o cálculo da média harmônica"
-      description: |
-        Realiza o cálculo da média harmônica em um dataset específico. O usuário pode escolher entre usar o dataset original ou o dataset limpo (se disponível).
-        A média harmônica é calculada para as colunas (features) especificadas.
-      parameters:
-        - name: "id"
-          in: "path"
-          required: true
-          schema:
-            type: "integer"
-          description: "ID da base de dados."
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              required:
-                - features
-                - use_clean_dataset
-              properties:
-                features:
-                  type: array
-                  items:
-                    type: string
-                  description: "Lista de colunas (features) para as quais a média harmônica será calculada."
-                use_clean_dataset:
-                  type: boolean
-                  description: |
-                    Indica se o dataset limpo deve ser usado. 
-                    - `true`: Usa o dataset limpo (se disponível).
-                    - `false`: Usa o dataset original.
-            examples:
-              success:
-                summary: Exemplo de requisição
-                value:
-                  {
-                    "features": [ "Coluna 1", "Coluna 2" ],
-                    "use_clean_dataset": true
-                  }
-      responses:
-        '200':
-          description: Cálculo de média harmônica realizado com sucesso
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  message:
-                    type: string
-                    description: "Mensagem de retorno da operação."
-                  success:
-                    type: boolean
-                    description: "Indica se a operação foi bem-sucedida."
-                  data:
-                    type: object
-                    additionalProperties:
-                      type: number
-                      description: "Valor da média harmônica para cada feature."
-              examples:
-                success:
-                  summary: "Exemplo de resposta"
-                  description: "Cálculo de média harmônica realizado com sucesso"
-                  value:
-                    {
-                      "message": "Cálculo de média harmônica realizado com sucesso!",
-                      "success": true,
-                      "data": {
-                        "Coluna 1": 115.05,
-                        "Coluna 2": 35.56,
-                      }
-                    }
-        '401':
-          description: "Não autorizado."
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  message:
-                    type: string
-                  success:
-                    type: boolean
-                  data:
-                    type: object
-              examples:
-                unauthorized:
-                  summary: Exemplo de resposta
-                  description: Usuário não está autenticado.
-                  value:
-                    message: "Não autorizado!"
-                    success: false
-                    data: null
-
-        '404':
-          description: "Não encontrado."
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  message:
-                    type: string
-                  success:
-                    type: boolean
-                  data:
-                    type: object
-              examples:
-                not_found:
-                  summary: Exemplo de resposta
-                  description: Base de dados não encontrada; nenhum dado retornado.
-                  value:
-                    message: "Base de dados não encontrada!"
-                    success: false
-                    data: null
-                clean_dataset_not_found:
-                  summary: Exemplo de resposta 2
-                  description: Dataset limpo não encontrado.
-                  value:
-                    message: "Dataset limpo não encontrado!"
-                    success: false
-                    data: null
-
-        '422':
-          description: Erros de validação.
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  message:
-                    type: string
-                  success:
-                    type: boolean
-                  data:
-                    type: object
-              examples:
-                validation_error_features:
-                  summary: Exemplo de resposta 1
-                  description: Erro retornado quando uma coluna fornecida não existe no dataset.
-                  value:
-                    message: "Dados inválidos!"
-                    success: false
-                    data:
-                      features: [ "Coluna não encontrada no dataset." ]
-
-        '500':
-          description: "Erro interno do servidor."
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  message:
-                    type: string
-                  success:
-                    type: boolean
-                  data:
-                    type: object
-              examples:
-                internal_server_error:
-                  summary: Exemplo de resposta
-                  description: Erro ao calcular a média harmônica.
-                  value:
-                    message: "Erro ao calcular a média harmônica!"
-                    success: false
-                    data: "Erro ao calcular média harmônica: <detalhes do erro>"
-
-
