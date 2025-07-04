@@ -11,7 +11,8 @@ class DataVisualizationForm(FlaskForm):
         "invalid_features": "Os seguintes campos não estão registrados na sua base de dados: {}",
         "invalid_boolean": "O valor deve ser True ou False.",
         "invalid_central_tendency_method": "Método de visualização '{}' não é válido. Métodos válidos para tendência central: {}",
-        "invalid_dispersion_method": "Método de visualização '{}' não é válido. Métodos válidos para dispersão: {}"
+        "invalid_dispersion_method": "Método de visualização '{}' não é válido. Métodos válidos para dispersão: {}",
+        "invalid_shape_method": "Método de visualização '{}' não é válido. Métodos válidos para forma: {}"
     }
 
     CENTRAL_TENDENCY_METHODS = [
@@ -24,7 +25,11 @@ class DataVisualizationForm(FlaskForm):
         'amplitude', 'standard_deviation', 'variance', 'variation_coefficient'
     ]
 
-    VALID_VISUALIZATION_METHODS = CENTRAL_TENDENCY_METHODS + DISPERSION_METHODS
+    SHAPE_METHODS = [
+        'skewness', 'kurtosis'
+    ]
+
+    VALID_VISUALIZATION_METHODS = CENTRAL_TENDENCY_METHODS + DISPERSION_METHODS + SHAPE_METHODS
 
     features = FieldList(
         StringField(
@@ -106,14 +111,27 @@ class DataVisualizationForm(FlaskForm):
                 )
                 return False
 
+        elif self.method_type == "shape":
+            if method not in self.SHAPE_METHODS:
+                self.visualization_method.errors.append(
+                    self.ERROR_MESSAGES["invalid_shape_method"].format(
+                        method,
+                        ", ".join(self.SHAPE_METHODS)
+                    )
+                )
+                return False
+
         else:
             if method not in self.VALID_VISUALIZATION_METHODS:
                 if method in self.CENTRAL_TENDENCY_METHODS:
                     error_msg = self.ERROR_MESSAGES["invalid_central_tendency_method"]
                     valid_methods = ", ".join(self.CENTRAL_TENDENCY_METHODS)
-                else:
+                elif method in self.DISPERSION_METHODS:
                     error_msg = self.ERROR_MESSAGES["invalid_dispersion_method"]
                     valid_methods = ", ".join(self.DISPERSION_METHODS)
+                else:
+                    error_msg = self.ERROR_MESSAGES["invalid_shape_method"]
+                    valid_methods = ", ".join(self.SHAPE_METHODS)
 
                 self.visualization_method.errors.append(
                     error_msg.format(method, valid_methods)
