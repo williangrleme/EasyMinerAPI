@@ -23,7 +23,6 @@ def measure_central_tendency(dataset_id):
         if not dataset:
             return response.handle_not_found_response("Base de dados não encontrada!")
 
-        # Especificando que o formulário é para validação de métodos de tendência central
         form = DataVisualizationForm(file_url=dataset.file_url, method_type="central_tendency")
         if not form.validate_on_submit():
             return response.handle_unprocessable_entity(form.errors)
@@ -116,6 +115,58 @@ def dispersion_measure(dataset_id):
         return response.handle_internal_server_error_response(
             e, f"Erro ao processar medidas de dispersão!"
         )
+
+
+def shape_measure(dataset_id):
+    try:
+        dataset = (
+            Dataset.query.outerjoin(CleanDataset, Dataset.id == CleanDataset.dataset_id)
+            .filter(Dataset.id == dataset_id, Dataset.user_id == current_user.id)
+            .with_entities(
+                Dataset.id,
+                Dataset.file_url,
+                CleanDataset.file_url.label("clean_file_url"),
+            )
+            .first()
+        )
+
+        if not dataset:
+            return response.handle_not_found_response("Base de dados não encontrada!")
+
+        form = DataVisualizationForm(file_url=dataset.file_url, method_type="shape")
+        if not form.validate_on_submit():
+            return response.handle_unprocessable_entity(form.errors)
+
+        if form.use_clean_dataset.data:
+            if dataset.clean_file_url:
+                file_url = dataset.clean_file_url
+            else:
+                return response.handle_not_found_response(
+                    "Dataset limpo não encontrado!"
+                )
+        else:
+            file_url = dataset.file_url
+
+        visualization_methods = {
+            'skewness': get_skewness_results,
+            'kurtosis': get_kurtosis_results
+        }
+
+        visualization_method = form.visualization_method.data
+
+        method_function = visualization_methods[visualization_method]
+        results = method_function(file_url, [f.data for f in form.features])
+
+        return response.handle_success(
+            f"Visualização de medidas de forma realizada com sucesso!",
+            results,
+        )
+
+    except Exception as e:
+        return response.handle_internal_server_error_response(
+            e, f"Erro ao processar medidas de forma!"
+        )
+
 
 def get_frequency_distribution_results(file_url, features):
     results = {}
@@ -210,6 +261,32 @@ def get_harmonic_mean_results(file_url, features):
     return results
 
 
+def get_skewness_results(file_url, features):
+    df = pd.read_csv(file_url)
+    results = {}
+    for feature in features:
+        if feature in df.columns:
+            from scipy import stats
+            skewness_value = float(round(stats.skew(df[feature].dropna()), 2))
+            results[feature] = skewness_value
+        else:
+            results[feature] = None
+    return results
+
+
+def get_kurtosis_results(file_url, features):
+    df = pd.read_csv(file_url)
+    results = {}
+    for feature in features:
+        if feature in df.columns:
+            from scipy import stats
+            kurtosis_value = float(round(stats.kurtosis(df[feature].dropna()), 2))
+            results[feature] = kurtosis_value
+        else:
+            results[feature] = None
+    return results
+
+
 def get_frequency_distribution(file_url, feature):
     try:
         df = pd.read_csv(file_url)
@@ -292,7 +369,6 @@ def get_amplitude_results(file_url, features):
     results = {}
     for feature in features:
         if feature in df.columns:
-            # Convertendo para tipo Python nativo (float) para garantir serialização JSON
             amplitude_value = float(df[feature].max() - df[feature].min())
             results[feature] = amplitude_value
         else:
@@ -305,7 +381,6 @@ def get_standard_deviation_results(file_url, features):
     results = {}
     for feature in features:
         if feature in df.columns:
-            # Convertendo para float para garantir serialização JSON
             std_dev_value = float(round(df[feature].std(), 2))
             results[feature] = std_dev_value
         else:
@@ -318,7 +393,6 @@ def get_variance_results(file_url, features):
     results = {}
     for feature in features:
         if feature in df.columns:
-            # Convertendo para float para garantir serialização JSON
             variance_value = float(round(df[feature].var(), 2))
             results[feature] = variance_value
         else:
@@ -331,7 +405,6 @@ def get_variation_coefficient_results(file_url, features):
     results = {}
     for feature in features:
         if feature in df.columns:
-            # Convertendo para float para garantir serialização JSON
             variation_coefficient_value = float(round(
                 (df[feature].std() / df[feature].mean()) * 100, 2
             ))
