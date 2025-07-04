@@ -12,24 +12,39 @@ class DataVisualizationForm(FlaskForm):
         "invalid_boolean": "O valor deve ser True ou False.",
         "invalid_central_tendency_method": "Método de visualização '{}' não é válido. Métodos válidos para tendência central: {}",
         "invalid_dispersion_method": "Método de visualização '{}' não é válido. Métodos válidos para dispersão: {}",
-        "invalid_shape_method": "Método de visualização '{}' não é válido. Métodos válidos para forma: {}"
+        "invalid_shape_method": "Método de visualização '{}' não é válido. Métodos válidos para forma: {}",
+        "invalid_association_method": "Método de visualização '{}' não é válido. Métodos válidos para associação: {}",
+        "invalid_features_count": "Para medidas de associação é necessário exatamente 2 features.",
     }
 
     CENTRAL_TENDENCY_METHODS = [
-        'frequency_distribution', 'mode', 'midpoint', 'median',
-        'weighted_average', 'mean_frequency_distribution',
-        'geometric_mean', 'harmonic_mean'
+        "frequency_distribution",
+        "mode",
+        "midpoint",
+        "median",
+        "weighted_average",
+        "mean_frequency_distribution",
+        "geometric_mean",
+        "harmonic_mean",
     ]
 
     DISPERSION_METHODS = [
-        'amplitude', 'standard_deviation', 'variance', 'variation_coefficient'
+        "amplitude",
+        "standard_deviation",
+        "variance",
+        "variation_coefficient",
     ]
 
-    SHAPE_METHODS = [
-        'skewness', 'kurtosis'
-    ]
+    SHAPE_METHODS = ["skewness", "kurtosis"]
 
-    VALID_VISUALIZATION_METHODS = CENTRAL_TENDENCY_METHODS + DISPERSION_METHODS + SHAPE_METHODS
+    ASSOCIATION_METHODS = ["covariance", "correlation"]
+
+    VALID_VISUALIZATION_METHODS = (
+        CENTRAL_TENDENCY_METHODS
+        + DISPERSION_METHODS
+        + SHAPE_METHODS
+        + ASSOCIATION_METHODS
+    )
 
     features = FieldList(
         StringField(
@@ -41,7 +56,7 @@ class DataVisualizationForm(FlaskForm):
 
     visualization_method = StringField(
         "Método de Visualização",
-        validators=[DataRequired(message=ERROR_MESSAGES["required"])]
+        validators=[DataRequired(message=ERROR_MESSAGES["required"])],
     )
 
     def __init__(self, file_url: str, method_type: str = "all", *args, **kwargs):
@@ -71,6 +86,17 @@ class DataVisualizationForm(FlaskForm):
         if not self.check_visualization_method():
             return False
 
+        # Verificação específica para métodos de associação (exatamente 2 features)
+        if (
+            self.method_type == "association"
+            or self.visualization_method.data in self.ASSOCIATION_METHODS
+        ):
+            if len(self.features) != 2:
+                self.features.errors.append(
+                    self.ERROR_MESSAGES["invalid_features_count"]
+                )
+                return False
+
         return True
 
     def check_features(self):
@@ -95,8 +121,7 @@ class DataVisualizationForm(FlaskForm):
             if method not in self.CENTRAL_TENDENCY_METHODS:
                 self.visualization_method.errors.append(
                     self.ERROR_MESSAGES["invalid_central_tendency_method"].format(
-                        method,
-                        ", ".join(self.CENTRAL_TENDENCY_METHODS)
+                        method, ", ".join(self.CENTRAL_TENDENCY_METHODS)
                     )
                 )
                 return False
@@ -105,8 +130,7 @@ class DataVisualizationForm(FlaskForm):
             if method not in self.DISPERSION_METHODS:
                 self.visualization_method.errors.append(
                     self.ERROR_MESSAGES["invalid_dispersion_method"].format(
-                        method,
-                        ", ".join(self.DISPERSION_METHODS)
+                        method, ", ".join(self.DISPERSION_METHODS)
                     )
                 )
                 return False
@@ -115,8 +139,16 @@ class DataVisualizationForm(FlaskForm):
             if method not in self.SHAPE_METHODS:
                 self.visualization_method.errors.append(
                     self.ERROR_MESSAGES["invalid_shape_method"].format(
-                        method,
-                        ", ".join(self.SHAPE_METHODS)
+                        method, ", ".join(self.SHAPE_METHODS)
+                    )
+                )
+                return False
+
+        elif self.method_type == "association":
+            if method not in self.ASSOCIATION_METHODS:
+                self.visualization_method.errors.append(
+                    self.ERROR_MESSAGES["invalid_association_method"].format(
+                        method, ", ".join(self.ASSOCIATION_METHODS)
                     )
                 )
                 return False
@@ -129,9 +161,12 @@ class DataVisualizationForm(FlaskForm):
                 elif method in self.DISPERSION_METHODS:
                     error_msg = self.ERROR_MESSAGES["invalid_dispersion_method"]
                     valid_methods = ", ".join(self.DISPERSION_METHODS)
-                else:
+                elif method in self.SHAPE_METHODS:
                     error_msg = self.ERROR_MESSAGES["invalid_shape_method"]
                     valid_methods = ", ".join(self.SHAPE_METHODS)
+                else:
+                    error_msg = self.ERROR_MESSAGES["invalid_association_method"]
+                    valid_methods = ", ".join(self.ASSOCIATION_METHODS)
 
                 self.visualization_method.errors.append(
                     error_msg.format(method, valid_methods)
