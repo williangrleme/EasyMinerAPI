@@ -681,15 +681,16 @@ paths:
                     type: string
                     description: "Mensagem de erro do servidor."
               examples:
-                internal_server_error:
+                internal_server_error_deleted_related_data:
                   summary: Exemplo de resposta 1
                   description: Erro inesperado no servidor.
                   value:
                     {
                       "message": "Erro ao atualizar o usuário!",
                       "success": false,
-                      "data": "sqlalchemy.exc.TimeoutError: QueuePool limit of size 5 overflow 10 reached, connection timed out; 30 second timeout"
+                      "data": "(pymysql.err.OperationalError) (2013, 'Lost connection to MySQL server during query ([Errno 104] Connection reset by peer)')\n[SQL: SELECT users.id AS users_id, users.name AS users_name, users.phone_number AS users_phone_number, users.email AS users_email, users.password_hash AS users_password_hash, users.created_at AS users_created_at, users.updated_at AS users_updated_at \nFROM users \nWHERE users.id = %(pk_1)s]\n[parameters: {'pk_1': 1}]\n(Background on this error at: https://sqlalche.me/e/20/e3q8)"
                     }
+
     delete:
       tags:
         - "CRUD de Usuários"
@@ -2980,6 +2981,137 @@ paths:
                       "data": {
                         "visualization_method": [
                           "Método de visualização 'invalid_method' não é válido. Métodos válidos para dispersão: amplitude, standard_deviation, variance, variation_coefficient"
+                        ]
+                      }
+                    }
+  /data-visualization/shape-measure/{dataset_id}:
+    post:
+      tags:
+        - Visualização de Dados
+      summary: Calcular medidas de forma
+      description: Calcula medidas de forma (assimetria e curtose) para as features selecionadas de um dataset.
+      security:
+        - cookieAuth: []
+      parameters:
+        - name: dataset_id
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: ID do dataset a ser analisado
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - features
+                - visualization_method
+              properties:
+                features:
+                  type: array
+                  items:
+                    type: string
+                  description: Lista de colunas do dataset para calcular as medidas.
+                visualization_method:
+                  type: string
+                  description: Método de forma a ser aplicado.
+                  enum: [skewness, kurtosis]
+                use_clean_dataset:
+                  type: boolean
+                  description: Se verdadeiro, utiliza a versão limpa do dataset.
+                  default: false
+            examples:
+              success:
+                summary: Exemplo de requisição
+                value:
+                  {
+                    "features": ["idade", "salario"],
+                    "visualization_method": "skewness",
+                    "use_clean_dataset": false
+                  }
+      responses:
+        '200':
+          description: Operação bem sucedida.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    description: Mensagem de retorno da operação.
+                  success:
+                    type: boolean
+                    description: Indica se a operação foi bem-sucedida.
+                  data:
+                    type: object
+                    description: Resultados das medidas de forma para cada feature.
+              examples:
+                success:
+                  summary: Exemplo de resposta
+                  description: Medidas de forma calculadas com sucesso.
+                  value:
+                    {
+                      "message": "Visualização de medidas de forma realizada com sucesso!",
+                      "success": true,
+                      "data": {
+                        "idade": 0.35,
+                        "salario": -0.87
+                      }
+                    }
+        '404':
+          description: Dataset não encontrado.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    description: Mensagem de erro.
+                  success:
+                    type: boolean
+                    description: Indica se a operação foi bem-sucedida.
+                  data:
+                    type: object
+                    nullable: true
+              examples:
+                not_found:
+                  summary: Dataset não encontrado
+                  value:
+                    {
+                      "message": "Base de dados não encontrada!",
+                      "success": false,
+                      "data": null
+                    }
+        '422':
+          description: Erro de validação dos dados.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    description: Mensagem de erro.
+                  success:
+                    type: boolean
+                    description: Indica se a operação foi bem-sucedida.
+                  data:
+                    type: object
+                    description: Detalhes dos erros de validação.
+              examples:
+                validation_error:
+                  summary: Erro de validação
+                  value:
+                    {
+                      "message": "Dados inválidos!",
+                      "success": false,
+                      "data": {
+                        "visualization_method": [
+                          "Método de visualização 'invalid_method' não é válido. Métodos válidos para forma: skewness, kurtosis"
                         ]
                       }
                     }
