@@ -10,14 +10,21 @@ class DataVisualizationForm(FlaskForm):
         "column_access": "Não foi possível acessar as colunas da base de dados.",
         "invalid_features": "Os seguintes campos não estão registrados na sua base de dados: {}",
         "invalid_boolean": "O valor deve ser True ou False.",
-        "invalid_method": "Método de visualização '{}' não é válido. Métodos válidos: {}"
+        "invalid_central_tendency_method": "Método de visualização '{}' não é válido. Métodos válidos para tendência central: {}",
+        "invalid_dispersion_method": "Método de visualização '{}' não é válido. Métodos válidos para dispersão: {}"
     }
 
-    VALID_VISUALIZATION_METHODS = [
+    CENTRAL_TENDENCY_METHODS = [
         'frequency_distribution', 'mode', 'midpoint', 'median',
         'weighted_average', 'mean_frequency_distribution',
         'geometric_mean', 'harmonic_mean'
     ]
+
+    DISPERSION_METHODS = [
+        'amplitude', 'standard_deviation', 'variance', 'variation_coefficient'
+    ]
+
+    VALID_VISUALIZATION_METHODS = CENTRAL_TENDENCY_METHODS + DISPERSION_METHODS
 
     features = FieldList(
         StringField(
@@ -32,9 +39,10 @@ class DataVisualizationForm(FlaskForm):
         validators=[DataRequired(message=ERROR_MESSAGES["required"])]
     )
 
-    def __init__(self, file_url: str, *args, **kwargs):
+    def __init__(self, file_url: str, method_type: str = "all", *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.file_url = file_url
+        self.method_type = method_type
         self.df_columns = self.load_dataframe_columns(file_url)
 
     @staticmethod
@@ -76,12 +84,40 @@ class DataVisualizationForm(FlaskForm):
         return True
 
     def check_visualization_method(self):
-        if self.visualization_method.data not in self.VALID_VISUALIZATION_METHODS:
-            self.visualization_method.errors.append(
-                self.ERROR_MESSAGES["invalid_method"].format(
-                    self.visualization_method.data,
-                    ", ".join(self.VALID_VISUALIZATION_METHODS)
+        method = self.visualization_method.data
+
+        if self.method_type == "central_tendency":
+            if method not in self.CENTRAL_TENDENCY_METHODS:
+                self.visualization_method.errors.append(
+                    self.ERROR_MESSAGES["invalid_central_tendency_method"].format(
+                        method,
+                        ", ".join(self.CENTRAL_TENDENCY_METHODS)
+                    )
                 )
-            )
-            return False
+                return False
+
+        elif self.method_type == "dispersion":
+            if method not in self.DISPERSION_METHODS:
+                self.visualization_method.errors.append(
+                    self.ERROR_MESSAGES["invalid_dispersion_method"].format(
+                        method,
+                        ", ".join(self.DISPERSION_METHODS)
+                    )
+                )
+                return False
+
+        else:
+            if method not in self.VALID_VISUALIZATION_METHODS:
+                if method in self.CENTRAL_TENDENCY_METHODS:
+                    error_msg = self.ERROR_MESSAGES["invalid_central_tendency_method"]
+                    valid_methods = ", ".join(self.CENTRAL_TENDENCY_METHODS)
+                else:
+                    error_msg = self.ERROR_MESSAGES["invalid_dispersion_method"]
+                    valid_methods = ", ".join(self.DISPERSION_METHODS)
+
+                self.visualization_method.errors.append(
+                    error_msg.format(method, valid_methods)
+                )
+                return False
+
         return True
