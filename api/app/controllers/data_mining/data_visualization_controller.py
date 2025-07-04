@@ -7,7 +7,7 @@ from app.models import CleanDataset, Dataset
 from flask_login import current_user
 
 
-def data_visualization(dataset_id):
+def measure_central_tendency(dataset_id):
     try:
         dataset = (
             Dataset.query.outerjoin(CleanDataset, Dataset.id == CleanDataset.dataset_id)
@@ -23,7 +23,8 @@ def data_visualization(dataset_id):
         if not dataset:
             return response.handle_not_found_response("Base de dados não encontrada!")
 
-        form = DataVisualizationForm(file_url=dataset.file_url)
+        # Especificando que o formulário é para validação de métodos de tendência central
+        form = DataVisualizationForm(file_url=dataset.file_url, method_type="central_tendency")
         if not form.validate_on_submit():
             return response.handle_unprocessable_entity(form.errors)
 
@@ -54,7 +55,7 @@ def data_visualization(dataset_id):
         results = method_function(file_url, [f.data for f in form.features])
 
         return response.handle_success(
-            f"Visualização de dados realizada com sucesso!",
+            f"Visualização de medidas de tendência central realizada com sucesso!",
             results,
         )
 
@@ -63,6 +64,58 @@ def data_visualization(dataset_id):
             e, f"Erro ao processar visualização de dados!"
         )
 
+
+def dispersion_measure(dataset_id):
+    try:
+        dataset = (
+            Dataset.query.outerjoin(CleanDataset, Dataset.id == CleanDataset.dataset_id)
+            .filter(Dataset.id == dataset_id, Dataset.user_id == current_user.id)
+            .with_entities(
+                Dataset.id,
+                Dataset.file_url,
+                CleanDataset.file_url.label("clean_file_url"),
+            )
+            .first()
+        )
+
+        if not dataset:
+            return response.handle_not_found_response("Base de dados não encontrada!")
+
+        form = DataVisualizationForm(file_url=dataset.file_url, method_type="dispersion")
+        if not form.validate_on_submit():
+            return response.handle_unprocessable_entity(form.errors)
+
+        if form.use_clean_dataset.data:
+            if dataset.clean_file_url:
+                file_url = dataset.clean_file_url
+            else:
+                return response.handle_not_found_response(
+                    "Dataset limpo não encontrado!"
+                )
+        else:
+            file_url = dataset.file_url
+
+        visualization_methods = {
+            'amplitude': get_amplitude_results,
+            'standard_deviation': get_standard_deviation_results,
+            'variance': get_variance_results,
+            'variation_coefficient': get_variation_coefficient_results
+        }
+
+        visualization_method = form.visualization_method.data
+
+        method_function = visualization_methods[visualization_method]
+        results = method_function(file_url, [f.data for f in form.features])
+
+        return response.handle_success(
+            f"Visualização de medidas de dispersão realizada com sucesso!",
+            results,
+        )
+
+    except Exception as e:
+        return response.handle_internal_server_error_response(
+            e, f"Erro ao processar medidas de dispersão!"
+        )
 
 def get_frequency_distribution_results(file_url, features):
     results = {}
@@ -232,3 +285,57 @@ def calculate_overall_mean_from_classes(class_means):
 
     except Exception as e:
         raise ValueError(f"Erro ao calcular média geral: {e}")
+
+
+def get_amplitude_results(file_url, features):
+    df = pd.read_csv(file_url)
+    results = {}
+    for feature in features:
+        if feature in df.columns:
+            # Convertendo para tipo Python nativo (float) para garantir serialização JSON
+            amplitude_value = float(df[feature].max() - df[feature].min())
+            results[feature] = amplitude_value
+        else:
+            results[feature] = None
+    return results
+
+
+def get_standard_deviation_results(file_url, features):
+    df = pd.read_csv(file_url)
+    results = {}
+    for feature in features:
+        if feature in df.columns:
+            # Convertendo para float para garantir serialização JSON
+            std_dev_value = float(round(df[feature].std(), 2))
+            results[feature] = std_dev_value
+        else:
+            results[feature] = None
+    return results
+
+
+def get_variance_results(file_url, features):
+    df = pd.read_csv(file_url)
+    results = {}
+    for feature in features:
+        if feature in df.columns:
+            # Convertendo para float para garantir serialização JSON
+            variance_value = float(round(df[feature].var(), 2))
+            results[feature] = variance_value
+        else:
+            results[feature] = None
+    return results
+
+
+def get_variation_coefficient_results(file_url, features):
+    df = pd.read_csv(file_url)
+    results = {}
+    for feature in features:
+        if feature in df.columns:
+            # Convertendo para float para garantir serialização JSON
+            variation_coefficient_value = float(round(
+                (df[feature].std() / df[feature].mean()) * 100, 2
+            ))
+            results[feature] = variation_coefficient_value
+        else:
+            results[feature] = None
+    return results

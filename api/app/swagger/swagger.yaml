@@ -1424,8 +1424,8 @@ paths:
                     description: "Mensagem de erro do servidor."
               examples:
                 internal_server_error_deleted_related_data:
-                  summary: Exemplo de resposta.
-                  description: Conexão com o banco de dados perdida.
+                  summary: Exemplo de resposta 1
+                  description: Erro inesperado no servidor.
                   value:
                     {
                       "message": "Erro ao atualizar o projeto!",
@@ -1447,7 +1447,7 @@ paths:
           description: "ID do projeto"
       responses:
         '200':
-          description: Operação bem sucedida.
+          description: "Operação bem sucedida."
           content:
             application/json:
               schema:
@@ -1476,44 +1476,20 @@ paths:
               examples:
                 success:
                   summary: Exemplo de resposta
-                  description: Operação bem sucedida, retornando as informações do projeto deletado.
+                  description: Usuário deletado com sucesso; os detalhes do usuário deletado são retornados.
                   value:
                     {
                       "message": "Projeto deletado com sucesso!",
                       "success": true,
-                      "data": {
-                        "id": 19,
-                        "name": "Projeto com ID 19",
-                        "description": "Descrição teste"
-                      }
+                      "data": [
+                        {
+                          "id": 690,
+                          "name": "João da Silva II",
+                          "phone_number": "5511987654321",
+                          "email": "Joao@gmail.com"
+                        }
+                      ]
                     }
-        '401':
-          description: Não autorizado.
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  message:
-                    type: string
-                    description: Mensagem de retorno da operação.
-                  success:
-                    type: boolean
-                    description: Indica se a operação foi bem-sucedida.
-                  data:
-                    type: "null"
-                    description: Dados adicionais retornados pela operação.
-              examples:
-                success:
-                  summary: Exemplo de resposta
-                  description: Usuário não está autenticado.
-                  value:
-                    {
-                      "message": "Não autorizado",
-                      "success": false,
-                      "data": null
-                    }
-
         '404':
           description: "Não encontrado."
           content:
@@ -1557,19 +1533,28 @@ paths:
                     description: Indica se a operação foi bem-sucedida.
                   data:
                     type: string
-                    description: Mensagem de erro do servidor.
+                    description: "Mensagem de erro do servidor."
               examples:
+                internal_server_error_related_data:
+                  summary: Exemplo de resposta 1
+                  description: Erro inesperado no servidor.
+                  value:
+                    {
+                      "message": "Erro ao deletar o projeto!",
+                      "success": false,
+                      "data": "werkzeug.exceptions.InternalServerError: 500 Internal Server Error"
+                    }
                 internal_server_error_related_datasets:
-                  summary: Exemplo de resposta
+                  summary: Exemplo de resposta 2
                   description: Erro ao deletar bases de dados relacionadas ao projeto.
                   value:
                     {
                       "message": "Erro ao deletar bases de dados relacionadas ao projeto!",
                       "success": false,
                       "data": "(sqlalchemy.exc.IntegrityError) (1451, 'Cannot delete or update a parent row: a foreign key constraint fails (`database`.`datasets`, CONSTRAINT `datasets_ibfk_1` FOREIGN KEY (`project_id`) REFERENCES `projects` (`id`))')\n[SQL: DELETE FROM projects WHERE projects.id = %(id)s]\n[parameters: {'id': 1}]\n(Background on this error at: https://sqlalche.me/e/20/gkpj)"
-            }
+                    }
 
-#   DOCUMENTAÇÃO DE CRUD DE BASES DE DADOS
+  # DOCUMENTAÇÃO DE CRUD DE BASES DE DADOS
 
   /datasets:
     get:
@@ -2031,14 +2016,13 @@ paths:
               examples:
                 not_found:
                   summary: Exemplo de resposta
-                  description: Projeto não encontrado; nenhum dado retornado.
+                  description: Base de dados não encontrada; nenhum dado retornado.
                   value:
                     {
                       "message": "Base de dados não encontrada!",
                       "success": false,
                       "data": null
                     }
-
     put:
       tags:
         - "CRUD de Base de dados"
@@ -2254,168 +2238,8 @@ paths:
                     {
                       "message": "Erro ao realizar upload para o S3",
                       "success": false,
-                      "data": "An error occurred (AccessDenied) when calling the PutObject operation: Access Denied"
+                      "data": "An error occurred (AccessDenied) when calling the PostObject operation: Access Denied"
                     }
-    delete:
-      tags:
-        - "CRUD de Base de dados"
-      summary: "Exclui base de dados"
-      description: "Exclui uma base de dados existente, assim como todos datasets limpos relacionados."
-      parameters:
-        - name: "id"
-          in: "path"
-          required: true
-          schema:
-            type: "integer"
-          description: "ID da base de dados"
-
-      responses:
-        '200':
-          description: Operação bem sucedida.
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  message:
-                    type: string
-                    description: Mensagem de retorno da operação.
-                  success:
-                    type: boolean
-                    description: Indica se a operação foi bem-sucedida.
-                  data:
-                    type: array
-                    items:
-                      type: object
-                      properties:
-                        id:
-                          type: integer
-                          description: ID da base de dados.
-                        name:
-                          type: string
-                          description: Nome da base de dados.
-                        description:
-                          type: string
-                          description: Descrição da base de dados.
-                        size_file:
-                          type: string
-                          description: Tamanho do arquivo da base de dados.
-                        file_url:
-                          type: string
-                          description: URL do arquivo da base de dados.
-                        project_id:
-                          type: integer
-                          description: ID do projeto ao qual a base de dados esta associada.
-              examples:
-                success:
-                  summary: Exemplo de resposta
-                  description: Operação bem sucedida, retornando as informações do projeto deletado.
-                  value:
-                    {
-                      "message": "Base de dados deletada com sucesso!",
-                      "success": true,
-                      "data": {
-                        "id": 73,
-                        "name": "Base de dados excluida",
-                        "description": "Descrição da base de dados",
-                        "size_file": "0.0228MB",
-                        "file_url": "https://s3.amazonaws.com/bucket-easyminer/datasets/3/file",
-                        "project_id": 12
-                      }
-                    }
-        '401':
-          description: Não autorizado.
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  message:
-                    type: string
-                    description: Mensagem de retorno da operação.
-                  success:
-                    type: boolean
-                    description: Indica se a operação foi bem-sucedida.
-                  data:
-                    type: "null"
-                    description: Dados adicionais retornados pela operação.
-              examples:
-                success:
-                  summary: Exemplo de resposta
-                  description: Usuário não está autenticado.
-                  value:
-                    {
-                      "message": "Não autorizado",
-                      "success": false,
-                      "data": null
-                    }
-
-        '404':
-          description: "Não encontrado."
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  message:
-                    type: string
-                    description: Mensagem de retorno da operação.
-                  success:
-                    type: boolean
-                    description: Indica se a operação foi bem-sucedida.
-                  data:
-                    type: object
-                    nullable: true
-                    description: Dados adicionais retornados pela operação.
-              examples:
-                not_found:
-                  summary: Exemplo de resposta
-                  description: Base de dados não encontrada; nenhum dado retornado.
-                  value:
-                    {
-                      "message": "Não encontrado!",
-                      "success": false,
-                      "data": "Base de dados não encontrada!"
-                    }
-
-        '500':
-          description: "Erro interno do servidor!"
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  message:
-                    type: string
-                    description: Mensagem de retorno da operação.
-                  success:
-                    type: boolean
-                    description: Indica se a operação foi bem-sucedida.
-                  data:
-                    type: string
-                    description: Mensagem de erro do servidor.
-              examples:
-                internal_server_error_s3_delete_object:
-                  summary: Exemplo de resposta 1.
-                  description: Erro interno ao tentar excluir um arquivo do bucket no Amazon S3 devido a falha interna.
-                  value:
-                    {
-                      "message": "Erro ao realizar exclusão da base de dados no servidor AWS!",
-                      "success": false,
-                      "data": "An error occurred (InternalError) when calling the DeleteObject operation: We encountered an internal error while deleting the object. Please try again later. (RequestId: example-request-id, HostId: example-host-id)"
-                    }
-
-                internal_server_error_related_clean_dataset:
-                  summary: Exemplo de resposta 2.
-                  description: Erro interno ao tentar excluir um dataset.
-                  value:
-                    {
-                      "message": "Erro ao deletar registros relacionados ao dataset!",
-                      "success": false,
-                      "data": "(sqlalchemy.exc.IntegrityError) (1451, 'Cannot delete or update a parent row: a foreign key constraint fails (`database`.`clean_dataset`, CONSTRAINT `clean_dataset_ibfk_1` FOREIGN KEY (`dataset_id`) REFERENCES `dataset` (`id`))')\n[SQL: DELETE FROM dataset WHERE dataset.id = %(id)s]\n[parameters: {'id': 1}]\n(Background on this error at: https://sqlalche.me/e/20/gkpj)"
-                    }
-
-
   /preprocessing/data-cleaning/{id}:
     post:
       tags:
@@ -2670,7 +2494,6 @@ paths:
                       "success": false,
                       "data": "An error occurred (AccessDenied) when calling the PostObject operation: Access Denied"
                     }
-
   /preprocessing/data-normalization/{id}:
     post:
       tags:
@@ -2794,11 +2617,13 @@ paths:
                     {
                       "message": "Dados inválidos!",
                       "success": false,
-                      "data": {
-                        "features": [
-                          "Os seguintes campos não estão registrados na sua base de dados: COLUNA_ERRADA1, COLUNA_ERRADA2"
-                        ]
-                      }
+                      "data": [
+                        {
+                          "features": [
+                            "Os seguintes campos não estão registrados na sua base de dados: COLUNA_ERRADA1, COLUNA_ERRADA2"
+                          ]
+                        }
+                      ]
                     }
                 validation_error_method:
                   summary: Exemplo de resposta 2
@@ -2895,20 +2720,21 @@ paths:
                       "success": false,
                       "data": "An error occurred (AccessDenied) when calling the PostObject operation: Access Denied"
                     }
-
-  /preprocessing/data-reduction/{id}:
+  /data-visualization/measure-central-tendency/{dataset_id}:
     post:
       tags:
-        - "Pré-processamento"
-      summary: "Realiza a redução de dados"
-      description: "Aplica a redução de dados em um dataset específico. O usuário deve fornecer os métodos de redução a serem aplicados nas features escolhidas."
+        - Visualização de Dados
+      summary: Calcular medidas de tendência central
+      description: Calcula medidas de tendência central para as features selecionadas de um dataset.
+      security:
+        - cookieAuth: []
       parameters:
-        - name: "id"
-          in: "path"
+        - name: dataset_id
+          in: path
           required: true
           schema:
-            type: "integer"
-          description: "ID da base de dados"
+            type: integer
+          description: ID do dataset a ser analisado
       requestBody:
         required: true
         content:
@@ -2917,348 +2743,33 @@ paths:
               type: object
               required:
                 - features
-                - methods
-              properties:
-                features:
-                  type: array
-                  items:
-                    type: string
-                  description: >
-                    Lista de features a serem consideradas para a redução dimensional.
-                    Se o método escolhido for PCA, recomenda-se incluir todas as features.
-                    Para amostragem, apenas uma coluna deve ser usada.
-                methods:
-                  type: string
-                  description: Método de redução a ser aplicado.
-                  enum:
-                    - pca
-                    - amostragem_aleatoria
-                    - amostragem_sistematica
-                random_records:
-                  type: integer
-                  description: >
-                    Quantidade de registros para a amostragem aleatória.
-                    Deve ser menor ou igual ao total de registros disponíveis no dataset.
-                systematic_records:
-                  type: integer
-                  description: >
-                    Quantidade de registros para a amostragem sistemática.
-                    Deve ser menor ou igual ao total de registros disponíveis no dataset.
-                    Deve ser aplicado a **SOMENTE** uma feature(coluna).
-                systematic_method:
-                  type: string
-                  description: >
-                    Critério para a seleção de registros na amostragem sistemática.
-                    Define se os maiores ou menores valores serão escolhidos.
-                  enum:
-                    - maiores
-                    - menores
-            examples:
-              success:
-                summary: Exemplo de requisição
-                value:
-                  {
-                    "features-0": "Coluna 1",
-                    "methods": "amostragem_sistematica",
-                    "systematic_records": 5000,
-                    "systematic_method": "maiores"
-                  }
-      responses:
-        '200':
-          description: Redução de dados realizada com sucesso na etapa de pré-processamento
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  message:
-                    type: string
-                    description: "Mensagem de retorno da operação."
-                  success:
-                    type: boolean
-                    description: "Indica se a operação foi bem-sucedida."
-                  data:
-                    type: array
-                    items:
-                      type: object
-                      properties:
-                        reduced_dataset:
-                          type: object
-                          properties:
-                            id:
-                              type: integer
-                              description: ID do dataset reduzido.
-                            size_file:
-                              type: string
-                              description: Tamanho do arquivo do dataset reduzido.
-                            file_url:
-                              type: string
-                              description: URL do arquivo do dataset reduzido.
-              examples:
-                success:
-                  summary: "Exemplo de resposta"
-                  description: "Redução de dados realizada com sucesso na etapa de pré-processamento, os detalhes do dataset reduzido são retornados."
-                  value:
-                    {
-                      "message": "Redução de dados realizada com sucesso!",
-                      "success": true,
-                      "data": {
-                        "reduced_dataset": {
-                          "id": 68,
-                          "size_file": "0.0279MB",
-                          "file_url": "https://s3.amazonaws.com/bucket-easyminer/datasets/5/file_reduced",
-                          "original_dataset_id": 77
-                        }
-                      }
-                    }
-
-        '422':
-          description: Erros de validação.
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  message:
-                    type: string
-                    description: Mensagem de retorno da operação.
-                  success:
-                    type: boolean
-                    description: Indica se a operação foi bem-sucedida.
-                  data:
-                    type: array
-                    items:
-                      type: object
-                      properties:
-                        field:
-                          type: string
-                          description: Nome do campo que gerou o erro.
-                        error:
-                          type: string
-                          description: Mensagem de erro associada ao campo.
-              examples:
-                validation_error_feature_selection:
-                  summary: Exemplo de resposta 1
-                  description: Erro retornado quando é fornecido mais de uma coluna.
-                  value:
-                    {
-                      "message": "Dados inválidos!",
-                      "success": false,
-                      "data": {
-                        "features": [
-                          "Apenas uma feature deve ser selecionada."
-                        ]
-                      }
-                    }
-
-                validation_error_sample_size_exceeds_records:
-                  summary: Exemplo de resposta 2
-                  description: Erro retornado quando é fornecido uma amostra de dados maior do que a quantidade de registros do dataset.
-                  value:
-                    {
-                      "message": "Dados inválidos!",
-                      "success": false,
-                      "data": {
-                        "systematic_records": [
-                          "Amostra maior que o número de registros disponíveis."
-                        ]
-                      }
-                    }
-                validation_error_features:
-                  summary: Exemplo de resposta 3
-                  description: Erro retornado quando é fornecido uma coluna que não pertence ao dataset.
-                  value:
-                    {
-                      "message": "Dados inválidos!",
-                      "success": false,
-                      "data": {
-                        "features": [
-                          "Os seguintes campos não estão registrados na sua base de dados: COLUNA_ERRADA1, COLUNA_ERRADA2"
-                        ]
-                      }
-                    }
-                validation_error_method:
-                  summary: Exemplo de resposta 4
-                  description: Erro retornado quando é fornecido um método inválido de redução de dados.
-                  value:
-                    {
-                      "message": "Dados inválidos!",
-                      "success": false,
-                      "data": {
-                        "methods": [
-                          "Método inválido: METODO-ERRADO. Selecione uma opção válida."
-                        ]
-                      }
-                    }
-
-        '404':
-          description: "Não encontrado."
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  message:
-                    type: string
-                    description: Mensagem de retorno da operação.
-                  success:
-                    type: boolean
-                    description: Indica se a operação foi bem-sucedida.
-                  data:
-                    type: object
-                    nullable: true
-                    description: Dados adicionais retornados pela operação.
-              examples:
-                not_found:
-                  summary: Exemplo de resposta
-                  description: Base de dados não encontrada; nenhum dado retornado.
-                  value:
-                    {
-                      "message": "Base de dados não encontrada!",
-                      "success": false,
-                      "data": null
-                    }
-
-        '401':
-          description: Não autorizado!.
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  message:
-                    type: string
-                    description: Mensagem de retorno da operação.
-                  success:
-                    type: boolean
-                    description: Indica se a operação foi bem-sucedida.
-                  data:
-                    type: "null"
-                    description: Dados adicionais retornados pela operação.
-              examples:
-                success:
-                  summary: Exemplo de resposta
-                  description: Usuário não está autenticado.
-                  value:
-                    {
-                      "message": "Não autorizado",
-                      "success": false,
-                      "data": null
-                    }
-
-        '500':
-          description: "Erro interno do servidor!"
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  message:
-                    type: string
-                    description: Mensagem de retorno da operação.
-                  success:
-                    type: boolean
-                    description: Indica se a operação foi bem-sucedida.
-                  data:
-                    type: string
-                    description: "Mensagem de erro do servidor."
-              examples:
-                internal_server_error:
-                  summary: Exemplo de resposta.
-                  description: Erro ao enviar o arquivo para a AWS.
-                  value:
-                    {
-                      "message": "Erro ao realizar upload para o S3",
-                      "success": false,
-                      "data": "An error occurred (AccessDenied) when calling the PostObject operation: Access Denied"
-                    }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-  /data-visualization/visualize/{dataset_id}:
-    post:
-      tags:
-        - "Visualização de Dados"
-      summary: "Realiza visualizações de dados"
-      description: |
-        Realiza diferentes tipos de visualização de dados em um dataset específico. O usuário pode escolher entre usar o dataset original ou o dataset limpo (se disponível).
-        O tipo de visualização é especificado pelo parâmetro `visualization_method`.
-      parameters:
-        - name: "dataset_id"
-          in: "path"
-          required: true
-          schema:
-            type: "integer"
-          description: "ID da base de dados."
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              required:
-                - features
-                - use_clean_dataset
                 - visualization_method
               properties:
                 features:
                   type: array
                   items:
                     type: string
-                  description: "Lista de colunas (features) para as quais a visualização será realizada."
-                use_clean_dataset:
-                  type: boolean
-                  description: |
-                    Indica se o dataset limpo deve ser usado.
-                    - `true`: Usa o dataset limpo (se disponível).
-                    - `false`: Usa o dataset original.
+                  description: Lista de colunas do dataset para calcular as medidas.
                 visualization_method:
                   type: string
-                  description: |
-                    Método de visualização a ser aplicado.
-                    - `frequency_distribution`: Distribuição de frequência
-                    - `mode`: Moda
-                    - `midpoint`: Ponto médio
-                    - `median`: Mediana
-                    - `weighted_average`: Média ponderada
-                    - `mean_frequency_distribution`: Média por classe na distribuição de frequência
-                    - `geometric_mean`: Média geométrica
-                    - `harmonic_mean`: Média harmônica
-                  enum:
-                    - frequency_distribution
-                    - mode
-                    - midpoint
-                    - median
-                    - weighted_average
-                    - mean_frequency_distribution
-                    - geometric_mean
-                    - harmonic_mean
+                  description: Método de visualização a ser aplicado.
+                  enum: [frequency_distribution, mode, midpoint, median, weighted_average, mean_frequency_distribution, geometric_mean, harmonic_mean]
+                use_clean_dataset:
+                  type: boolean
+                  description: Se verdadeiro, utiliza a versão limpa do dataset.
+                  default: false
             examples:
               success:
                 summary: Exemplo de requisição
                 value:
                   {
-                    "features": [ "Coluna 1", "Coluna 2" ],
-                    "use_clean_dataset": true,
-                    "visualization_method": "frequency_distribution"
+                    "features": ["idade", "salario"],
+                    "visualization_method": "median",
+                    "use_clean_dataset": false
                   }
       responses:
         '200':
-          description: Visualização de dados realizada com sucesso
+          description: Operação bem sucedida.
           content:
             application/json:
               schema:
@@ -3266,202 +2777,28 @@ paths:
                 properties:
                   message:
                     type: string
-                    description: "Mensagem de retorno da operação."
+                    description: Mensagem de retorno da operação.
                   success:
                     type: boolean
-                    description: "Indica se a operação foi bem-sucedida."
+                    description: Indica se a operação foi bem-sucedida.
                   data:
                     type: object
-                    description: "Dados resultantes da visualização. O formato varia de acordo com o método escolhido."
+                    description: Resultados das medidas de tendência central para cada feature.
               examples:
-                frequency_distribution:
-                  summary: "Exemplo de resposta para distribuição de frequência"
-                  description: "Distribuição de frequência realizada com sucesso"
+                success:
+                  summary: Exemplo de resposta
+                  description: Medidas de tendência central calculadas com sucesso.
                   value:
                     {
-                      "message": "Visualização de dados realizada com sucesso!",
+                      "message": "Visualização de medidas de tendência central realizada com sucesso!",
                       "success": true,
                       "data": {
-                        "Coluna 1": {
-                          "frequency_distribution": [
-                            {
-                              "interval": "0 - 20",
-                              "frequency": 5
-                            },
-                            {
-                              "interval": "20 - 40",
-                              "frequency": 0
-                            }
-                          ]
-                        },
-                        "Coluna 2": {
-                          "frequency_distribution": [
-                            {
-                              "interval": "0 - 10",
-                              "frequency": 231
-                            },
-                            {
-                              "interval": "10 - 20",
-                              "frequency": 107
-                            }
-                          ]
-                        }
+                        "idade": 35.5,
+                        "salario": 3500
                       }
                     }
-                mode:
-                  summary: "Exemplo de resposta para moda"
-                  description: "Cálculo de moda realizado com sucesso"
-                  value:
-                    {
-                      "message": "Visualização de dados realizada com sucesso!",
-                      "success": true,
-                      "data": {
-                        "Coluna 1": [ 10, 20 ],
-                        "Coluna 2": [ 35 ]
-                      }
-                    }
-                midpoint:
-                  summary: "Exemplo de resposta para ponto médio"
-                  description: "Cálculo de ponto médio realizado com sucesso"
-                  value:
-                    {
-                      "message": "Visualização de dados realizada com sucesso!",
-                      "success": true,
-                      "data": {
-                        "Coluna 1": 15.5,
-                        "Coluna 2": 25.0
-                      }
-                    }
-                median:
-                  summary: "Exemplo de resposta para mediana"
-                  description: "Cálculo de mediana realizado com sucesso"
-                  value:
-                    {
-                      "message": "Visualização de dados realizada com sucesso!",
-                      "success": true,
-                      "data": {
-                        "Coluna 1": 15.0,
-                        "Coluna 2": 25.0
-                      }
-                    }
-                weighted_average:
-                  summary: "Exemplo de resposta para média ponderada"
-                  description: "Cálculo de média ponderada realizado com sucesso"
-                  value:
-                    {
-                      "message": "Visualização de dados realizada com sucesso!",
-                      "success": true,
-                      "data": {
-                        "Coluna 1": 15.5,
-                        "Coluna 2": 25.0
-                      }
-                    }
-                mean_frequency_distribution:
-                  summary: "Exemplo de resposta para média por classe"
-                  description: "Cálculo de média por classe realizado com sucesso"
-                  value:
-                    {
-                      "message": "Visualização de dados realizada com sucesso!",
-                      "success": true,
-                      "data": {
-                        "Coluna 1": {
-                          "frequency_distribution_with_means": [
-                            {
-                              "interval": "20 - 30",
-                              "frequency": 5,
-                              "class_mean": 25.0
-                            },
-                            {
-                              "interval": "31 - 40",
-                              "frequency": 10,
-                              "class_mean": 35.5
-                            }
-                          ],
-                          "overall_mean": 32.0
-                        }
-                      }
-                    }
-                geometric_mean:
-                  summary: "Exemplo de resposta para média geométrica"
-                  description: "Cálculo de média geométrica realizado com sucesso"
-                  value:
-                    {
-                      "message": "Visualização de dados realizada com sucesso!",
-                      "success": true,
-                      "data": {
-                        "Coluna 1": 15.5,
-                        "Coluna 2": 25.0
-                      }
-                    }
-                harmonic_mean:
-                  summary: "Exemplo de resposta para média harmônica"
-                  description: "Cálculo de média harmônica realizado com sucesso"
-                  value:
-                    {
-                      "message": "Visualização de dados realizada com sucesso!",
-                      "success": true,
-                      "data": {
-                        "Coluna 1": 115.05,
-                        "Coluna 2": 35.56
-                      }
-                    }
-
-        '422':
-          description: Erros de validação.
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  message:
-                    type: string
-                    description: "Mensagem de retorno da operação."
-                  success:
-                    type: boolean
-                    description: "Indica se a operação foi bem-sucedida."
-                  data:
-                    type: object
-                    properties:
-                      features:
-                        type: array
-                        items:
-                          type: string
-                        description: "Erros relacionados às features."
-                      visualization_method:
-                        type: array
-                        items:
-                          type: string
-                        description: "Erros relacionados ao método de visualização."
-              examples:
-                validation_error_features:
-                  summary: Exemplo de resposta 1
-                  description: Erro retornado quando uma coluna fornecida não existe no dataset.
-                  value:
-                    {
-                      "message": "Dados inválidos!",
-                      "success": false,
-                      "data": {
-                        "features": [
-                          "Os seguintes campos não estão registrados na sua base de dados: Coluna Inexistente"
-                        ]
-                      }
-                    }
-                validation_error_method:
-                  summary: Exemplo de resposta 2
-                  description: Erro retornado quando o método de visualização é inválido.
-                  value:
-                    {
-                      "message": "Dados inválidos!",
-                      "success": false,
-                      "data": {
-                        "visualization_method": [
-                          "Método 'método_inválido' não é válido. Métodos válidos: frequency_distribution, mode, midpoint, median, weighted_average, mean_frequency_distribution, geometric_mean, harmonic_mean"
-                        ]
-                      }
-                    }
-
         '404':
-          description: "Não encontrado."
+          description: Dataset não encontrado.
           content:
             application/json:
               schema:
@@ -3469,36 +2806,24 @@ paths:
                 properties:
                   message:
                     type: string
-                    description: "Mensagem de retorno da operação."
+                    description: Mensagem de erro.
                   success:
                     type: boolean
-                    description: "Indica se a operação foi bem-sucedida."
+                    description: Indica se a operação foi bem-sucedida.
                   data:
                     type: object
                     nullable: true
-                    description: "Dados adicionais retornados pela operação."
               examples:
                 not_found:
-                  summary: Exemplo de resposta
-                  description: Base de dados não encontrada; nenhum dado retornado.
+                  summary: Dataset não encontrado
                   value:
                     {
                       "message": "Base de dados não encontrada!",
                       "success": false,
                       "data": null
                     }
-                clean_dataset_not_found:
-                  summary: Exemplo de resposta 2
-                  description: Dataset limpo não encontrado.
-                  value:
-                    {
-                      "message": "Dataset limpo não encontrado!",
-                      "success": false,
-                      "data": null
-                    }
-
-        '401':
-          description: "Não autorizado."
+        '422':
+          description: Erro de validação dos dados.
           content:
             application/json:
               schema:
@@ -3506,26 +2831,77 @@ paths:
                 properties:
                   message:
                     type: string
-                    description: "Mensagem de retorno da operação."
+                    description: Mensagem de erro.
                   success:
                     type: boolean
-                    description: "Indica se a operação foi bem-sucedida."
+                    description: Indica se a operação foi bem-sucedida.
                   data:
-                    type: "null"
-                    description: "Dados adicionais retornados pela operação."
+                    type: object
+                    description: Detalhes dos erros de validação.
               examples:
-                unauthorized:
-                  summary: Exemplo de resposta
-                  description: Usuário não está autenticado.
+                validation_error:
+                  summary: Erro de validação
                   value:
                     {
-                      "message": "Não autorizado",
+                      "message": "Dados inválidos!",
                       "success": false,
-                      "data": null
+                      "data": {
+                        "visualization_method": [
+                          "Método de visualização 'invalid_method' não é válido. Métodos válidos para tendência central: frequency_distribution, mode, midpoint, median, weighted_average, mean_frequency_distribution, geometric_mean, harmonic_mean"
+                        ]
+                      }
                     }
 
-        '500':
-          description: "Erro interno do servidor."
+  /data-visualization/dispersion-measure/{dataset_id}:
+    post:
+      tags:
+        - Visualização de Dados
+      summary: Calcular medidas de dispersão
+      description: Calcula medidas de dispersão para as features selecionadas de um dataset.
+      security:
+        - cookieAuth: []
+      parameters:
+        - name: dataset_id
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: ID do dataset a ser analisado
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - features
+                - visualization_method
+              properties:
+                features:
+                  type: array
+                  items:
+                    type: string
+                  description: Lista de colunas do dataset para calcular as medidas.
+                visualization_method:
+                  type: string
+                  description: Método de dispersão a ser aplicado.
+                  enum: [amplitude, standard_deviation, variance, variation_coefficient]
+                use_clean_dataset:
+                  type: boolean
+                  description: Se verdadeiro, utiliza a versão limpa do dataset.
+                  default: false
+            examples:
+              success:
+                summary: Exemplo de requisição
+                value:
+                  {
+                    "features": ["idade", "salario"],
+                    "visualization_method": "standard_deviation",
+                    "use_clean_dataset": false
+                  }
+      responses:
+        '200':
+          description: Operação bem sucedida.
           content:
             application/json:
               schema:
@@ -3533,20 +2909,77 @@ paths:
                 properties:
                   message:
                     type: string
-                    description: "Mensagem de retorno da operação."
+                    description: Mensagem de retorno da operação.
                   success:
                     type: boolean
-                    description: "Indica se a operação foi bem-sucedida."
+                    description: Indica se a operação foi bem-sucedida.
                   data:
-                    type: string
-                    description: "Mensagem de erro do servidor."
+                    type: object
+                    description: Resultados das medidas de dispersão para cada feature.
               examples:
-                internal_server_error:
+                success:
                   summary: Exemplo de resposta
-                  description: Erro ao processar visualização de dados.
+                  description: Medidas de dispersão calculadas com sucesso.
                   value:
                     {
-                      "message": "Erro ao processar visualização de dados!",
+                      "message": "Visualização de medidas de dispersão realizada com sucesso!",
+                      "success": true,
+                      "data": {
+                        "idade": 5.25,
+                        "salario": 1200.45
+                      }
+                    }
+        '404':
+          description: Dataset não encontrado.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    description: Mensagem de erro.
+                  success:
+                    type: boolean
+                    description: Indica se a operação foi bem-sucedida.
+                  data:
+                    type: object
+                    nullable: true
+              examples:
+                not_found:
+                  summary: Dataset não encontrado
+                  value:
+                    {
+                      "message": "Base de dados não encontrada!",
                       "success": false,
-                      "data": "Detalhes do erro"
+                      "data": null
+                    }
+        '422':
+          description: Erro de validação dos dados.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    description: Mensagem de erro.
+                  success:
+                    type: boolean
+                    description: Indica se a operação foi bem-sucedida.
+                  data:
+                    type: object
+                    description: Detalhes dos erros de validação.
+              examples:
+                validation_error:
+                  summary: Erro de validação
+                  value:
+                    {
+                      "message": "Dados inválidos!",
+                      "success": false,
+                      "data": {
+                        "visualization_method": [
+                          "Método de visualização 'invalid_method' não é válido. Métodos válidos para dispersão: amplitude, standard_deviation, variance, variation_coefficient"
+                        ]
+                      }
                     }
