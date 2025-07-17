@@ -3,8 +3,6 @@ import os
 
 import app.response_handlers as response
 from flask_login import current_user
-import logging
-from flask import request
 
 from .. import db
 from ..controllers.s3_controller import S3Controller
@@ -51,9 +49,6 @@ def get_file_size_and_url(csv_file, user_id, dataset_name):
 
 
 def get_datasets():
-    logging.info(f"Obtendo dataset com metodo: {request.method}")
-    logging.info(f"Headers da requisicao: {dict(request.headers)}")
-
     datasets = Dataset.query.filter_by(user_id=current_user.id).all()
     datasets_list = [format_dataset_data(ds) for ds in datasets]
     return response.handle_success(
@@ -81,10 +76,6 @@ def get_dataset(dataset_id):
 
 
 def create_dataset():
-    logging.info(f"Criando dataset com metodo: {request.method}")
-    logging.info(f"Headers da requisicao: {dict(request.headers)}")
-    logging.info(f"Arquivos na requisicao: {request.files}")
-
     form = DatasetFormCreate()
     if not form.validate_on_submit():
         return response.handle_unprocessable_entity(form.errors)
