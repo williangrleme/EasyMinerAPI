@@ -22,7 +22,7 @@ class MissingValuesEnum(Enum):
 class DataCleaningForm(FlaskForm):
     @staticmethod
     def size_length_message(min_length, max_length):
-        return f"O tamanho deve estar entre {min_length} e {max_length} caracteres."
+        return f"O tamanho deve estar entre {min_length} e {max_length}."
 
     ERROR_MESSAGES = {
         "required": "O campo é obrigatório.",

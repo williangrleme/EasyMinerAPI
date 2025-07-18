@@ -7,6 +7,7 @@ from app.controllers.s3_controller import S3Controller
 from app.forms.data_mining_forms.preprocessing.data_cleaning_forms import \
     DataCleaningForm
 from app.models import CleanDataset, Dataset
+from flask import current_app
 from flask_login import current_user
 
 
@@ -27,7 +28,6 @@ def format_clean_dataset_data(clean_dataset):
             "id": clean_dataset.id,
             "size_file": clean_dataset.size_file,
             "file_url": clean_dataset.file_url,
-            "original_dataset_id": clean_dataset.dataset_id,
         }
     }
 
