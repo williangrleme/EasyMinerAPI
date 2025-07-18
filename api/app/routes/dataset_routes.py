@@ -8,7 +8,7 @@ dataset_bp = Blueprint("datasets", __name__)
 
 dataset_bp.route("/", methods=["GET"])(login_required(get_datasets))
 dataset_bp.route("/<int:dataset_id>", methods=["GET"])(login_required(get_dataset))
-dataset_bp.route("/", methods=["POST"])(login_required(create_dataset))
+dataset_bp.route("/create-dataset", methods=["POST"])(login_required(create_dataset))
 dataset_bp.route("/<int:dataset_id>", methods=["PUT"])(login_required(update_dataset))
 dataset_bp.route("/<int:dataset_id>", methods=["DELETE"])(
     login_required(delete_dataset)
