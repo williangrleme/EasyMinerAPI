@@ -3564,3 +3564,564 @@ paths:
                       "success": false,
                       "data": "An error occurred (AccessDenied) when calling the PostObject operation: Access Denied"
                     }
+
+  /data-visualization/measure-central-tendency/{dataset_id}:
+    post:
+      tags:
+        - Visualização de Dados
+      summary: Calcular medidas de tendência central
+      description: Calcula medidas de tendência central para as features selecionadas de um dataset.
+      security:
+        - cookieAuth: [ ]
+      parameters:
+        - name: dataset_id
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: ID do dataset a ser analisado
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - features
+                - visualization_method
+              properties:
+                features:
+                  type: array
+                  items:
+                    type: string
+                  description: Lista de colunas do dataset para calcular as medidas.
+                visualization_method:
+                  type: string
+                  description: Método de visualização a ser aplicado.
+                  enum: [ frequency_distribution, mode, midpoint, median, weighted_average, mean_frequency_distribution, geometric_mean, harmonic_mean ]
+                use_clean_dataset:
+                  type: boolean
+                  description: Se verdadeiro, utiliza a versão limpa do dataset.
+                  default: false
+            examples:
+              success:
+                summary: Exemplo de requisição
+                value:
+                  {
+                    "features": [ "idade", "salario" ],
+                    "visualization_method": "median",
+                    "use_clean_dataset": false
+                  }
+      responses:
+        '200':
+          description: Operação bem sucedida.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    description: Mensagem de retorno da operação.
+                  success:
+                    type: boolean
+                    description: Indica se a operação foi bem-sucedida.
+                  data:
+                    type: object
+                    description: Resultados das medidas de tendência central para cada feature.
+              examples:
+                success:
+                  summary: Exemplo de resposta
+                  description: Medidas de tendência central calculadas com sucesso.
+                  value:
+                    {
+                      "message": "Visualização de medidas de tendência central realizada com sucesso!",
+                      "success": true,
+                      "data": {
+                        "idade": 35.5,
+                        "salario": 3500
+                      }
+                    }
+        '404':
+          description: Dataset não encontrado.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    description: Mensagem de erro.
+                  success:
+                    type: boolean
+                    description: Indica se a operação foi bem-sucedida.
+                  data:
+                    type: object
+                    nullable: true
+              examples:
+                not_found:
+                  summary: Dataset não encontrado
+                  value:
+                    {
+                      "message": "Base de dados não encontrada!",
+                      "success": false,
+                      "data": null
+                    }
+        '422':
+          description: Erro de validação dos dados.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    description: Mensagem de erro.
+                  success:
+                    type: boolean
+                    description: Indica se a operação foi bem-sucedida.
+                  data:
+                    type: object
+                    description: Detalhes dos erros de validação.
+              examples:
+                validation_error:
+                  summary: Erro de validação
+                  value:
+                    {
+                      "message": "Dados inválidos!",
+                      "success": false,
+                      "data": {
+                        "visualization_method": [
+                          "Método de visualização 'invalid_method' não é válido. Métodos válidos para tendência central: frequency_distribution, mode, midpoint, median, weighted_average, mean_frequency_distribution, geometric_mean, harmonic_mean"
+                        ]
+                      }
+                    }
+
+    /data-visualization/dispersion-measure/{dataset_id}:
+      post:
+        tags:
+          - Visualização de Dados
+        summary: Calcular medidas de dispersão
+        description: Calcula medidas de dispersão para as features selecionadas de um dataset.
+        security:
+          - cookieAuth: [ ]
+        parameters:
+          - name: dataset_id
+            in: path
+            required: true
+            schema:
+              type: integer
+            description: ID do dataset a ser analisado
+        requestBody:
+          required: true
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - features
+                  - visualization_method
+                properties:
+                  features:
+                    type: array
+                    items:
+                      type: string
+                    description: Lista de colunas do dataset para calcular as medidas.
+                  visualization_method:
+                    type: string
+                    description: Método de dispersão a ser aplicado.
+                    enum: [ amplitude, standard_deviation, variance, variation_coefficient ]
+                  use_clean_dataset:
+                    type: boolean
+                    description: Se verdadeiro, utiliza a versão limpa do dataset.
+                    default: false
+              examples:
+                success:
+                  summary: Exemplo de requisição
+                  value:
+                    {
+                      "features": [ "idade", "salario" ],
+                      "visualization_method": "standard_deviation",
+                      "use_clean_dataset": false
+                    }
+        responses:
+          '200':
+            description: Operação bem sucedida.
+            content:
+              application/json:
+                schema:
+                  type: object
+                  properties:
+                    message:
+                      type: string
+                      description: Mensagem de retorno da operação.
+                    success:
+                      type: boolean
+                      description: Indica se a operação foi bem-sucedida.
+                    data:
+                      type: object
+                      description: Resultados das medidas de dispersão para cada feature.
+                examples:
+                  success:
+                    summary: Exemplo de resposta
+                    description: Medidas de dispersão calculadas com sucesso.
+                    value:
+                      {
+                        "message": "Visualização de medidas de dispersão realizada com sucesso!",
+                        "success": true,
+                        "data": {
+                          "idade": 5.25,
+                          "salario": 1200.45
+                        }
+                      }
+          '404':
+            description: Dataset não encontrado.
+            content:
+              application/json:
+                schema:
+                  type: object
+                  properties:
+                    message:
+                      type: string
+                      description: Mensagem de erro.
+                    success:
+                      type: boolean
+                      description: Indica se a operação foi bem-sucedida.
+                    data:
+                      type: object
+                      nullable: true
+                examples:
+                  not_found:
+                    summary: Dataset não encontrado
+                    value:
+                      {
+                        "message": "Base de dados não encontrada!",
+                        "success": false,
+                        "data": null
+                      }
+          '422':
+            description: Erro de validação dos dados.
+            content:
+              application/json:
+                schema:
+                  type: object
+                  properties:
+                    message:
+                      type: string
+                      description: Mensagem de erro.
+                    success:
+                      type: boolean
+                      description: Indica se a operação foi bem-sucedida.
+                    data:
+                      type: object
+                      description: Detalhes dos erros de validação.
+                examples:
+                  validation_error:
+                    summary: Erro de validação
+                    value:
+                      {
+                        "message": "Dados inválidos!",
+                        "success": false,
+                        "data": {
+                          "visualization_method": [
+                            "Método de visualização 'invalid_method' não é válido. Métodos válidos para dispersão: amplitude, standard_deviation, variance, variation_coefficient"
+                          ]
+                        }
+                      }
+    /data-visualization/shape-measure/{dataset_id}:
+      post:
+        tags:
+          - Visualização de Dados
+        summary: Calcular medidas de forma
+        description: Calcula medidas de forma (assimetria e curtose) para as features selecionadas de um dataset.
+        security:
+          - cookieAuth: [ ]
+        parameters:
+          - name: dataset_id
+            in: path
+            required: true
+            schema:
+              type: integer
+            description: ID do dataset a ser analisado
+        requestBody:
+          required: true
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - features
+                  - visualization_method
+                properties:
+                  features:
+                    type: array
+                    items:
+                      type: string
+                    description: Lista de colunas do dataset para calcular as medidas.
+                  visualization_method:
+                    type: string
+                    description: Método de forma a ser aplicado.
+                    enum: [ skewness, kurtosis ]
+                  use_clean_dataset:
+                    type: boolean
+                    description: Se verdadeiro, utiliza a versão limpa do dataset.
+                    default: false
+              examples:
+                success:
+                  summary: Exemplo de requisição
+                  value:
+                    {
+                      "features": [ "idade", "salario" ],
+                      "visualization_method": "skewness",
+                      "use_clean_dataset": false
+                    }
+        responses:
+          '200':
+            description: Operação bem sucedida.
+            content:
+              application/json:
+                schema:
+                  type: object
+                  properties:
+                    message:
+                      type: string
+                      description: Mensagem de retorno da operação.
+                    success:
+                      type: boolean
+                      description: Indica se a operação foi bem-sucedida.
+                    data:
+                      type: object
+                      description: Resultados das medidas de forma para cada feature.
+                examples:
+                  success:
+                    summary: Exemplo de resposta
+                    description: Medidas de forma calculadas com sucesso.
+                    value:
+                      {
+                        "message": "Visualização de medidas de forma realizada com sucesso!",
+                        "success": true,
+                        "data": {
+                          "idade": 0.35,
+                          "salario": -0.87
+                        }
+                      }
+          '404':
+            description: Dataset não encontrado.
+            content:
+              application/json:
+                schema:
+                  type: object
+                  properties:
+                    message:
+                      type: string
+                      description: Mensagem de erro.
+                    success:
+                      type: boolean
+                      description: Indica se a operação foi bem-sucedida.
+                    data:
+                      type: object
+                      nullable: true
+                examples:
+                  not_found:
+                    summary: Dataset não encontrado
+                    value:
+                      {
+                        "message": "Base de dados não encontrada!",
+                        "success": false,
+                        "data": null
+                      }
+          '422':
+            description: Erro de validação dos dados.
+            content:
+              application/json:
+                schema:
+                  type: object
+                  properties:
+                    message:
+                      type: string
+                      description: Mensagem de erro.
+                    success:
+                      type: boolean
+                      description: Indica se a operação foi bem-sucedida.
+                    data:
+                      type: object
+                      description: Detalhes dos erros de validação.
+                examples:
+                  validation_error:
+                    summary: Erro de validação
+                    value:
+                      {
+                        "message": "Dados inválidos!",
+                        "success": false,
+                        "data": {
+                          "visualization_method": [
+                            "Método de visualização 'invalid_method' não é válido. Métodos válidos para forma: skewness, kurtosis"
+                          ]
+                        }
+                      }
+    /data-visualization/association-measure/{dataset_id}:
+      post:
+        tags:
+          - Visualização de Dados
+        summary: Calcular medidas de associação
+        description: Calcula medidas de associação (covariância e correlação) entre exatamente duas features selecionadas de um dataset.
+        security:
+          - cookieAuth: [ ]
+        parameters:
+          - name: dataset_id
+            in: path
+            required: true
+            schema:
+              type: integer
+            description: ID do dataset a ser analisado
+        requestBody:
+          required: true
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - features
+                  - visualization_method
+                properties:
+                  features:
+                    type: array
+                    items:
+                      type: string
+                    description: Lista contendo exatamente 2 colunas do dataset para calcular as medidas de associação.
+                    minItems: 2
+                    maxItems: 2
+                  visualization_method:
+                    type: string
+                    description: Método de associação a ser aplicado.
+                    enum: [ covariance, correlation ]
+                  use_clean_dataset:
+                    type: boolean
+                    description: Se verdadeiro, utiliza a versão limpa do dataset.
+                    default: false
+              examples:
+                success:
+                  summary: Exemplo de requisição
+                  value:
+                    {
+                      "features": [ "idade", "salario" ],
+                      "visualization_method": "correlation",
+                      "use_clean_dataset": false
+                    }
+        responses:
+          '200':
+            description: Operação bem sucedida.
+            content:
+              application/json:
+                schema:
+                  type: object
+                  properties:
+                    message:
+                      type: string
+                      description: Mensagem de retorno da operação.
+                    success:
+                      type: boolean
+                      description: Indica se a operação foi bem-sucedida.
+                    data:
+                      type: object
+                      description: Resultados das medidas de associação entre as features.
+                examples:
+                  success_correlation:
+                    summary: Exemplo de resposta (correlação)
+                    description: Medidas de correlação calculadas com sucesso.
+                    value:
+                      {
+                        "message": "Visualização de medidas de associação realizada com sucesso!",
+                        "success": true,
+                        "data": {
+                          "features": "idade e salario",
+                          "correlation": 0.7532,
+                          "covariance": 1250.45,
+                          "feature1_std": 5.25,
+                          "feature2_std": 1200.45,
+                          "sample_size": 150,
+                          "interpretation": "Correlação positiva forte (0.7532): As variáveis apresentam uma relação linear forte."
+                        }
+                      }
+                  success_covariance:
+                    summary: Exemplo de resposta (covariância)
+                    description: Medidas de covariância calculadas com sucesso.
+                    value:
+                      {
+                        "message": "Visualização de medidas de associação realizada com sucesso!",
+                        "success": true,
+                        "data": {
+                          "features": "idade e salario",
+                          "covariance": 1250.45,
+                          "feature1_mean": 35.5,
+                          "feature2_mean": 3500.0,
+                          "sample_size": 150,
+                          "interpretation": "Covariância positiva: As variáveis tendem a mover-se na mesma direção."
+                        }
+                      }
+          '404':
+            description: Dataset não encontrado.
+            content:
+              application/json:
+                schema:
+                  type: object
+                  properties:
+                    message:
+                      type: string
+                      description: Mensagem de erro.
+                    success:
+                      type: boolean
+                      description: Indica se a operação foi bem-sucedida.
+                    data:
+                      type: object
+                      nullable: true
+                examples:
+                  not_found:
+                    summary: Dataset não encontrado
+                    value:
+                      {
+                        "message": "Base de dados não encontrada!",
+                        "success": false,
+                        "data": null
+                      }
+          '422':
+            description: Erro de validação dos dados.
+            content:
+              application/json:
+                schema:
+                  type: object
+                  properties:
+                    message:
+                      type: string
+                      description: Mensagem de erro.
+                    success:
+                      type: boolean
+                      description: Indica se a operação foi bem-sucedida.
+                    data:
+                      type: object
+                      description: Detalhes dos erros de validação.
+                examples:
+                  validation_error_method:
+                    summary: Erro de validação - método inválido
+                    value:
+                      {
+                        "message": "Dados inválidos!",
+                        "success": false,
+                        "data": {
+                          "visualization_method": [
+                            "Método de visualização 'invalid_method' não é válido. Métodos válidos para associação: covariance, correlation"
+                          ]
+                        }
+                      }
+                  validation_error_features:
+                    summary: Erro de validação - número incorreto de features
+                    value:
+                      {
+                        "message": "Dados inválidos!",
+                        "success": false,
+                        "data": {
+                          "features": [
+                            "Para medidas de associação é necessário exatamente 2 features."
+                          ]
+                        }
+                      }
