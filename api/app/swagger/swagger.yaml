@@ -1,3 +1,4 @@
+openapi: 3.0.0
 info:
   title: EasyMinerAPI
   version: 1.0.0
@@ -481,6 +482,32 @@ paths:
                         }
                       ]
                     }
+        '500':
+          description: "Erro interno do servidor!"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    description: Mensagem de retorno da operação.
+                  success:
+                    type: boolean
+                    description: Indica se a operação foi bem-sucedida.
+                  data:
+                    type: string
+                    description: "Mensagem de erro do servidor."
+              examples:
+                internal_server_error:
+                  summary: Exemplo de resposta.
+                  description: Erro inesperado no servidor.
+                  value:
+                    {
+                      "message": "Erro ao criar o usuário!",
+                      "success": false,
+                      "data": "werkzeug.exceptions.InternalServerError: 500 Internal Server Error"
+                    }
 
     put:
       tags:
@@ -637,6 +664,32 @@ paths:
                       "success": false,
                       "data": null
                     }
+        '500':
+          description: "Erro interno do servidor!"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    description: Mensagem de retorno da operação.
+                  success:
+                    type: boolean
+                    description: Indica se a operação foi bem-sucedida.
+                  data:
+                    type: string
+                    description: "Mensagem de erro do servidor."
+              examples:
+                internal_server_error_deleted_related_data:
+                  summary: Exemplo de resposta 1
+                  description: Erro inesperado no servidor.
+                  value:
+                    {
+                      "message": "Erro ao atualizar o usuário!",
+                      "success": false,
+                      "data": "(pymysql.err.OperationalError) (2013, 'Lost connection to MySQL server during query ([Errno 104] Connection reset by peer)')\n[SQL: SELECT users.id AS users_id, users.name AS users_name, users.phone_number AS users_phone_number, users.email AS users_email, users.password_hash AS users_password_hash, users.created_at AS users_created_at, users.updated_at AS users_updated_at \nFROM users \nWHERE users.id = %(pk_1)s]\n[parameters: {'pk_1': 1}]\n(Background on this error at: https://sqlalche.me/e/20/e3q8)"
+                    }
 
     delete:
       tags:
@@ -739,7 +792,7 @@ paths:
               examples:
                 internal_server_error:
                   summary: Exemplo de resposta 1
-                  description: Usuário não encontrado; nenhum dado retornado.
+                  description: Erro inesperado no servidor.
                   value:
                     {
                       "message": "Erro ao deletar o usuário!",
@@ -843,10 +896,10 @@ paths:
               examples:
                 success:
                   summary: Exemplo de resposta
-                  description: Usuário não está autienticado.
+                  description: Usuário não está autenticado.
                   value:
                     {
-                      "message": "Não autorizado",
+                      "message": "Não autorizado!",
                       "success": false,
                       "data": null
                     }
@@ -952,6 +1005,19 @@ paths:
                           type: string
                           description: Mensagem de erro associada ao campo.
               examples:
+                validate_required_name_error:
+                  summary: Exemplo de resposta 2
+                  description: Erro retornado quando o nome do projeto não é fornecido.
+                  value:
+                    {
+                      "message": "Dados inválidos!",
+                      "success": false,
+                      "data": {
+                        "name": [
+                          "O campo é obrigatório."
+                        ]
+                      }
+                    }
                 validate_name_error:
                   summary: Exemplo de resposta 1
                   description: Erro retornado quando o usuário forneceu um nome de projeto que já está sendo utilizado.
@@ -965,18 +1031,59 @@ paths:
                         ]
                       }
                     }
-                validate_size_error:
-                  summary: Exemplo de resposta 2
-                  description: Erro retornado quando o tamanho fornecido para o campo de nome do projeto é inválido.
+        '401':
+          description: Não autorizado.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    description: Mensagem de retorno da operação.
+                  success:
+                    type: boolean
+                    description: Indica se a operação foi bem-sucedida.
+                  data:
+                    type: object
+                    nullable: true
+                    description: Dados adicionais retornados pela operação.
+              examples:
+                success:
+                  summary: Exemplo de resposta
+                  description: Usuário não está autenticado.
                   value:
                     {
-                      "message": "Dados inválidos!",
+                      "message": "Não autorizado!",
                       "success": false,
-                      "data": {
-                        "name": [
-                          "O tamanho deve estar entre 10 e 150 caracteres."
-                        ]
-                      }
+                      "data": null
+                    }
+
+        '500':
+          description: "Erro interno do servidor!"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    description: Mensagem de retorno da operação.
+                  success:
+                    type: boolean
+                    description: Indica se a operação foi bem-sucedida.
+                  data:
+                    type: string
+                    description: "Mensagem de erro do servidor."
+              examples:
+                internal_server_error:
+                  summary: Exemplo de resposta.
+                  description: Conexão com o banco de dados perdida.
+                  value:
+                    {
+                      "message": "Erro ao criar projeto",
+                      "success": false,
+                      "data": "(pymysql.err.OperationalError) (2013, 'Lost connection to MySQL server during query ([Errno 104] Connection reset by peer)')\n[SQL: SELECT users.id AS users_id, users.name AS users_name, users.phone_number AS users_phone_number, users.email AS users_email, users.password_hash AS users_password_hash, users.created_at AS users_created_at, users.updated_at AS users_updated_at \nFROM users \nWHERE users.id = %(pk_1)s]\n[parameters: {'pk_1': 1}]\n(Background on this error at: https://sqlalche.me/e/20/e3q8)"
                     }
 
   /projects/{id}:
@@ -1096,840 +1203,2081 @@ paths:
               examples:
                 success:
                   summary: Exemplo de resposta
-                  description: Usuário não está autienticado.
+                  description: Usuário não está autenticado.
+                  value:
+                    {
+                      "message": "Não autorizado!",
+                      "success": false,
+                        "data": null
+                    }
+        '404':
+          description: "Não encontrado."
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    description: Mensagem de retorno da operação.
+                  success:
+                    type: boolean
+                    description: Indica se a operação foi bem-sucedida.
+                  data:
+                    type: object
+                    nullable: true
+                    description: Dados adicionais retornados pela operação.
+              examples:
+                not_found:
+                  summary: Exemplo de resposta
+                  description: Projeto não encontrado; nenhum dado retornado.
+                  value:
+                    {
+                      "message": "Projeto não encontrado!",
+                      "success": false,
+                      "data": null
+                    }
+    put:
+      tags:
+        - "CRUD de Projetos"
+      summary: "Atualizar projeto"
+      description: "Atualiza um projeto existente."
+      parameters:
+        - name: "id"
+          in: "path"
+          required: true
+          schema:
+            type: "integer"
+          description: "ID do projeto"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  description: Nome do projeto.
+                  minLength: 2
+                  maxLength: 100
+                  uniqueItems: true
+                description:
+                  type: string
+                  description: Descrição do que se trata o projeto.
+                  minLength: 10
+                  maxLength: 2000
+            examples:
+              success:
+                summary: Exemplo de requisição
+                value:
+                  {
+                    "name": "Nome atualizado do projeto",
+                  }
+      responses:
+        '200':
+          description: Operação bem sucedida.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: integer
+                    description: ID do projeto.
+                  name:
+                    type: string
+                    description: Nome do projeto.
+              examples:
+                success:
+                  summary: Exemplo de resposta.
+                  description: Operação bem sucedida, retornando as informações do projeto atualizado.
+                  value:
+                    {
+                      "message": "Projeto atualizado com sucesso!",
+                      "success": true,
+                      "data": {
+                        "id": 14,
+                        "name": "Nome atualizado do projeto",
+                        "description": "Descriçào do projeto"
+                      }
+                    }
+        '401':
+          description: Não autorizado.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    description: Mensagem de retorno da operação.
+                  success:
+                    type: boolean
+                    description: Indica se a operação foi bem-sucedida.
+                  data:
+                    type: "null"
+                    description: Dados adicionais retornados pela operação.
+              examples:
+                success:
+                  summary: Exemplo de resposta
+                  description: Usuário não está autenticado.
+                  value:
+                    {
+                      "message": "Não autorizado!",
+                      "success": false,
+                      "data": null
+                    }
+
+        '404':
+          description: "Não encontrado."
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    description: Mensagem de retorno da operação.
+                  success:
+                    type: boolean
+                    description: Indica se a operação foi bem-sucedida.
+                  data:
+                    type: object
+                    nullable: true
+                    description: Dados adicionais retornados pela operação.
+              examples:
+                not_found:
+                  summary: Exemplo de resposta
+                  description: Projeto não encontrado; nenhum dado retornado.
+                  value:
+                    {
+                      "message": "Projeto não encontrado!",
+                      "success": false,
+                      "data": null
+                    }
+        '422':
+          description: Erros de validação.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    description: Mensagem de retorno da operação.
+                  success:
+                    type: boolean
+                    description: Indica se a operação foi bem-sucedida.
+                  data:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        field:
+                          type: string
+                          description: Nome do campo que gerou o erro.
+                        error:
+                          type: string
+                          description: Mensagem de erro associada ao campo.
+              examples:
+                validate_name_error:
+                  summary: Exemplo de resposta 1
+                  description: Erro retornado quando o usuário forneceu um nome de projeto que já está sendo utilizado.
+                  value:
+                    {
+                      "message": "Dados inválidos!",
+                      "success": false,
+                      "data": {
+                        "name": [
+                          "O nome do projeto já existe."
+                        ]
+                      }
+                    }
+                validate_size_error:
+                  summary: Exemplo de resposta 2
+                  description: Erro retornado quando o tamanho fornecido para o campo de nome do projeto é inválido.
+                  value:
+                    {
+                      "message": "Dados inválidos!",
+                      "success": false,
+                      "data": {
+                        "name": [
+                          "O tamanho deve estar entre 10 e 150 caracteres."
+                        ]
+                      }
+                    }
+        '500':
+          description: "Erro interno do servidor!"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    description: Mensagem de retorno da operação.
+                  success:
+                    type: boolean
+                    description: Indica se a operação foi bem-sucedida.
+                  data:
+                    type: string
+                    description: "Mensagem de erro do servidor."
+              examples:
+                internal_server_error_deleted_related_data:
+                  summary: Exemplo de resposta 1
+                  description: Erro inesperado no servidor.
+                  value:
+                    {
+                      "message": "Erro ao atualizar o projeto!",
+                      "success": false,
+                      "data": "(pymysql.err.OperationalError) (2013, 'Lost connection to MySQL server during query ([Errno 104] Connection reset by peer)')\n[SQL: SELECT users.id AS users_id, users.name AS users_name, users.phone_number AS users_phone_number, users.email AS users_email, users.password_hash AS users_password_hash, users.created_at AS users_created_at, users.updated_at AS users_updated_at \nFROM users \nWHERE users.id = %(pk_1)s]\n[parameters: {'pk_1': 1}]\n(Background on this error at: https://sqlalche.me/e/20/e3q8)"
+                    }
+
+    delete:
+      tags:
+        - "CRUD de Projetos"
+      summary: "Exclui projeto"
+      description: "Exclui um projeto existente, assim como todos datasets relacionados com o projeto."
+      parameters:
+        - name: "id"
+          in: "path"
+          required: true
+          schema:
+            type: "integer"
+          description: "ID do projeto"
+      responses:
+        '200':
+          description: "Operação bem sucedida."
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    description: Mensagem de retorno da operação.
+                  success:
+                    type: boolean
+                    description: Indica se a operação foi bem-sucedida.
+                  data:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: integer
+                          description: ID do projeto.
+                        name:
+                          type: string
+                          description: Nome do projeto.
+                        description:
+                          type: string
+                          description: Descrição do que se trata o projeto.
+              examples:
+                success:
+                  summary: Exemplo de resposta
+                  description: Usuário deletado com sucesso; os detalhes do usuário deletado são retornados.
+                  value:
+                    {
+                      "message": "Projeto deletado com sucesso!",
+                      "success": true,
+                      "data": [
+                        {
+                          "id": 690,
+                          "name": "João da Silva II",
+                          "phone_number": "5511987654321",
+                          "email": "Joao@gmail.com"
+                        }
+                      ]
+                    }
+        '404':
+          description: "Não encontrado."
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    description: Mensagem de retorno da operação.
+                  success:
+                    type: boolean
+                    description: Indica se a operação foi bem-sucedida.
+                  data:
+                    type: object
+                    nullable: true
+                    description: Dados adicionais retornados pela operação.
+              examples:
+                not_found:
+                  summary: Exemplo de resposta
+                  description: Projeto não encontrado; nenhum dado retornado.
+                  value:
+                    {
+                      "message": "Projeto não encontrado!",
+                      "success": false,
+                      "data": null
+                    }
+
+        '500':
+          description: "Erro interno do servidor!"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    description: Mensagem de retorno da operação.
+                  success:
+                    type: boolean
+                    description: Indica se a operação foi bem-sucedida.
+                  data:
+                    type: string
+                    description: "Mensagem de erro do servidor."
+              examples:
+                internal_server_error_related_data:
+                  summary: Exemplo de resposta 1
+                  description: Erro inesperado no servidor.
+                  value:
+                    {
+                      "message": "Erro ao deletar o projeto!",
+                      "success": false,
+                      "data": "werkzeug.exceptions.InternalServerError: 500 Internal Server Error"
+                    }
+                internal_server_error_related_datasets:
+                  summary: Exemplo de resposta 2
+                  description: Erro ao deletar bases de dados relacionadas ao projeto.
+                  value:
+                    {
+                      "message": "Erro ao deletar bases de dados relacionadas ao projeto!",
+                      "success": false,
+                      "data": "(sqlalchemy.exc.IntegrityError) (1451, 'Cannot delete or update a parent row: a foreign key constraint fails (`database`.`datasets`, CONSTRAINT `datasets_ibfk_1` FOREIGN KEY (`project_id`) REFERENCES `projects` (`id`))')\n[SQL: DELETE FROM projects WHERE projects.id = %(id)s]\n[parameters: {'id': 1}]\n(Background on this error at: https://sqlalche.me/e/20/gkpj)"
+                    }
+
+  # DOCUMENTAÇÃO DE CRUD DE BASES DE DADOS
+
+  /datasets:
+    get:
+      tags:
+        - "CRUD de Base de dados"
+      summary: "Listagem de base de dados"
+      description: "Retorna uma lista de todas as bases de dados do usuário autenticado."
+      responses:
+        '200':
+          description: Operação bem sucedida.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    description: Mensagem de retorno da operação.
+                  success:
+                    type: boolean
+                    description: Indica se a operação foi bem-sucedida.
+                  data:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: integer
+                          description: ID da base de dados.
+                        name:
+                          type: string
+                          description: Nome da base de dados.
+                        description:
+                          type: string
+                          description: Descrição da base de dados.
+                        size_file:
+                          type: string
+                          description: Tamanho do arquivo da base de dados.
+                        file_url:
+                          type: string
+                          description: URL do arquivo da base de dados.
+                        project_id:
+                          type: integer
+                          description: ID do projeto ao qual a base de dados esta associada.
+              examples:
+                success:
+                  summary: Exemplo de resposta
+                  description: Operação bem sucedida, retornando a listagem de bases de dados do usuário autenticado.
+                  value:
+                    {
+                      "message": "Bases de dados recuperadas com sucesso!",
+                      "success": true,
+                      "data": [
+                        {
+                          "id": 1,
+                          "name": "Base de dados 1",
+                          "description": "Dados de clientes para análise de churn",
+                          "size_file": "2.5 MB",
+                          "file_url": "https://s3.amazonaws.com/bucket-easyminer/datasets/1/file",
+                          "project_id": 10
+                        },
+                        {
+                          "id": 2,
+                          "name": "Base de dados 2",
+                          "description": "Dados de vendas do último ano",
+                          "size_file": "3.7 MB",
+                          "file_url": "https://s3.amazonaws.com/bucket-easyminer/datasets/2/file",
+                          "project_id": 10
+                        },
+                        {
+                          "id": 3,
+                          "name": "Base de dados 3",
+                          "description": "Informações de acessos ao sistema",
+                          "size_file": "1.1 MB",
+                          "file_url": "https://s3.amazonaws.com/bucket-easyminer/datasets/3/file",
+                          "project_id": 12
+                        },
+                        {
+                          "id": 4,
+                          "name": "Base de dados 4",
+                          "description": "Registros de transações financeiras",
+                          "size_file": "4.0 MB",
+                          "file_url": "https://s3.amazonaws.com/bucket-easyminer/datasets/4/file",
+                          "project_id": 13
+                        },
+                        {
+                          "id": 5,
+                          "name": "Base de dados 5",
+                          "description": "Dados de inventário",
+                          "size_file": "1.2 MB",
+                          "file_url": "https://s3.amazonaws.com/bucket-easyminer/datasets/5/file",
+                          "project_id": 15
+                        }
+                      ]
+                    }
+        '401':
+          description: Não autorizado.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    description: Mensagem de retorno da operação.
+                  success:
+                    type: boolean
+                    description: Indica se a operação foi bem-sucedida.
+                  data:
+                    type: "null"
+                    description: Dados adicionais retornados pela operação.
+              examples:
+                success:
+                  summary: Exemplo de resposta
+                  description: Usuário não está autenticado.
                   value:
                     {
                       "message": "Não autorizado",
                       "success": false,
-                        "data": null
+                      "data": null
                     }
-#    put:
-#      tags:
-#        - "CRUD de Projetos"
-#      summary: "Atualizar projeto por ID"
-#      description: "Atualiza os detalhes de um projeto específico do usuário autenticado."
-#      parameters:
-#        - name: "id"
-#          in: "path"
-#          required: true
-#          type: "integer"
-#          description: "ID do projeto"
-#        - in: "body"
-#          name: "body"
-#          description: "Detalhes do projeto atualizados"
-#          required: true
-#          schema:
-#            type: "object"
-#            properties:
-#              name:
-#                type: "string"
-#                description: "Nome do projeto, este deve ser único entre os projetos do usuário."
-#                minLength: 2
-#                maxLength: 100
-#                example: "Projeto Atualizado"
-#              description:
-#                type: "string"
-#                description: "Descrição detalhada do projeto."
-#                minLength: 10
-#                maxLength: 2000
-#                example: "Descrição atualizada do projeto"
-#      responses:
-#        200:
-#          description: "Projeto atualizado com sucesso"
-#          schema:
-#            type: "object"
-#            properties:
-#              message:
-#                type: "string"
-#                example: "Projeto atualizado com sucesso!"
-#              success:
-#                type: "boolean"
-#                example: true
-#              data:
-#                type: "object"
-#                properties:
-#                  id:
-#                    type: "integer"
-#                  name:
-#                    type: "string"
-#                    example: "Nome atualizado"
-#                  description:
-#                    type: "string"
-#                    example: "Descrição atualizada"
-#        404:
-#          description: "Não encontrado."
-#          schema:
-#            type: "object"
-#            properties:
-#              message:
-#                type: "string"
-#                description: "Mensagem de retorno da operação."
-#              success:
-#                type: "boolean"
-#                description: "Indica se a operação foi bem-sucedida."
-#              data:
-#                type: "object"
-#                description: "Dados adicionais retornados pela operação."
-#          examples:
-#            application/json:
-#              {
-#                "message": "Projeto não encontrado!",
-#                "success": false,
-#                "data": null
-#              }
-#        422:
-#          description: "Erros de validação."
-#          schema:
-#            type: "object"
-#            properties:
-#              message:
-#                type: "string"
-#                description: "Mensagem de retorno da operação."
-#              success:
-#                type: "boolean"
-#                description: "Indica se a operação foi bem-sucedida."
-#              data:
-#                type: "object"
-#                description: "Dados adicionais retornados pela operação."
-#          examples:
-#            application/json:
-#              {
-#                "message": "Dados inválidos!",
-#                "success": false,
-#                "data": [
-#                  {
-#                    "name": "O nome do projeto já existe.",
-#                    "description": "O tamanho deve estar entre 11 e 2000",
-#                  }
-#                ]
-#              }
-#    delete:
-#      tags:
-#        - "CRUD de Projetos"
-#      summary: "Excluir projeto por ID"
-#      description: "Exclui um projeto específico e todas as bases de dados relacionadas ao projeto do usuário autenticado."
-#      parameters:
-#        - name: "id"
-#          in: "path"
-#          required: true
-#          type: "integer"
-#          description: "ID do projeto"
-#      responses:
-#        200:
-#          description: "Operação bem sucedida."
-#          schema:
-#            type: "object"
-#            properties:
-#              message:
-#                type: "string"
-#                description: "Mensagem de retorno da operação."
-#              success:
-#                type: "boolean"
-#                description: "Indica se a operação foi bem-sucedida."
-#              data:
-#                type: "object"
-#                description: "Dados adicionais retornados pela operação."
-#          examples:
-#            application/json:
-#              {
-#                "message": "Projeto deletado com sucesso!",
-#                "success": true,
-#                "data": [
-#                  {
-#                    "id": 10,
-#                    "name": "Projeto de bases de dados do setor financeiro",
-#                    "description": "Esse projeto é destinado a realizar o processo de KDD em 5 bases de dados no setor de finanças",
-#                  }
-#                ]
-#              }
-#        404:
-#          description: "Não encontrado."
-#          schema:
-#            type: "object"
-#            properties:
-#              message:
-#                type: "string"
-#                description: "Mensagem de retorno da operação."
-#              success:
-#                type: "boolean"
-#                description: "Indica se a operação foi bem-sucedida."
-#              data:
-#                type: "object"
-#                description: "Dados adicionais retornados pela operação."
-#          examples:
-#            application/json:
-#              {
-#                "message": "Projeto não encontrado!",
-#                "success": false,
-#                "data": null
-#              }
 
-  # DOCUMENTAÇÃO DE CRUD DE BASES DE DADOS
-#
-#  /datasets:
-#    get:
-#      tags:
-#        - "CRUD de Bases de Dados"
-#      summary: "Obter bases de dados"
-#      description: "Retorna uma lista de todas as bases de dados do usuário autenticado."
-#      responses:
-#        200:
-#          description: "Operação bem sucedida."
-#          schema:
-#            type: "object"
-#            properties:
-#              message:
-#                type: "string"
-#                description: "Mensagem de retorno da operação."
-#              success:
-#                type: "boolean"
-#                description: "Indica se a operação foi bem-sucedida."
-#              data:
-#                type: "object"
-#                description: "Dados adicionais retornados pela operação."
-#          examples:
-#            application/json:
-#              {
-#                "message": "Bases de dados recuperadas com sucesso!",
-#                "success": true,
-#                "data": [
-#                  {
-#                    "id": 1,
-#                    "name": "Base de dados 1",
-#                    "description": "Dados de clientes para análise de churn",
-#                    "size_file": "2.5 MB",
-#                    "file_url": "https://s3.amazonaws.com/bucket-easyminer/datasets/1/file",
-#                    "project_id": 10
-#                  },
-#                  {
-#                    "id": 2,
-#                    "name": "Base de dados 2",
-#                    "description": "Dados de vendas do último ano",
-#                    "size_file": "3.7 MB",
-#                    "file_url": "https://s3.amazonaws.com/bucket-easyminer/datasets/2/file",
-#                    "project_id": 10
-#                  },
-#                  {
-#                    "id": 3,
-#                    "name": "Base de dados 3",
-#                    "description": "Informações de acessos ao sistema",
-#                    "size_file": "1.1 MB",
-#                    "file_url": "https://s3.amazonaws.com/bucket-easyminer/datasets/3/file",
-#                    "project_id": 12
-#                  },
-#                  {
-#                    "id": 4,
-#                    "name": "Base de dados 4",
-#                    "description": "Registros de transações financeiras",
-#                    "size_file": "4.0 MB",
-#                    "file_url": "https://s3.amazonaws.com/bucket-easyminer/datasets/4/file",
-#                    "project_id": 13
-#                  },
-#                  {
-#                    "id": 5,
-#                    "name": "Base de dados 5",
-#                    "description": "Dados de inventário",
-#                    "size_file": "1.2 MB",
-#                    "file_url": "https://s3.amazonaws.com/bucket-easyminer/datasets/5/file",
-#                    "project_id": 15
-#                  }
-#                ]
-#              }
-#
-#    post:
-#      tags:
-#        - "CRUD de Bases de Dados"
-#      summary: "Criar base de dados"
-#      description: "Cria uma nova base de dados."
-#      consumes:
-#        - "multipart/form-data"
-#      parameters:
-#        - in: "formData"
-#          name: "name"
-#          type: "string"
-#          description: "Nome da base de dados."
-#          required: true
-#          minLength: 3
-#          maxLength: 255
-#          x-example: "Dataset 1"
-#        - in: "formData"
-#          name: "description"
-#          type: "string"
-#          description: "Descrição do que se trata a base de dados."
-#          minLength: 11
-#          maxLength: 2000
-#          x-example: "Descrição do dataset"
-#        - in: "formData"
-#          name: "project_id"
-#          type: "integer"
-#          description: "ID do projeto associado."
-#          required: true
-#          x-example: 1
-#        - in: "formData"
-#          name: "csv_file"
-#          type: "file"
-#          description: "Arquivo CSV contendo os dados."
-#          required: true
-#      responses:
-#        201:
-#          description: "Base de dados criada com sucesso"
-#          schema:
-#            type: "object"
-#            properties:
-#              message:
-#                type: "string"
-#                example: "Base de dados criada com sucesso!"
-#              success:
-#                type: "boolean"
-#                example: true
-#              data:
-#                type: "object"
-#                properties:
-#                  id:
-#                    type: "integer"
-#                    example: 5
-#                  name:
-#                    type: "string"
-#                    example: "Base de dados 1"
-#                  description:
-#                    type: "string"
-#                    example: "Descrição da base de dados"
-#                  size_file:
-#                    type: "string"
-#                    example: "0.25 MB"
-#                  file_url:
-#                    type: "string"
-#                    example: "https://s3.amazonaws.com/bucket-easyminer/datasets/5/file"
-#        422:
-#          description: "Erros de validação."
-#          schema:
-#            type: "object"
-#            properties:
-#              message:
-#                type: "string"
-#                example: "Dados inválidos!"
-#              success:
-#                type: "boolean"
-#                example: false
-#              data:
-#                type: "object"
-#                example:
-#                  csv_file: "Apenas arquivos CSV são permitidos."
-#                  name: "O nome da base de dados já existe."
-#
-#  /datasets/{id}:
-#    get:
-#      tags:
-#        - "CRUD de Bases de Dados"
-#      summary: "Obter base de dados por ID"
-#      description: "Retorna os detalhes de uma base de dados específica do usuário autenticado, assim como a relação com uma base uma base de dados pré-processada, caso ela exista."
-#      parameters:
-#        - name: "id"
-#          in: "path"
-#          required: true
-#          type: "integer"
-#          description: "ID da base de dados"
-#      responses:
-#        200:
-#          description: "Operação bem-sucedida"
-#          schema:
-#            type: "object"
-#            properties:
-#              message:
-#                type: "string"
-#                example: "Base de dados recuperada com sucesso!"
-#              success:
-#                type: "boolean"
-#                example: true
-#              data:
-#                type: "object"
-#                properties:
-#                  id:
-#                    type: "integer"
-#                    example: 2
-#                  name:
-#                    type: "string"
-#                    example: "Base de dados 1"
-#                  description:
-#                    type: "string"
-#                    example: "Descrição da base de dados"
-#                  size_file:
-#                    type: "string"
-#                    example: "1.2 MB"
-#                  file_url:
-#                    type: "string"
-#                    example: "https://s3.amazonaws.com/bucket-easyminer/datasets/2/file"
-#                  project_id:
-#                    type: "integer"
-#                    example: 29
-#                  clean_dataset:
-#                    type: "object"
-#                    properties:
-#                      id:
-#                        type: "integer"
-#                        example: 1
-#                      size_file:
-#                        type: "string"
-#                        example: "0.5 MB"
-#                      file_url:
-#                        type: "string"
-#                        example: "https://s3.amazonaws.com/bucket-easyminer/clean_datasets/1/file"
-#          examples:
-#            application/json:
-#              {
-#                "message": "Base de dados recuperada com sucesso!",
-#                "success": true,
-#                "data": [
-#                  {
-#                    "id": 190,
-#                    "name": "Base de dados 190",
-#                    "description": "Dados de clientes para análise de churn",
-#                    "size_file": "2.5 MB",
-#                    "file_url": "https://s3.amazonaws.com/bucket-easyminer/datasets/10/file",
-#                    "project_id": 10,
-#                    "clean_dataset": {
-#                      "id": 1,
-#                      "size_file": "0.0222MB",
-#                      "file_url": "https://s3.amazonaws.com/bucket-easyminer/datasets/10_clean/file",
-#                    }
-#                  }
-#                ]
-#              }
-#        403:
-#          description: "Não autorizado!"
-#          schema:
-#            type: "object"
-#            properties:
-#              message:
-#                type: "string"
-#                example: "Você não tem permissão para acessar essa base de dados."
-#              success:
-#                type: "boolean"
-#                example: false
-#              data:
-#                type: "null"
-#                example: null
-#        404:
-#          description: "Base de dados não encontrada"
-#          schema:
-#            type: "object"
-#            properties:
-#              message:
-#                type: "string"
-#                example: "Base de dados não encontrada!"
-#              success:
-#                type: "boolean"
-#                example: false
-#              data:
-#                type: "null"
-#                example: null
-#
-#    put:
-#      tags:
-#        - "CRUD de Bases de Dados"
-#      summary: "Atualizar base de dados por ID"
-#      description: "Atualiza os detalhes de uma base de dados específica do usuário autenticado."
-#      consumes:
-#        - "multipart/form-data"
-#      parameters:
-#        - in: "formData"
-#          name: "name"
-#          type: "string"
-#          description: "Nome da base de dados."
-#          minLength: 3
-#          maxLength: 255
-#          x-example: "Dataset Atualizado"
-#        - in: "formData"
-#          name: "description"
-#          type: "string"
-#          description: "Descrição da base de dados."
-#          minLength: 11
-#          maxLength: 2000
-#          x-example: "Descrição atualizada do dataset"
-#        - in: "formData"
-#          name: "project_id"
-#          type: "integer"
-#          description: "ID do projeto associado."
-#          x-example: 1
-#        - in: "formData"
-#          name: "csv_file"
-#          type: "file"
-#          description: "Arquivo CSV atualizado contendo os dados."
-#      responses:
-#        200:
-#          description: "Base de dados atualizada com sucesso"
-#          schema:
-#            type: "object"
-#            properties:
-#              message:
-#                type: "string"
-#                example: "Base de dados atualizada com sucesso!"
-#              success:
-#                type: "boolean"
-#                example: true
-#              data:
-#                type: "object"
-#                properties:
-#                  id:
-#                    type: "integer"
-#                    example: 3
-#                  name:
-#                    type: "string"
-#                    example: "Base de dados 3"
-#                  description:
-#                    type: "string"
-#                    example: "Descrição da base de dados"
-#                  size_file:
-#                    type: "string"
-#                    example: "1.3 MB"
-#                  file_url:
-#                    type: "string"
-#                    example: "https://s3.amazonaws.com/bucket-easyminer/datasets/3/file"
-#        403:
-#          description: "Não autorizado!"
-#          schema:
-#            type: "object"
-#            properties:
-#              message:
-#                type: "string"
-#                example: "Você não tem permissão para acessar essa base de dados."
-#              success:
-#                type: "boolean"
-#                example: false
-#              data:
-#                type: "null"
-#                example: null
-#        404:
-#          description: "Base de dados não encontrada"
-#          schema:
-#            type: "object"
-#            properties:
-#              message:
-#                type: "string"
-#                example: "Base de dados não encontrada!"
-#              success:
-#                type: "boolean"
-#                example: false
-#              data:
-#                type: "null"
-#                example: null
-#        422:
-#          description: "Erros de validação."
-#          schema:
-#            type: "object"
-#            properties:
-#              message:
-#                type: "string"
-#                example: "Dados inválidos!"
-#              success:
-#                type: "boolean"
-#                example: false
-#              data:
-#                type: "object"
-#                example:
-#                  description: "O tamanho deve estar entre 11 e 2000 caracteres."
-#                  project_id: "O projeto não existe."
-#
-#    delete:
-#      tags:
-#        - "CRUD de Bases de Dados"
-#      summary: "Excluir base de dados por ID"
-#      description: "Exclui uma base de dados específica do usuário autenticado."
-#      parameters:
-#        - name: "id"
-#          in: "path"
-#          required: true
-#          type: "integer"
-#          description: "ID da base de dados"
-#      responses:
-#        204:
-#          description: "Base de dados excluída com sucesso"
-#        403:
-#          description: "Não autorizado!"
-#          schema:
-#            type: "object"
-#            properties:
-#              message:
-#                type: "string"
-#                example: "Você não tem permissão para excluir essa base de dados."
-#              success:
-#                type: "boolean"
-#                example: false
-#              data:
-#                type: "null"
-#                example: null
-#        404:
-#          description: "Base de dados não encontrada"
-#          schema:
-#            type: "object"
-#            properties:
-#              message:
-#                type: "string"
-#                example: "Base de dados não encontrada!"
-#              success:
-#                type: "boolean"
-#                example: false
-#              data:
-#                type: "null"
-#                example: null
-#
-#  /preprocessing/data-cleaning/{id}:
-#    post:
-#      tags:
-#        - "Pré-processamento"
-#      summary: "Realizar limpeza de dados"
-#      description: >
-#        Realiza a limpeza de dados em um dataset específico. O usuário deve
-#        fornecer os métodos de limpeza a serem aplicados nas features escolhidas,
-#        assim como os valores faltantes a serem substituídos.
-#      parameters:
-#        - name: id
-#          in: path
-#          required: true
-#          type: integer
-#          description: "ID do dataset a ser limpo."
-#        - in: body
-#          name: body
-#          description: >
-#            Parâmetros necessários para realizar a limpeza dos dados, incluindo
-#            a coluna alvo, features, o método de substituição de valores faltantes e os valores faltantes.
-#          required: true
-#          schema:
-#            type: object
-#            required:
-#              - features
-#              - methods
-#              - missing_values
-#            properties:
-#              features:
-#                type: array
-#                items:
-#                  type: string
-#                description: "Lista de features a serem limpas."
-#                example: [
-#                  "COLUNA 1",
-#                  "COLUNA 2"
-#                ]
-#              methods:
-#                type: string
-#                description: "Método de limpeza a ser aplicado."
-#                enum:
-#                  - media
-#                  - mediana
-#                  - moda
-#                example: "media"
-#              missing_values:
-#                type: array
-#                items:
-#                  type: string
-#                  enum:
-#                    - "0"
-#                    - "null"
-#                    - ""
-#                    - "?"
-#                description: "Valores a serem substituídos."
-#                example: [
-#                  "0",
-#                  "?"
-#                ]
-#      responses:
-#        200:
-#          description: "Limpeza de dados realizada com sucesso!"
-#          schema:
-#            type: object
-#            properties:
-#              message:
-#                type: string
-#                example: "Limpeza de dados realizada com sucesso!"
-#              success:
-#                type: boolean
-#                example: true
-#              data:
-#                type: string
-#                example: None
-#        403:
-#          description: "Não autorizado!"
-#          schema:
-#            type: object
-#            properties:
-#              message:
-#                type: string
-#                example: "Não autorizado!"
-#              success:
-#                type: boolean
-#                example: False
-#              data:
-#                type: string
-#                example: None
-#        404:
-#          description: "Base de dados não encontrada!"
-#          schema:
-#            type: object
-#            properties:
-#              message:
-#                type: string
-#                example: "Base de dados não encontrada!"
-#              success:
-#                type: boolean
-#                example: False
-#              data:
-#                type: string
-#                example: None
-#        422:
-#          description: "Erros de validação."
-#          schema:
-#            type: object
-#            properties:
-#              message:
-#                type: string
-#                example: "Dados inválidos!"
-#              success:
-#                type: boolean
-#                example: False
-#              data:
-#                type: array
-#                items:
-#                  type: string
-#                  example: "Os seguintes campos não estão registrados na sua base de dados: COLUNA 1, COLUNA 2"
-#
-#  /preprocessing/data-normalization/{id}:
-#    post:
-#      tags:
-#        - "Pré-processamento"
-#      summary: "Realizar normalização de dados"
-#      description: >
-#        Aplica a normalização de dados em um dataset específico. O usuário deve
-#        fornecer os métodos de normalização a serem aplicados nas features escolhidas.
-#        Métodos aceitos: `minmax`, `zscore`.
-#      parameters:
-#        - name: id
-#          in: path
-#          required: true
-#          type: integer
-#          description: "ID do dataset a ser normalizado."
-#        - in: body
-#          name: body
-#          description: >
-#            Detalhes da normalização de dados.
-#          required: true
-#          schema:
-#            type: object
-#            required:
-#              - methods
-#              - features
-#            properties:
-#              methods:
-#                type: string
-#                description: "Método de normalização a ser aplicado."
-#                enum:
-#                  - minmax
-#                  - zscore
-#              features:
-#                type: array
-#                items:
-#                  type: string
-#                description: "Lista de features a serem normalizadas."
-#      responses:
-#        201:
-#          description: "Normalização de dados realizada com sucesso!"
-#        403:
-#          description: "Não autorizado!"
-#        404:
-#          description: "Base de dados não encontrada!"
-#        422:
-#          description: "Erros de validação."
-#
-#  /preprocessing/data-reduction/{id}:
-#    post:
-#      tags:
-#        - "Pré-processamento"
-#      summary: "Realizar redução de dados"
-#      description: >
-#        Aplica técnicas de redução de dados em um dataset específico. O usuário deve
-#        fornecer as features e o método de redução de dados a ser aplicado.
-#        Métodos aceitos: `pca`, `amostragem_aleatoria`, `amostragem_sistematica`.
-#      parameters:
-#        - name: id
-#          in: path
-#          required: true
-#          type: integer
-#          description: "ID do dataset a ser reduzido."
-#        - in: body
-#          name: body
-#          description: >
-#            Parâmetros necessários para realizar a redução de dados, incluindo
-#            as colunas alvo (features) e o método de redução de dados a ser aplicado.
-#          required: true
-#          schema:
-#            type: object
-#            required:
-#              - features
-#              - methods
-#            properties:
-#              features:
-#                type: array
-#                items:
-#                  type: string
-#                description: "Lista de features (colunas) para realizar a redução de dados."
-#                example: [ "coluna1", "coluna2" ]
-#              methods:
-#                type: string
-#                description: >
-#                  Método de redução de dados a ser aplicado.
-#                  Pode ser 'pca', 'amostragem_aleatoria', ou 'amostragem_sistematica'.
-#                example: "amostragem_sistematica"
-#              systematic_records:
-#                type: integer
-#                description: >
-#                  Número de registros a serem extraídos em uma amostragem sistemática.
-#                  Obrigatório se o método escolhido for 'amostragem_sistematica'.
-#                example: 50
-#              systematic_method:
-#                type: string
-#                description: >
-#                  Método sistemático a ser aplicado na amostragem.
-#                  Pode ser 'maiores' ou 'menores'.
-#                example: "maiores"
-#      responses:
-#        201:
-#          description: "Redução de dados realizada com sucesso!"
-#          schema:
-#            type: object
-#            properties:
-#              mensagem:
-#                type: string
-#                example: "Redução de dados realizada com sucesso!"
-#        403:
-#          description: "Não autorizado!"
-#          schema:
-#            type: object
-#            properties:
-#              mensagem:
-#                type: string
-#                example: "Não autorizado!!"
-#        404:
-#          description: "Base de dados não encontrada!"
-#          schema:
-#            type: object
-#            properties:
-#              mensagem:
-#                type: string
-#                example: "Base de dados não encontrada!"
-#        422:
-#          description: "Erros de validação."
-#          schema:
-#            type: object
-#            properties:
-#              mensagem:
-#                type: string
-#                example: "Dados inválidos!"
-#              erros:
-#                type: object
-#                properties:
-#                  features:
-#                    type: array
-#                    items:
-#                      type: string
-#                    example: [
-#                      "O campo enviado não está registrado na sua base de dados."
-#                    ]
+    post:
+      tags:
+        - "CRUD de Base de dados"
+      summary: "Criar base de dados"
+      description: "Cria uma nova base de dados para ser usada nos processos de KDD"
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required:
+                - name
+                - project_id
+                - csv_file
+              properties:
+                name:
+                  type: string
+                  description: "Nome da base de dados. Deve ser único para o usuário atual."
+                  minLength: 2
+                  maxLength: 100
+                  example: "Base de dados do setor financeiro"
+                description:
+                  type: string
+                  description: "Descrição do que se trata a base de dados (opcional)."
+                  minLength: 10
+                  maxLength: 2000
+                  example: "Base de dados para análise de transações financeiras."
+                project_id:
+                  type: integer
+                  description: "ID do projeto associado. Deve ser válido e o usuário deve ter acesso ao projeto."
+                  example: 123
+                csv_file:
+                  type: string
+                  format: binary
+                  description: "Arquivo CSV contendo os dados. Deve ser menor que 16MB."
+      responses:
+        '201':
+          description: "Novo registro criado com sucesso."
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    description: "Mensagem de retorno da operação."
+                  success:
+                    type: boolean
+                    description: "Indica se a operação foi bem-sucedida."
+                  data:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: integer
+                          description: "ID da base de dados."
+                        name:
+                          type: string
+                          description: "Nome da base de dados."
+                        description:
+                          type: string
+                          description: "Descrição da base de dados."
+                        size_file:
+                          type: string
+                          description: "Tamanho da base de dados em MB."
+                        file_url:
+                          type: string
+                          description: "URL do arquivo da base de dados."
+                        project_id:
+                          type: integer
+                          description: "ID do projeto associado."
+              examples:
+                success:
+                  summary: "Exemplo de resposta"
+                  description: "Base de dados criada, os detalhes do novo projeto são retornados."
+                  value:
+                    message: "Base de dados criada com sucesso!"
+                    success: true
+                    data:
+                      id: 76
+                      name: "teste de cadastro de dataset"
+                      description: "descrição teste"
+                      size_file: "0.0037MB"
+                      file_url: "https://s3.amazonaws.com/bucket-easyminer/datasets/5/file"
+                      project_id: 12
+
+        '401':
+          description: Não autorizado.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    description: Mensagem de retorno da operação.
+                  success:
+                    type: boolean
+                    description: Indica se a operação foi bem-sucedida.
+                  data:
+                    type: "null"
+                    description: Dados adicionais retornados pela operação.
+              examples:
+                success:
+                  summary: Exemplo de resposta
+                  description: Usuário não está autenticado.
+                  value:
+                    {
+                      "message": "Não autorizado!",
+                      "success": false,
+                      "data": null
+                    }
+
+        '422':
+          description: Erros de validação.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    description: Mensagem de retorno da operação.
+                  success:
+                    type: boolean
+                    description: Indica se a operação foi bem-sucedida.
+                  data:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        field:
+                          type: string
+                          description: Nome do campo que gerou o erro.
+                        error:
+                          type: string
+                          description: Mensagem de erro associada ao campo.
+              examples:
+                validation_error_size_csv:
+                  summary: Exemplo de resposta 1
+                  description: Erro retornado quando o usuário faz o upload de uma base de dados com tamanho superior a 16MB.
+                  value:
+                    {
+                      "message": "Dados inválidos!",
+                      "success": false,
+                      "data": [
+                        {
+                          "csv_file": "O arquivo excede o tamanho máximo permitido."
+                        }
+                      ]
+                    }
+                validation_error_type_file:
+                  summary: Exemplo de resposta 2
+                  description: Erro retornado quando o usuário faz o upload de uma base de dados com uma extensão proibida.
+                  value:
+                    {
+                      "message": "Dados inválidos!",
+                      "success": false,
+                      "data": [
+                        {
+                          "csv_file": "Apenas arquivos CSV são permitidos."
+                        }
+                      ]
+                    }
+
+                validation_error_name:
+                  summary: Exemplo de resposta 3
+                  description: Erro retornado quando o usuário fornece um nome que ja existe para a base de dados.
+                  value:
+                    {
+                      "message": "Dados inválidos!",
+                      "success": false,
+                      "data": [
+                        {
+                          "name": "O nome da base de dados já existe."
+                        }
+                      ]
+                    }
+
+        '500':
+          description: "Erro interno do servidor!"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    description: Mensagem de retorno da operação.
+                  success:
+                    type: boolean
+                    description: Indica se a operação foi bem-sucedida.
+                  data:
+                    type: string
+                    description: "Mensagem de erro do servidor."
+              examples:
+                internal_server_error:
+                  summary: Exemplo de resposta.
+                  description: Erro ao enviar o arquivo para a AWS.
+                  value:
+                    {
+                      "message": "Erro ao realizar upload para o S3",
+                      "success": false,
+                      "data": "(pymysql.err.OperationalError) (2013, 'Lost connection to MySQL server during query ([Errno 104] Connection reset by peer)')\n[SQL: SELECT users.id AS users_id, users.name AS users_name, users.phone_number AS users_phone_number, users.email AS users_email, users.password_hash AS users_password_hash, users.created_at AS users_created_at, users.updated_at AS users_updated_at \nFROM users \nWHERE users.id = %(pk_1)s]\n[parameters: {'pk_1': 1}]\n(Background on this error at: https://sqlalche.me/e/20/e3q8)"
+                    }
+
+  /datasets/{id}:
+    get:
+      tags:
+        - "CRUD de Base de dados"
+      summary: "Exibição de base de dados"
+      description: "Retorna os detalhes de uma base de dados específica do usuário autenticado."
+      parameters:
+        - name: "id"
+          in: "path"
+          required: true
+          schema:
+            type: "integer"
+          description: "ID da base de dados"
+      responses:
+        '200':
+          description: Operação bem sucedida.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    description: Mensagem de retorno da operação.
+                  success:
+                    type: boolean
+                    description: Indica se a operação foi bem-sucedida.
+                  data:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: integer
+                          description: ID da base de dados.
+                        name:
+                          type: string
+                          description: Nome da base de dados.
+                        description:
+                          type: string
+                          description: Descrição da base de dados.
+                        size_file:
+                          type: string
+                          description: Tamanho do arquivo da base de dados.
+                        file_url:
+                          type: string
+                          description: URL do arquivo da base de dados.
+                        project_id:
+                          type: integer
+                          description: ID do projeto ao qual a base de dados esta associada.
+                        clean_dataset:
+                          type: object
+                          properties:
+                            id:
+                              type: integer
+                              description: ID do dataset limpo.
+                            size_file:
+                              type: string
+                              description: Tamanho do arquivo do dataset limpo.
+                            file_url:
+                              type: string
+                              description: URL do arquivo do dataset limpo.
+              examples:
+                success:
+                  summary: Exemplo de resposta
+                  description: Operação bem sucedida, retornando a listagem de bases de dados do usuário autenticado.
+                  value:
+                    {
+                      "message": "Base de dados recuperada com sucesso!",
+                      "success": true,
+                      "data": {
+                        "id": 73,
+                        "name": "teste de cadastro de datasethdfh",
+                        "description": "oi teste master",
+                        "size_file": "0.0228MB",
+                        "file_url": "https://s3.amazonaws.com/bucket-easyminer/datasets/5/file",
+                        "project_id": 12,
+                        "clean_dataset": {
+                          "id": 53,
+                          "size_file": "0.0231MB",
+                          "file_url": "https://s3.amazonaws.com/bucket-easyminer/datasets/5/file_clean"
+                        }
+                      }
+                    }
+        '401':
+          description: Não autorizado.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    description: Mensagem de retorno da operação.
+                  success:
+                    type: boolean
+                    description: Indica se a operação foi bem-sucedida.
+                  data:
+                    type: object
+                    nullable: true
+                    description: Dados adicionais retornados pela operação.
+              examples:
+                success:
+                  summary: Exemplo de resposta
+                  description: Usuário não está autenticado.
+                  value:
+                    {
+                      "message": "Não autorizado!",
+                      "success": false,
+                      "data": null
+                    }
+        '404':
+          description: "Não encontrado."
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    description: Mensagem de retorno da operação.
+                  success:
+                    type: boolean
+                    description: Indica se a operação foi bem-sucedida.
+                  data:
+                    type: object
+                    nullable: true
+                    description: Dados adicionais retornados pela operação.
+              examples:
+                not_found:
+                  summary: Exemplo de resposta
+                  description: Base de dados não encontrada; nenhum dado retornado.
+                  value:
+                    {
+                      "message": "Base de dados não encontrada!",
+                      "success": false,
+                      "data": null
+                    }
+    put:
+      tags:
+        - "CRUD de Base de dados"
+      summary: "Atualizar base de dados"
+      description: "Atualiza uma base de dados existente."
+      parameters:
+        - name: "id"
+          in: "path"
+          required: true
+          schema:
+            type: "integer"
+          description: "ID da base de dados"
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  description: "Nome da base de dados. Deve ser único para o usuário atual."
+                  minLength: 2
+                  maxLength: 100
+                  example: "Base de dados do setor de saude"
+                description:
+                  type: string
+                  description: "Descrição do que se trata a base de dados."
+                  minLength: 10
+                  maxLength: 2000
+                  example: "Base de dados para análise de pacientes."
+                project_id:
+                  type: integer
+                  description: "ID do projeto associado. Deve ser válido e o usuário deve ter acesso ao projeto."
+                  example: 6534
+                csv_file:
+                  type: string
+                  format: binary
+                  description: "Arquivo CSV contendo os dados. Deve ser menor que 16MB."
+            examples:
+              success:
+                summary: Exemplo de requisição
+                value:
+                  {
+                    "csv_file": "Novo arquivo CSV",
+                  }
+      responses:
+        '200':
+          description: "Registro atualizado com sucesso."
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    description: "Mensagem de retorno da operação."
+                  success:
+                    type: boolean
+                    description: "Indica se a operação foi bem-sucedida."
+                  data:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: integer
+                          description: "ID da base de dados."
+                        name:
+                          type: string
+                          description: "Nome da base de dados."
+                        description:
+                          type: string
+                          description: "Descrição da base de dados."
+                        size_file:
+                          type: string
+                          description: "Tamanho da base de dados em MB."
+                        file_url:
+                          type: string
+                          description: "URL do arquivo da base de dados."
+                        project_id:
+                          type: integer
+                          description: "ID do projeto associado."
+              examples:
+                success:
+                  summary: "Exemplo de resposta"
+                  description: "Base de dados atualizada, os detalhes do novo projeto são retornados."
+                  value:
+                    message: "Base de dados criada com sucesso!"
+                    success: true
+                    data:
+                      id: 76
+                      name: "teste de alteração de dataset"
+                      description: "descrição teste"
+                      size_file: "0.0037MB"
+                      file_url: "https://s3.amazonaws.com/bucket-easyminer/datasets/5/file"
+                      project_id: 12
+
+        '401':
+          description: Não autorizado.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    description: Mensagem de retorno da operação.
+                  success:
+                    type: boolean
+                    description: Indica se a operação foi bem-sucedida.
+                  data:
+                    type: "null"
+                    description: Dados adicionais retornados pela operação.
+              examples:
+                success:
+                  summary: Exemplo de resposta
+                  description: Usuário não está autenticado.
+                  value:
+                    {
+                      "message": "Não autorizado!",
+                      "success": false,
+                      "data": null
+                    }
+
+        '422':
+          description: Erros de validação.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    description: Mensagem de retorno da operação.
+                  success:
+                    type: boolean
+                    description: Indica se a operação foi bem-sucedida.
+                  data:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        field:
+                          type: string
+                          description: Nome do campo que gerou o erro.
+                        error:
+                          type: string
+                          description: Mensagem de erro associada ao campo.
+              examples:
+                validation_error_size_csv:
+                  summary: Exemplo de resposta 1
+                  description: Erro retornado quando o usuário faz o upload de uma base de dados com tamanho superior a 16MB.
+                  value:
+                    {
+                      "message": "Dados inválidos!",
+                      "success": false,
+                      "data": [
+                        {
+                          "csv_file": "O arquivo excede o tamanho máximo permitido."
+                        }
+                      ]
+                    }
+                validation_error_type_file:
+                  summary: Exemplo de resposta 2
+                  description: Erro retornado quando o usuário faz o upload de uma base de dados com uma extensão proibida.
+                  value:
+                    {
+                      "message": "Dados inválidos!",
+                      "success": false,
+                      "data": [
+                        {
+                          "csv_file": "Apenas arquivos CSV são permitidos."
+                        }
+                      ]
+                    }
+
+                validation_error_name:
+                  summary: Exemplo de resposta 3
+                  description: Erro retornado quando o usuário fornece um nome que ja existe para a base de dados.
+                  value:
+                    {
+                      "message": "Dados inválidos!",
+                      "success": false,
+                      "data": [
+                        {
+                          "name": "O nome da base de dados já existe."
+                        }
+                      ]
+                    }
+
+        '500':
+          description: "Erro interno do servidor!"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    description: Mensagem de retorno da operação.
+                  success:
+                    type: boolean
+                    description: Indica se a operação foi bem-sucedida.
+                  data:
+                    type: string
+                    description: "Mensagem de erro do servidor."
+              examples:
+                internal_server_error:
+                  summary: Exemplo de resposta.
+                  description: Erro ao enviar o arquivo para a AWS.
+                  value:
+                    {
+                      "message": "Erro ao realizar upload para o S3",
+                      "success": false,
+                      "data": "(pymysql.err.OperationalError) (2013, 'Lost connection to MySQL server during query ([Errno 104] Connection reset by peer)')\n[SQL: SELECT users.id AS users_id, users.name AS users_name, users.phone_number AS users_phone_number, users.email AS users_email, users.password_hash AS users_password_hash, users.created_at AS users_created_at, users.updated_at AS users_updated_at \nFROM users \nWHERE users.id = %(pk_1)s]\n[parameters: {'pk_1': 1}]\n(Background on this error at: https://sqlalche.me/e/20/e3q8)"
+                    }
+  /preprocessing/data-cleaning/{id}:
+    post:
+      tags:
+        - "Pré-processamento"
+      summary: "Realizar limpeza de dados"
+      description: "Realiza a limpeza de dados em um dataset específico. O usuário deve fornecer os métodos de limpeza a serem aplicados nas features escolhidas, assim como os valores faltantes a serem substituídos."
+      parameters:
+        - name: "id"
+          in: "path"
+          required: true
+          schema:
+            type: "integer"
+          description: "ID da base de dados"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - features
+                - methods
+                - missing_values
+              properties:
+                features:
+                  type: array
+                  items:
+                    type: string
+                  description: "Lista de features a serem limpas."
+                methods:
+                  type: string
+                  description: "Método de limpeza a ser aplicado."
+                  enum:
+                    - media
+                    - mediana
+                    - moda
+                missing_values:
+                  type: array
+                  items:
+                    type: string
+                    enum:
+                      - "0"
+                      - "null"
+                      - ""
+                      - "?"
+                  description: "Valores a serem substituídos."
+            examples:
+              success:
+                summary: Exemplo de requisição
+                value:
+                  {
+                    "features-0": "Coluna 1",
+                    "features-1": "Coluna 2",
+                    "missing_values-0": "0",
+                    "missing_values-1": "null",
+                    "missing_values-2": "?",
+                    "methods": "media"
+                  }
+      responses:
+        '200':
+          description: Limpeza de dados realizada com sucesso na etapa de pré-processamento
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    description: "Mensagem de retorno da operação."
+                  success:
+                    type: boolean
+                    description: "Indica se a operação foi bem-sucedida."
+                  data:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        clean_dataset:
+                          type: object
+                          properties:
+                            id:
+                              type: integer
+                              description: ID do dataset limpo.
+                            size_file:
+                              type: string
+                              description: Tamanho do arquivo do dataset limpo.
+                            file_url:
+                              type: string
+                              description: URL do arquivo do dataset limpo.
+              examples:
+                success:
+                  summary: "Exemplo de resposta"
+                  description: "Limpeza de dados realizada com sucesso na etapa de pré-processamento, os detalhes do dataset limpo são retornados."
+                  value:
+                    {
+                        "message": "Limpeza de dados realizada com sucesso!",
+                        "success": true,
+                        "data": {
+                            "clean_dataset": {
+                                "id": 64,
+                                "size_file": "0.0231MB",
+                                "file_url": "https://s3.amazonaws.com/bucket-easyminer/datasets/5/file_clean",
+                            }
+                        }
+                    }
+
+        '422':
+          description: Erros de validação.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    description: Mensagem de retorno da operação.
+                  success:
+                    type: boolean
+                    description: Indica se a operação foi bem-sucedida.
+                  data:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        field:
+                          type: string
+                          description: Nome do campo que gerou o erro.
+                        error:
+                          type: string
+                          description: Mensagem de erro associada ao campo.
+              examples:
+                validation_error_features:
+                  summary: Exemplo de resposta 1
+                  description: Erro retornado quando é fornecido uma coluna que não pertence ao dataset.
+                  value:
+                    {
+                      "message": "Dados inválidos!",
+                      "success": false,
+                      "data": [
+                        {
+                          "features": [
+                            "Os seguintes campos não estão registrados na sua base de dados: COLUNA_ERRADA1, COLUNA_ERRADA2"
+                          ]
+                        }
+                      ]
+                    }
+                validation_error_method:
+                  summary: Exemplo de resposta 2
+                  description: Erro retornado quando é fornecido um método inválido de limpeza de dados.
+                  value:
+                    {
+                      "message": "Dados inválidos!",
+                      "success": false,
+                      "data": {
+                        "methods": [
+                          "Opção inválida: METODO INEXISTENTE. Selecione uma opção válida."
+                        ]
+                      }
+                    }
+                validation_error_invalid_missing_values:
+                  summary: Exemplo de resposta 2
+                  description: Erro retornado quando é fornecido valores faltantes que não são aceitáveis pelo sistema.
+                  value:
+                    {
+                      "message": "Dados inválidos!",
+                      "success": false,
+                      "data": {
+                        "missing_values": [
+                          "Opção inválida: VALOR FALTANTE ERRONEO. Selecione uma opção válida."
+                        ]
+                      }
+                    }
+
+        '404':
+          description: "Não encontrado."
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    description: Mensagem de retorno da operação.
+                  success:
+                    type: boolean
+                    description: Indica se a operação foi bem-sucedida.
+                  data:
+                    type: object
+                    nullable: true
+                    description: Dados adicionais retornados pela operação.
+              examples:
+                not_found:
+                  summary: Exemplo de resposta
+                  description: Base de dados não encontrada; nenhum dado retornado.
+                  value:
+                    {
+                      "message": "Base de dados não encontrada!",
+                      "success": false,
+                      "data": null
+                    }
+
+        '401':
+          description: Não autorizado!.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    description: Mensagem de retorno da operação.
+                  success:
+                    type: boolean
+                    description: Indica se a operação foi bem-sucedida.
+                  data:
+                    type: "null"
+                    description: Dados adicionais retornados pela operação.
+              examples:
+                success:
+                  summary: Exemplo de resposta
+                  description: Usuário não está autenticado.
+                  value:
+                    {
+                      "message": "Não autorizado",
+                      "success": false,
+                      "data": null
+                    }
+
+        '500':
+          description: "Erro interno do servidor!"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    description: Mensagem de retorno da operação.
+                  success:
+                    type: boolean
+                    description: Indica se a operação foi bem-sucedida.
+                  data:
+                    type: string
+                    description: "Mensagem de erro do servidor."
+              examples:
+                internal_server_error:
+                  summary: Exemplo de resposta.
+                  description: Erro ao enviar o arquivo para a AWS.
+                  value:
+                    {
+                      "message": "Erro ao realizar upload para o S3",
+                      "success": false,
+                      "data": "An error occurred (AccessDenied) when calling the PostObject operation: Access Denied"
+                    }
+  /preprocessing/data-normalization/{id}:
+    post:
+      tags:
+        - "Pré-processamento"
+      summary: "Realizar normalização de dados"
+      description: "Aplica a normalização de dados em um dataset específico. O usuário deve fornecer os métodos de normalização a serem aplicados nas features escolhidas."
+      parameters:
+        - name: "id"
+          in: "path"
+          required: true
+          schema:
+            type: "integer"
+          description: "ID da base de dados"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - features
+                - methods
+              properties:
+                features:
+                  type: array
+                  items:
+                    type: string
+                  description: "Lista de features a serem normalizadas."
+                methods:
+                  type: string
+                  description: "Método de normalização a ser aplicado."
+                  enum:
+                    - minmax
+                    - zscore
+            examples:
+              success:
+                summary: Exemplo de requisição
+                value:
+                  {
+                    "features-0": "Coluna 1",
+                    "features-1": "Coluna 2",
+                    "methods": "minmax"
+                  }
+      responses:
+        '200':
+          description: Normalização de dados realizada com sucesso na etapa de pré-processamento
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    description: "Mensagem de retorno da operação."
+                  success:
+                    type: boolean
+                    description: "Indica se a operação foi bem-sucedida."
+                  data:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        normalized_dataset:
+                          type: object
+                          properties:
+                            id:
+                              type: integer
+                              description: ID do dataset normalizado.
+                            size_file:
+                              type: string
+                              description: Tamanho do arquivo do dataset normalizado.
+                            file_url:
+                              type: string
+                              description: URL do arquivo do dataset normalizado.
+              examples:
+                success:
+                  summary: "Exemplo de resposta"
+                  description: "Normalização de dados realizada com sucesso na etapa de pré-processamento, os detalhes do dataset normalizado são retornados."
+                  value:
+                    {
+                      "message": "Normalização de dados realizada com sucesso!",
+                      "success": true,
+                      "data": {
+                        "normalized_dataset": {
+                          "id": 65,
+                          "size_file": "0.0255MB",
+                               "file_url": "https://s3.amazonaws.com/bucket-easyminer/datasets/5/file_normalized",
+                        }
+                      }
+                    }
+
+        '422':
+          description: Erros de validação.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    description: Mensagem de retorno da operação.
+                  success:
+                    type: boolean
+                    description: Indica se a operação foi bem-sucedida.
+                  data:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        field:
+                          type: string
+                          description: Nome do campo que gerou o erro.
+                        error:
+                          type: string
+                          description: Mensagem de erro associada ao campo.
+              examples:
+                validation_error_features:
+                  summary: Exemplo de resposta 1
+                  description: Erro retornado quando é fornecido uma coluna que não pertence ao dataset.
+                  value:
+                    {
+                      "message": "Dados inválidos!",
+                      "success": false,
+                      "data": [
+                        {
+                          "features": [
+                            "Os seguintes campos não estão registrados na sua base de dados: COLUNA_ERRADA1, COLUNA_ERRADA2"
+                          ]
+                        }
+                      ]
+                    }
+                validation_error_method:
+                  summary: Exemplo de resposta 2
+                  description: Erro retornado quando é fornecido um método inválido de normalização de dados.
+                  value:
+                    {
+                      "message": "Dados inválidos!",
+                      "success": false,
+                      "data": {
+                        "methods": [
+                          "Método inválido: METODO-ERRADO. Selecione uma opção válida."
+                        ]
+                      }
+                    }
+
+        '404':
+          description: "Não encontrado."
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    description: Mensagem de retorno da operação.
+                  success:
+                    type: boolean
+                    description: Indica se a operação foi bem-sucedida.
+                  data:
+                    type: object
+                    nullable: true
+                    description: Dados adicionais retornados pela operação.
+              examples:
+                not_found:
+                  summary: Exemplo de resposta
+                  description: Base de dados não encontrada; nenhum dado retornado.
+                  value:
+                    {
+                      "message": "Base de dados não encontrada!",
+                      "success": false,
+                      "data": null
+                    }
+
+        '401':
+          description: Não autorizado!.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    description: Mensagem de retorno da operação.
+                  success:
+                    type: boolean
+                    description: Indica se a operação foi bem-sucedida.
+                  data:
+                    type: "null"
+                    description: Dados adicionais retornados pela operação.
+              examples:
+                success:
+                  summary: Exemplo de resposta
+                  description: Usuário não está autenticado.
+                  value:
+                    {
+                      "message": "Não autorizado",
+                      "success": false,
+                      "data": null
+                    }
+
+        '500':
+          description: "Erro interno do servidor!"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    description: Mensagem de retorno da operação.
+                  success:
+                    type: boolean
+                    description: Indica se a operação foi bem-sucedida.
+                  data:
+                    type: string
+                    description: "Mensagem de erro do servidor."
+              examples:
+                internal_server_error:
+                  summary: Exemplo de resposta.
+                  description: Erro ao enviar o arquivo para a AWS.
+                  value:
+                    {
+                      "message": "Erro ao realizar upload para o S3",
+                      "success": false,
+                      "data": "An error occurred (AccessDenied) when calling the PostObject operation: Access Denied"
+                    }
+  /data-visualization/measure-central-tendency/{dataset_id}:
+    post:
+      tags:
+        - Visualização de Dados
+      summary: Calcular medidas de tendência central
+      description: Calcula medidas de tendência central para as features selecionadas de um dataset.
+      security:
+        - cookieAuth: []
+      parameters:
+        - name: dataset_id
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: ID do dataset a ser analisado
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - features
+                - visualization_method
+              properties:
+                features:
+                  type: array
+                  items:
+                    type: string
+                  description: Lista de colunas do dataset para calcular as medidas.
+                visualization_method:
+                  type: string
+                  description: Método de visualização a ser aplicado.
+                  enum: [frequency_distribution, mode, midpoint, median, weighted_average, mean_frequency_distribution, geometric_mean, harmonic_mean]
+                use_clean_dataset:
+                  type: boolean
+                  description: Se verdadeiro, utiliza a versão limpa do dataset.
+                  default: false
+            examples:
+              success:
+                summary: Exemplo de requisição
+                value:
+                  {
+                    "features": ["idade", "salario"],
+                    "visualization_method": "median",
+                    "use_clean_dataset": false
+                  }
+      responses:
+        '200':
+          description: Operação bem sucedida.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    description: Mensagem de retorno da operação.
+                  success:
+                    type: boolean
+                    description: Indica se a operação foi bem-sucedida.
+                  data:
+                    type: object
+                    description: Resultados das medidas de tendência central para cada feature.
+              examples:
+                success:
+                  summary: Exemplo de resposta
+                  description: Medidas de tendência central calculadas com sucesso.
+                  value:
+                    {
+                      "message": "Visualização de medidas de tendência central realizada com sucesso!",
+                      "success": true,
+                      "data": {
+                        "idade": 35.5,
+                        "salario": 3500
+                      }
+                    }
+        '404':
+          description: Dataset não encontrado.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    description: Mensagem de erro.
+                  success:
+                    type: boolean
+                    description: Indica se a operação foi bem-sucedida.
+                  data:
+                    type: object
+                    nullable: true
+              examples:
+                not_found:
+                  summary: Dataset não encontrado
+                  value:
+                    {
+                      "message": "Base de dados não encontrada!",
+                      "success": false,
+                      "data": null
+                    }
+        '422':
+          description: Erro de validação dos dados.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    description: Mensagem de erro.
+                  success:
+                    type: boolean
+                    description: Indica se a operação foi bem-sucedida.
+                  data:
+                    type: object
+                    description: Detalhes dos erros de validação.
+              examples:
+                validation_error:
+                  summary: Erro de validação
+                  value:
+                    {
+                      "message": "Dados inválidos!",
+                      "success": false,
+                      "data": {
+                        "visualization_method": [
+                          "Método de visualização 'invalid_method' não é válido. Métodos válidos para tendência central: frequency_distribution, mode, midpoint, median, weighted_average, mean_frequency_distribution, geometric_mean, harmonic_mean"
+                        ]
+                      }
+                    }
+
+  /data-visualization/dispersion-measure/{dataset_id}:
+    post:
+      tags:
+        - Visualização de Dados
+      summary: Calcular medidas de dispersão
+      description: Calcula medidas de dispersão para as features selecionadas de um dataset.
+      security:
+        - cookieAuth: []
+      parameters:
+        - name: dataset_id
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: ID do dataset a ser analisado
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - features
+                - visualization_method
+              properties:
+                features:
+                  type: array
+                  items:
+                    type: string
+                  description: Lista de colunas do dataset para calcular as medidas.
+                visualization_method:
+                  type: string
+                  description: Método de dispersão a ser aplicado.
+                  enum: [amplitude, standard_deviation, variance, variation_coefficient]
+                use_clean_dataset:
+                  type: boolean
+                  description: Se verdadeiro, utiliza a versão limpa do dataset.
+                  default: false
+            examples:
+              success:
+                summary: Exemplo de requisição
+                value:
+                  {
+                    "features": ["idade", "salario"],
+                    "visualization_method": "standard_deviation",
+                    "use_clean_dataset": false
+                  }
+      responses:
+        '200':
+          description: Operação bem sucedida.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    description: Mensagem de retorno da operação.
+                  success:
+                    type: boolean
+                    description: Indica se a operação foi bem-sucedida.
+                  data:
+                    type: object
+                    description: Resultados das medidas de dispersão para cada feature.
+              examples:
+                success:
+                  summary: Exemplo de resposta
+                  description: Medidas de dispersão calculadas com sucesso.
+                  value:
+                    {
+                      "message": "Visualização de medidas de dispersão realizada com sucesso!",
+                      "success": true,
+                      "data": {
+                        "idade": 5.25,
+                        "salario": 1200.45
+                      }
+                    }
+        '404':
+          description: Dataset não encontrado.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    description: Mensagem de erro.
+                  success:
+                    type: boolean
+                    description: Indica se a operação foi bem-sucedida.
+                  data:
+                    type: object
+                    nullable: true
+              examples:
+                not_found:
+                  summary: Dataset não encontrado
+                  value:
+                    {
+                      "message": "Base de dados não encontrada!",
+                      "success": false,
+                      "data": null
+                    }
+        '422':
+          description: Erro de validação dos dados.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    description: Mensagem de erro.
+                  success:
+                    type: boolean
+                    description: Indica se a operação foi bem-sucedida.
+                  data:
+                    type: object
+                    description: Detalhes dos erros de validação.
+              examples:
+                validation_error:
+                  summary: Erro de validação
+                  value:
+                    {
+                      "message": "Dados inválidos!",
+                      "success": false,
+                      "data": {
+                        "visualization_method": [
+                          "Método de visualização 'invalid_method' não é válido. Métodos válidos para dispersão: amplitude, standard_deviation, variance, variation_coefficient"
+                        ]
+                      }
+                    }
+  /data-visualization/shape-measure/{dataset_id}:
+    post:
+      tags:
+        - Visualização de Dados
+      summary: Calcular medidas de forma
+      description: Calcula medidas de forma (assimetria e curtose) para as features selecionadas de um dataset.
+      security:
+        - cookieAuth: []
+      parameters:
+        - name: dataset_id
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: ID do dataset a ser analisado
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - features
+                - visualization_method
+              properties:
+                features:
+                  type: array
+                  items:
+                    type: string
+                  description: Lista de colunas do dataset para calcular as medidas.
+                visualization_method:
+                  type: string
+                  description: Método de forma a ser aplicado.
+                  enum: [skewness, kurtosis]
+                use_clean_dataset:
+                  type: boolean
+                  description: Se verdadeiro, utiliza a versão limpa do dataset.
+                  default: false
+            examples:
+              success:
+                summary: Exemplo de requisição
+                value:
+                  {
+                    "features": ["idade", "salario"],
+                    "visualization_method": "skewness",
+                    "use_clean_dataset": false
+                  }
+      responses:
+        '200':
+          description: Operação bem sucedida.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    description: Mensagem de retorno da operação.
+                  success:
+                    type: boolean
+                    description: Indica se a operação foi bem-sucedida.
+                  data:
+                    type: object
+                    description: Resultados das medidas de forma para cada feature.
+              examples:
+                success:
+                  summary: Exemplo de resposta
+                  description: Medidas de forma calculadas com sucesso.
+                  value:
+                    {
+                      "message": "Visualização de medidas de forma realizada com sucesso!",
+                      "success": true,
+                      "data": {
+                        "idade": 0.35,
+                        "salario": -0.87
+                      }
+                    }
+        '404':
+          description: Dataset não encontrado.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    description: Mensagem de erro.
+                  success:
+                    type: boolean
+                    description: Indica se a operação foi bem-sucedida.
+                  data:
+                    type: object
+                    nullable: true
+              examples:
+                not_found:
+                  summary: Dataset não encontrado
+                  value:
+                    {
+                      "message": "Base de dados não encontrada!",
+                      "success": false,
+                      "data": null
+                    }
+        '422':
+          description: Erro de validação dos dados.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    description: Mensagem de erro.
+                  success:
+                    type: boolean
+                    description: Indica se a operação foi bem-sucedida.
+                  data:
+                    type: object
+                    description: Detalhes dos erros de validação.
+              examples:
+                validation_error:
+                  summary: Erro de validação
+                  value:
+                    {
+                      "message": "Dados inválidos!",
+                      "success": false,
+                      "data": {
+                        "visualization_method": [
+                          "Método de visualização 'invalid_method' não é válido. Métodos válidos para forma: skewness, kurtosis"
+                        ]
+                      }
+                    }
+  /data-visualization/association-measure/{dataset_id}:
+    post:
+      tags:
+        - Visualização de Dados
+      summary: Calcular medidas de associação
+      description: Calcula medidas de associação (covariância e correlação) entre exatamente duas features selecionadas de um dataset.
+      security:
+        - cookieAuth: []
+      parameters:
+        - name: dataset_id
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: ID do dataset a ser analisado
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - features
+                - visualization_method
+              properties:
+                features:
+                  type: array
+                  items:
+                    type: string
+                  description: Lista contendo exatamente 2 colunas do dataset para calcular as medidas de associação.
+                  minItems: 2
+                  maxItems: 2
+                visualization_method:
+                  type: string
+                  description: Método de associação a ser aplicado.
+                  enum: [covariance, correlation]
+                use_clean_dataset:
+                  type: boolean
+                  description: Se verdadeiro, utiliza a versão limpa do dataset.
+                  default: false
+            examples:
+              success:
+                summary: Exemplo de requisição
+                value:
+                  {
+                    "features": ["idade", "salario"],
+                    "visualization_method": "correlation",
+                    "use_clean_dataset": false
+                  }
+      responses:
+        '200':
+          description: Operação bem sucedida.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    description: Mensagem de retorno da operação.
+                  success:
+                    type: boolean
+                    description: Indica se a operação foi bem-sucedida.
+                  data:
+                    type: object
+                    description: Resultados das medidas de associação entre as features.
+              examples:
+                success_correlation:
+                  summary: Exemplo de resposta (correlação)
+                  description: Medidas de correlação calculadas com sucesso.
+                  value:
+                    {
+                      "message": "Visualização de medidas de associação realizada com sucesso!",
+                      "success": true,
+                      "data": {
+                        "features": "idade e salario",
+                        "correlation": 0.7532,
+                        "covariance": 1250.45,
+                        "feature1_std": 5.25,
+                        "feature2_std": 1200.45,
+                        "sample_size": 150,
+                        "interpretation": "Correlação positiva forte (0.7532): As variáveis apresentam uma relação linear forte."
+                      }
+                    }
+                success_covariance:
+                  summary: Exemplo de resposta (covariância)
+                  description: Medidas de covariância calculadas com sucesso.
+                  value:
+                    {
+                      "message": "Visualização de medidas de associação realizada com sucesso!",
+                      "success": true,
+                      "data": {
+                        "features": "idade e salario",
+                        "covariance": 1250.45,
+                        "feature1_mean": 35.5,
+                        "feature2_mean": 3500.0,
+                        "sample_size": 150,
+                        "interpretation": "Covariância positiva: As variáveis tendem a mover-se na mesma direção."
+                      }
+                    }
+        '404':
+          description: Dataset não encontrado.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    description: Mensagem de erro.
+                  success:
+                    type: boolean
+                    description: Indica se a operação foi bem-sucedida.
+                  data:
+                    type: object
+                    nullable: true
+              examples:
+                not_found:
+                  summary: Dataset não encontrado
+                  value:
+                    {
+                      "message": "Base de dados não encontrada!",
+                      "success": false,
+                      "data": null
+                    }
+        '422':
+          description: Erro de validação dos dados.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    description: Mensagem de erro.
+                  success:
+                    type: boolean
+                    description: Indica se a operação foi bem-sucedida.
+                  data:
+                    type: object
+                    description: Detalhes dos erros de validação.
+              examples:
+                validation_error_method:
+                  summary: Erro de validação - método inválido
+                  value:
+                    {
+                      "message": "Dados inválidos!",
+                      "success": false,
+                      "data": {
+                        "visualization_method": [
+                          "Método de visualização 'invalid_method' não é válido. Métodos válidos para associação: covariance, correlation"
+                        ]
+                      }
+                    }
+                validation_error_features:
+                  summary: Erro de validação - número incorreto de features
+                  value:
+                    {
+                      "message": "Dados inválidos!",
+                      "success": false,
+                      "data": {
+                        "features": [
+                          "Para medidas de associação é necessário exatamente 2 features."
+                        ]
+                      }
+                    }

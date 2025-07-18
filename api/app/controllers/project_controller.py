@@ -3,7 +3,8 @@ from app import db
 from flask_login import current_user
 
 from ..forms.project_form import ProjectFormCreate, ProjectFormUpdate
-from ..models import Project
+from ..models import Dataset, Project
+from .dataset_controller import delete_dataset
 
 
 def format_project_data(project, dataset_info=None):
@@ -113,21 +114,40 @@ def update_project(project_id):
     return response.handle_success("Nenhuma alteração realizada no projeto.")
 
 
+def delete_related_datasets(project_id):
+    try:
+        datasets = Dataset.query.filter_by(project_id=project_id).all()
+        for dataset in datasets:
+            delete_dataset(dataset.id)
+        db.session.commit()
+        return True
+    except Exception as e:
+        db.session.rollback()
+        response.log_error("Erro ao deletar bases de dados relacionadas", e)
+        return False
+
+
 def delete_project(project_id):
     project = Project.query.get(project_id)
-    if project and project.user_id == current_user.id:
-        project_data = format_project_data(project)
-        try:
-            db.session.delete(project)
-            db.session.commit()
-            return response.handle_success(
-                "Projeto deletado com sucesso!",
-                project_data,
-            )
-        except Exception as e:
-            db.session.rollback()
+
+    if project is None or project.user_id != current_user.id:
+        return response.handle_not_found_response("Projeto não encontrado!")
+
+    project_data = format_project_data(project)
+    try:
+        if not delete_related_datasets(project_id):
             return response.handle_internal_server_error_response(
-                error=e, message="Erro ao deletar o projeto"
+                message="Erro ao deletar bases de dados relacionadas ao projeto"
             )
 
-    return response.handle_not_found_response(message="Projeto não encontrado!")
+        db.session.delete(project)
+        db.session.commit()
+        return response.handle_success(
+            "Projeto deletado com sucesso!",
+            project_data,
+        )
+    except Exception as e:
+        db.session.rollback()
+        return response.handle_internal_server_error_response(
+            error=e, message="Erro ao deletar o projeto"
+        )
