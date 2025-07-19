@@ -54,12 +54,19 @@ def update_user():
 
     updated = False
 
-    for field_name, field in form._fields.items():
-        if field.data and getattr(user, field_name) != field.data:
-            setattr(user, field_name, field.data)
-            updated = True
+    if form.name.data and user.name != form.name.data:
+        user.name = form.name.data
+        updated = True
 
-    if form.password.data and not user.check_password(form.password.data):
+    if form.phone_number.data and user.phone_number != form.phone_number.data:
+        user.phone_number = form.phone_number.data
+        updated = True
+
+    if form.email.data and user.email != form.email.data:
+        user.email = form.email.data
+        updated = True
+
+    if form.password.data:
         user.set_password(form.password.data)
         updated = True
 
