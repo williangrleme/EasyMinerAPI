@@ -2504,7 +2504,7 @@ paths:
       security:
         - cookieAuth: []
       parameters:
-        - name: "dataset_id"
+        - name: "id"
           in: "path"
           required: true
           schema:
@@ -2787,7 +2787,7 @@ paths:
       security:
         - cookieAuth: []
       parameters:
-        - name: dataset_id
+        - name: id
           in: path
           required: true
           schema:
@@ -2918,7 +2918,7 @@ paths:
       security:
         - cookieAuth: []
       parameters:
-        - name: dataset_id
+        - name: id
           in: path
           required: true
           schema:
@@ -3049,7 +3049,7 @@ paths:
       security:
         - cookieAuth: []
       parameters:
-        - name: dataset_id
+        - name: id
           in: path
           required: true
           schema:
@@ -3433,7 +3433,7 @@ paths:
                       "data": "An error occurred (AccessDenied) when calling the PostObject operation: Access Denied"
                     }
 
-  /data-visualization/measure-central-tendency/{dataset_id}:
+  /data-visualization/measure-central-tendency/{id}:
     post:
       tags:
         - Visualização de Dados
@@ -3442,7 +3442,7 @@ paths:
       security:
         - cookieAuth: [ ]
       parameters:
-        - name: dataset_id
+        - name: id
           in: path
           required: true
           schema:
@@ -3565,7 +3565,7 @@ paths:
                       }
                     }
 
-    /data-visualization/dispersion-measure/{dataset_id}:
+    /data-visualization/dispersion-measure/{id}:
       post:
         tags:
           - Visualização de Dados
@@ -3574,7 +3574,7 @@ paths:
         security:
           - cookieAuth: [ ]
         parameters:
-          - name: dataset_id
+          - name: id
             in: path
             required: true
             schema:
@@ -3696,7 +3696,7 @@ paths:
                           ]
                         }
                       }
-    /data-visualization/shape-measure/{dataset_id}:
+    /data-visualization/shape-measure/{id}:
       post:
         tags:
           - Visualização de Dados
@@ -3705,7 +3705,7 @@ paths:
         security:
           - cookieAuth: [ ]
         parameters:
-          - name: dataset_id
+          - name: id
             in: path
             required: true
             schema:
@@ -3827,7 +3827,7 @@ paths:
                           ]
                         }
                       }
-    /data-visualization/association-measure/{dataset_id}:
+    /data-visualization/association-measure/{id}:
       post:
         tags:
           - Visualização de Dados
@@ -3836,7 +3836,7 @@ paths:
         security:
           - cookieAuth: [ ]
         parameters:
-          - name: dataset_id
+          - name: id
             in: path
             required: true
             schema:
@@ -3993,3 +3993,436 @@ paths:
                           ]
                         }
                       }
+  /classification/{id}:
+    post:
+      tags:
+        - "Classificação de Dados"
+      summary: "Executar algoritmo de classificação"
+      description: "Executa algoritmos de classificação em um dataset específico. Atualmente suporta o algoritmo K-Nearest Neighbors (KNN) com diferentes métricas de distância."
+      security:
+        - cookieAuth: [ ]
+      parameters:
+        - name: "id"
+          in: "path"
+          required: true
+          schema:
+            type: "integer"
+          description: "ID da base de dados"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - features
+                - target
+                - classification_method
+                - k_neighbors
+                - distance_metric
+                - test_size
+              properties:
+                features:
+                  type: array
+                  items:
+                    type: string
+                  description: "Lista de features (variáveis independentes) a serem utilizadas na classificação."
+                target:
+                  type: string
+                  description: "Variável dependente (target) que será predita pelo algoritmo."
+                classification_method:
+                  type: string
+                  description: "Método de classificação a ser aplicado."
+                  enum:
+                    - knn
+                  default: "knn"
+                k_neighbors:
+                  type: integer
+                  description: "Número de vizinhos mais próximos para o algoritmo KNN."
+                  minimum: 1
+                  default: 5
+                distance_metric:
+                  type: string
+                  description: "Métrica de distância a ser utilizada no algoritmo KNN."
+                  enum:
+                    - euclidean
+                    - manhattan
+                    - minkowski
+                    - mahalanobis
+                  default: "euclidean"
+                test_size:
+                  type: number
+                  format: float
+                  description: "Proporção do dataset a ser utilizada para teste (entre 0.1 e 0.9)."
+                  minimum: 0.1
+                  maximum: 0.9
+                  default: 0.3
+                use_clean_dataset:
+                  type: boolean
+                  description: "Se verdadeiro, utiliza a versão limpa do dataset."
+                  default: false
+            examples:
+              knn_euclidean:
+                summary: "Exemplo de requisição - KNN com distância Euclidiana"
+                value:
+                  {
+                    "features": [ "feature1", "feature2", "feature3" ],
+                    "target": "target_column",
+                    "classification_method": "knn",
+                    "k_neighbors": 5,
+                    "distance_metric": "euclidean",
+                    "test_size": 0.3,
+                    "use_clean_dataset": false
+                  }
+              knn_manhattan:
+                summary: "Exemplo de requisição - KNN com distância Manhattan"
+                value:
+                  {
+                    "features": [ "idade", "salario" ],
+                    "target": "aprovado",
+                    "classification_method": "knn",
+                    "k_neighbors": 7,
+                    "distance_metric": "manhattan",
+                    "test_size": 0.2,
+                    "use_clean_dataset": true
+                  }
+      responses:
+        '200':
+          description: "Algoritmo de classificação executado com sucesso."
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    description: "Mensagem de retorno da operação."
+                  success:
+                    type: boolean
+                    description: "Indica se a operação foi bem-sucedida."
+                  data:
+                    type: object
+                    properties:
+                      algorithm_info:
+                        type: object
+                        properties:
+                          name:
+                            type: string
+                            description: "Nome do algoritmo utilizado."
+                          type:
+                            type: string
+                            description: "Tipo do algoritmo."
+                          k_neighbors:
+                            type: integer
+                            description: "Número de vizinhos utilizados."
+                          distance_metric:
+                            type: string
+                            description: "Métrica de distância utilizada."
+                          features_used:
+                            type: array
+                            items:
+                              type: string
+                            description: "Features utilizadas na classificação."
+                          target:
+                            type: string
+                            description: "Variável target utilizada."
+                      dataset_info:
+                        type: object
+                        properties:
+                          total_samples:
+                            type: integer
+                            description: "Total de amostras no dataset."
+                          features_count:
+                            type: integer
+                            description: "Número de features utilizadas."
+                          train_samples:
+                            type: integer
+                            description: "Número de amostras de treino."
+                          test_samples:
+                            type: integer
+                            description: "Número de amostras de teste."
+                          test_size_percentage:
+                            type: number
+                            format: float
+                            description: "Porcentagem do dataset utilizada para teste."
+                          unique_classes:
+                            type: integer
+                            description: "Número de classes únicas no target."
+                          class_distribution:
+                            type: object
+                            description: "Distribuição das classes no dataset."
+                      performance_metrics:
+                        type: object
+                        description: "Métricas de performance do algoritmo (precision, recall, f1-score, etc.)."
+                      confusion_matrix:
+                        type: array
+                        items:
+                          type: array
+                          items:
+                            type: integer
+                        description: "Matriz de confusão do algoritmo."
+                      plot_algorithm:
+                        type: object
+                        properties:
+                          x:
+                            type: array
+                            items:
+                              type: number
+                            description: "Coordenadas X do PCA para plotagem."
+                          y:
+                            type: array
+                            items:
+                              type: number
+                            description: "Coordenadas Y do PCA para plotagem."
+                          predicted_labels:
+                            type: array
+                            items:
+                              type: string
+                            description: "Labels preditos pelo algoritmo."
+                          true_labels:
+                            type: array
+                            items:
+                              type: string
+                            description: "Labels verdadeiros do dataset."
+              examples:
+                success:
+                  summary: "Exemplo de resposta"
+                  description: "Algoritmo KNN executado com sucesso, retornando métricas de performance, matriz de confusão e dados para plotagem."
+                  value:
+                    {
+                      "message": "Algoritmo de classificação KNN executado com sucesso!",
+                      "success": true,
+                      "data": {
+                        "algorithm_info": {
+                          "name": "K-Nearest Neighbors",
+                          "type": "Classification",
+                          "k_neighbors": 5,
+                          "distance_metric": "euclidean",
+                          "features_used": [ "feature1", "feature2" ],
+                          "target": "target_column"
+                        },
+                        "dataset_info": {
+                          "total_samples": 150,
+                          "features_count": 2,
+                          "train_samples": 105,
+                          "test_samples": 45,
+                          "test_size_percentage": 30.0,
+                          "unique_classes": 3,
+                          "class_distribution": {
+                            "classe_a": 50,
+                            "classe_b": 50,
+                            "classe_c": 50
+                          }
+                        },
+                        "performance_metrics": {
+                          "accuracy": 0.96,
+                          "macro avg": {
+                            "precision": 0.96,
+                            "recall": 0.96,
+                            "f1-score": 0.96,
+                            "support": 45
+                          },
+                          "weighted avg": {
+                            "precision": 0.96,
+                            "recall": 0.96,
+                            "f1-score": 0.96,
+                            "support": 45
+                          }
+                        },
+                        "confusion_matrix": [
+                          [ 15, 0, 0 ],
+                          [ 1, 14, 0 ],
+                          [ 0, 1, 14 ]
+                        ],
+                        "plot_algorithm": {
+                          "x": [ 1.2, 2.3, 0.8, 1.5 ],
+                          "y": [ 0.8, 1.5, 2.1, 0.9 ],
+                          "predicted_labels": [ "classe_a", "classe_b", "classe_c", "classe_a" ],
+                          "true_labels": [ "classe_a", "classe_b", "classe_c", "classe_a" ]
+                        }
+                      }
+                    }
+        '404':
+          description: "Base de dados não encontrada."
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    description: "Mensagem de retorno da operação."
+                  success:
+                    type: boolean
+                    description: "Indica se a operação foi bem-sucedida."
+                  data:
+                    type: object
+                    nullable: true
+                    description: "Dados adicionais retornados pela operação."
+              examples:
+                not_found:
+                  summary: "Exemplo de resposta"
+                  description: "Base de dados não encontrada; nenhum dado retornado."
+                  value:
+                    {
+                      "message": "Base de dados não encontrada!",
+                      "success": false,
+                      "data": null
+                    }
+                clean_dataset_not_found:
+                  summary: "Dataset limpo não encontrado"
+                  description: "Dataset limpo não encontrado quando use_clean_dataset = true."
+                  value:
+                    {
+                      "message": "Dataset limpo não encontrado!",
+                      "success": false,
+                      "data": null
+                    }
+        '422':
+          description: "Erros de validação."
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    description: "Mensagem de retorno da operação."
+                  success:
+                    type: boolean
+                    description: "Indica se a operação foi bem-sucedida."
+                  data:
+                    type: object
+                    description: "Detalhes dos erros de validação."
+              examples:
+                validation_error_features:
+                  summary: "Erro de validação - features inválidas"
+                  description: "Erro retornado quando são fornecidas colunas que não pertencem ao dataset."
+                  value:
+                    {
+                      "message": "Dados inválidos!",
+                      "success": false,
+                      "data": {
+                        "features": [
+                          "Os seguintes campos não estão registrados na sua base de dados: coluna_inexistente"
+                        ]
+                      }
+                    }
+                validation_error_target:
+                  summary: "Erro de validação - target inválido"
+                  description: "Erro retornado quando o campo target não existe no dataset."
+                  value:
+                    {
+                      "message": "Dados inválidos!",
+                      "success": false,
+                      "data": {
+                        "target": [
+                          "O campo target 'target_inexistente' não está registrado na sua base de dados."
+                        ]
+                      }
+                    }
+                validation_error_method:
+                  summary: "Erro de validação - método inválido"
+                  description: "Erro retornado quando é fornecido um método de classificação inválido."
+                  value:
+                    {
+                      "message": "Dados inválidos!",
+                      "success": false,
+                      "data": {
+                        "classification_method": [
+                          "Método de classificação 'metodo_inexistente' não é válido. Métodos válidos: knn"
+                        ]
+                      }
+                    }
+                validation_error_distance:
+                  summary: "Erro de validação - métrica de distância inválida"
+                  description: "Erro retornado quando é fornecida uma métrica de distância inválida."
+                  value:
+                    {
+                      "message": "Dados inválidos!",
+                      "success": false,
+                      "data": {
+                        "distance_metric": [
+                          "Métrica de distância 'metrica_inexistente' não é válida. Métricas válidas: euclidean, manhattan, minkowski, mahalanobis"
+                        ]
+                      }
+                    }
+                validation_error_k_neighbors:
+                  summary: "Erro de validação - k_neighbors inválido"
+                  description: "Erro retornado quando o número de vizinhos é maior que o conjunto de treino."
+                  value:
+                    {
+                      "message": "Dados inválidos!",
+                      "success": false,
+                      "data": {
+                        "k_neighbors": [
+                          "O valor de k deve estar entre 1 e o número total de amostras de treino."
+                        ]
+                      }
+                    }
+                validation_error_insufficient_samples:
+                  summary: "Erro de validação - amostras insuficientes"
+                  description: "Erro retornado quando o dataset tem menos de 4 amostras."
+                  value:
+                    {
+                      "message": "Dados inválidos!",
+                      "success": false,
+                      "data": {
+                        "dataset": [
+                          "O dataset deve ter pelo menos 4 amostras para aplicar classificação."
+                        ]
+                      }
+                    }
+        '401':
+          description: "Não autorizado."
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    description: "Mensagem de retorno da operação."
+                  success:
+                    type: boolean
+                    description: "Indica se a operação foi bem-sucedida."
+                  data:
+                    type: object
+                    nullable: true
+                    description: "Dados adicionais retornados pela operação."
+              examples:
+                unauthorized:
+                  summary: "Exemplo de resposta"
+                  description: "Usuário não está autenticado."
+                  value:
+                    {
+                      "message": "Não autorizado!",
+                      "success": false,
+                      "data": null
+                    }
+        '500':
+          description: "Erro interno do servidor."
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    description: "Mensagem de retorno da operação."
+                  success:
+                    type: boolean
+                    description: "Indica se a operação foi bem-sucedida."
+                  data:
+                    type: string
+                    description: "Mensagem de erro do servidor."
+              examples:
+                internal_server_error:
+                  summary: "Exemplo de resposta"
+                  description: "Erro interno do servidor durante a execução do algoritmo."
+                  value:
+                    {
+                      "message": "Erro ao executar algoritmo de classificação!",
+                      "success": false,
+                      "data": "Erro interno do servidor ao processar o algoritmo de classificação."
+                    }
