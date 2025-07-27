@@ -65,15 +65,20 @@ def data_reduction(dataset_id):
         if existing_clean_dataset:
             file_url = existing_clean_dataset.file_url
 
-        form = DataReductionForm(file_url=file_url)
+        # Adiciona target ao form
+        form_data = dict()
+        if hasattr(response, 'get_request_json'):
+            form_data = response.get_request_json()
+        form = DataReductionForm(file_url=file_url, **form_data)
         if not form.validate_on_submit():
             return response.handle_unprocessable_entity(form.errors)
 
         df = pd.read_csv(file_url)
         features = form.features.data
         method = form.methods.data
+        target = form.target.data if hasattr(form, 'target') else None
 
-        reduced_df = reduce_data(df, features, method, form)
+        reduced_df = reduce_data(df, features, method, form, target)
         file_url_reduced, size_file_with_unit = save_reduced_dataset(
             reduced_df, file_url
         )
@@ -96,9 +101,9 @@ def data_reduction(dataset_id):
         )
 
 
-def reduce_data(df, features, method, form):
+def reduce_data(df, features, method, form, target=None):
     reduction_methods = {
-        "pca": apply_pca,
+        "pca": lambda df, features, form: apply_pca(df, features, form, target),
         "amostragem_aleatoria": random_sampling,
         "amostragem_sistematica": systematic_sampling,
     }
@@ -106,12 +111,14 @@ def reduce_data(df, features, method, form):
     return reduction_method(df, features, form)
 
 
-def apply_pca(df, features, form):
+def apply_pca(df, features, form, target=None):
+    x = df[features]
     pca = PCA(n_components=2)
-    pca_result = pca.fit_transform(df[features])
-    return pd.DataFrame(
-        pca_result, columns=["Componente Principal 1", "Componente Principal 2"]
-    )
+    pca_result = pca.fit_transform(x)
+    result_df = pd.DataFrame(pca_result, columns=["PC1", "PC2"])
+    if target and target in df.columns:
+        result_df[target] = df[target].values
+    return result_df
 
 
 def random_sampling(df, features, form):
