@@ -86,7 +86,6 @@ class DataVisualizationForm(FlaskForm):
         if not self.check_visualization_method():
             return False
 
-        # Verificação específica para métodos de associação (exatamente 2 features)
         if (
             self.method_type == "association"
             or self.visualization_method.data in self.ASSOCIATION_METHODS

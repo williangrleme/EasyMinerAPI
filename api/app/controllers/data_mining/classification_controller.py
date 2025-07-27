@@ -24,7 +24,7 @@ def classification_algorithm(dataset_id):
         if not dataset:
             return response.handle_not_found_response("Base de dados não encontrada!")
 
-        form = ClassificationForm(file_url=dataset.file_url)
+        form = ClassificationForm(file_url=dataset.file_url, clean_file_url=dataset.clean_file_url)
         if not form.validate_on_submit():
             return response.handle_unprocessable_entity(form.errors)
 

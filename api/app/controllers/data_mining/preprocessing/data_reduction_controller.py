@@ -65,7 +65,6 @@ def data_reduction(dataset_id):
         if existing_clean_dataset:
             file_url = existing_clean_dataset.file_url
 
-        # Adiciona target ao form
         form_data = dict()
         if hasattr(response, 'get_request_json'):
             form_data = response.get_request_json()
