@@ -66,11 +66,19 @@ class ClassificationForm(FlaskForm):
 
     use_clean_dataset = BooleanField("Usar dataset Limpo")
 
-    def __init__(self, file_url: str, *args, **kwargs):
+    def __init__(self, file_url: str, clean_file_url: str = None, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.file_url = file_url
-        self.df_columns = self.load_dataframe_columns(file_url)
-        self.df_size = self.get_dataframe_size(file_url)
+        self.clean_file_url = clean_file_url
+        self.df_columns, self.df_size = self.set_dataframe_info()
+
+    def set_dataframe_info(self):
+        url_to_use = self.file_url
+        if hasattr(self, 'use_clean_dataset') and self.use_clean_dataset.data and self.clean_file_url:
+            url_to_use = self.clean_file_url
+        df_columns = self.load_dataframe_columns(url_to_use)
+        df_size = self.get_dataframe_size(url_to_use)
+        return df_columns, df_size
 
     @staticmethod
     def load_dataframe_columns(file_url: str):
