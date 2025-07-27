@@ -2532,6 +2532,9 @@ paths:
                     - pca
                     - amostragem_aleatoria
                     - amostragem_sistematica
+                target:
+                  type: string
+                  description: "Coluna alvo a ser mantida no dataset reduzido (obrigatório se methods = 'pca')."
                 random_records:
                   type: integer
                   description: "Número de registros para amostragem aleatória (obrigatório se methods = 'amostragem_aleatoria')."
@@ -2551,8 +2554,9 @@ paths:
                 summary: "Exemplo de requisição - PCA"
                 value:
                   {
-                    "features": ["idade", "salario", "experiencia"],
-                    "methods": "pca"
+                    "features": [ "idade", "salario", "experiencia" ],
+                    "methods": "pca",
+                    "target": "aprovado"
                   }
               random_sampling_example:
                 summary: "Exemplo de requisição - Amostragem Aleatória"
