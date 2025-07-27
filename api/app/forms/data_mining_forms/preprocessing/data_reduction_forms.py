@@ -41,6 +41,9 @@ class DataReductionForm(FlaskForm):
     random_records = IntegerField("Random_numbers", validators=[Optional()])
     systematic_records = IntegerField("Systematic_records", validators=[Optional()])
     systematic_method = StringField("Systematic_method", validators=[Optional()])
+    target = StringField(
+        "Target", validators=[Optional()]
+    )
 
     def __init__(self, file_url, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -72,6 +75,11 @@ class DataReductionForm(FlaskForm):
 
         if not self.check_sampling_method(self.methods.data):
             return False
+
+        if self.methods.data == MethodEnum.PCA.value:
+            if not self.target.data or self.target.data not in self.df.columns:
+                self.target.errors.append(f"A coluna target '{self.target.data}' não está registrada na sua base de dados.")
+                return False
 
         return True
 
