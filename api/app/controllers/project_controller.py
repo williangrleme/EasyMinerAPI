@@ -1,153 +1,65 @@
-import app.response_handlers as response
-from app import db
-from flask_login import current_user
+from flask import Blueprint, current_app, jsonify, request
+from flask_login import current_user, login_required
 
-from ..forms.project_form import ProjectFormCreate, ProjectFormUpdate
-from ..models import Dataset, Project
-from .dataset_controller import delete_dataset
+from app.common.decorators import handle_errors
+from app.common.responses import success_payload
+from app.schemas.project import (ProjectCreateSchema, ProjectDetailSchema,
+                                 ProjectReadSchema, ProjectUpdateSchema)
 
-
-def format_project_data(project, dataset_info=None):
-    project_info = {
-        "id": project.id,
-        "name": project.name,
-        "description": project.description,
-    }
-
-    if dataset_info is not None:
-        project_info["datasets"] = dataset_info
-    return project_info
+project_bp = Blueprint("projects", __name__)
 
 
-def get_projects():
-    projects = Project.query.filter_by(user_id=current_user.id).all()
-    projects_list = [format_project_data(project) for project in projects]
-    return response.handle_success(
-        "Projetos recuperados com sucesso!",
-        projects_list,
-    )
+@project_bp.get("/")
+@login_required
+@handle_errors
+def list_projects():
+    projects = current_app.services["project"].list(current_user.id)
+    data = [ProjectReadSchema.model_validate(p).model_dump() for p in projects]
+    body, status = success_payload("Projetos recuperados com sucesso!", data)
+    return jsonify(body), status
 
 
-def get_datasets_info(datasets):
-    return [
-        {
-            "id": dataset.id,
-            "name": dataset.name,
-            "description": dataset.description,
-            "size_file": dataset.size_file,
-            "file_url": dataset.file_url,
-        }
-        for dataset in datasets
-    ]
-
-
+@project_bp.get("/<int:project_id>")
+@login_required
+@handle_errors
 def get_project(project_id):
-    project = Project.query.filter_by(id=project_id, user_id=current_user.id).first()
-    if project is None:
-        return response.handle_not_found_response(message="Projeto não encontrado!")
-
-    datasets_info = get_datasets_info(project.datasets) if project.datasets else None
-    project_data = format_project_data(project, datasets_info)
-
-    return response.handle_success(
-        "Projeto recuperado com sucesso!",
-        project_data,
+    project = current_app.services["project"].get(project_id, current_user.id)
+    body, status = success_payload(
+        "Projeto recuperado com sucesso!", ProjectDetailSchema.model_validate(project).model_dump()
     )
+    return jsonify(body), status
 
 
+@project_bp.post("/")
+@login_required
+@handle_errors
 def create_project():
-    form = ProjectFormCreate()
-    if not form.validate_on_submit():
-        return response.handle_unprocessable_entity(form.errors)
-
-    new_project = Project(
-        name=form.name.data,
-        description=form.description.data,
-        user_id=current_user.id,
+    data = ProjectCreateSchema.model_validate(request.get_json(silent=True) or {})
+    project = current_app.services["project"].create(data, current_user.id)
+    body, status = success_payload(
+        "Projeto criado com sucesso!", ProjectReadSchema.model_validate(project).model_dump(), status=201
     )
-
-    try:
-        db.session.add(new_project)
-        db.session.commit()
-        project_data = format_project_data(new_project)
-        return response.handle_success(
-            "Projeto criado com sucesso!",
-            project_data,
-        )
-    except Exception as e:
-        db.session.rollback()
-        response.log_error("Erro ao criar projeto", e)
-        return response.handle_internal_server_error_response(
-            error=e, message="Erro ao criar o projeto"
-        )
+    return jsonify(body), status
 
 
+@project_bp.put("/<int:project_id>")
+@login_required
+@handle_errors
 def update_project(project_id):
-    project = Project.query.get(project_id)
-    if project is None or project.user_id != current_user.id:
-        return response.handle_not_found_response(message="Projeto não encontrado!")
-
-    form = ProjectFormUpdate(project_id=project_id)
-    if not form.validate_on_submit():
-        return response.handle_unprocessable_entity(form.errors)
-
-    updated = False
-    for field_name, field in form._fields.items():
-        if field.data and getattr(project, field_name) != field.data:
-            setattr(project, field_name, field.data)
-            updated = True
-
-    if updated:
-        try:
-            db.session.commit()
-            project_data = format_project_data(project)
-            return response.handle_success(
-                "Projeto atualizado com sucesso!",
-                project_data,
-            )
-        except Exception as e:
-            db.session.rollback()
-            return response.handle_internal_server_error_response(
-                error=e, message="Erro ao atualizar o projeto"
-            )
-
-    return response.handle_success("Nenhuma alteração realizada no projeto.")
+    data = ProjectUpdateSchema.model_validate(request.get_json(silent=True) or {})
+    project = current_app.services["project"].update(project_id, data, current_user.id)
+    body, status = success_payload(
+        "Projeto atualizado com sucesso!", ProjectReadSchema.model_validate(project).model_dump()
+    )
+    return jsonify(body), status
 
 
-def delete_related_datasets(project_id):
-    try:
-        datasets = Dataset.query.filter_by(project_id=project_id).all()
-        for dataset in datasets:
-            delete_dataset(dataset.id)
-        db.session.commit()
-        return True
-    except Exception as e:
-        db.session.rollback()
-        response.log_error("Erro ao deletar bases de dados relacionadas", e)
-        return False
-
-
+@project_bp.delete("/<int:project_id>")
+@login_required
+@handle_errors
 def delete_project(project_id):
-    project = Project.query.get(project_id)
-
-    if project is None or project.user_id != current_user.id:
-        return response.handle_not_found_response("Projeto não encontrado!")
-
-    project_data = format_project_data(project)
-    try:
-        if not delete_related_datasets(project_id):
-            return response.handle_internal_server_error_response(
-                message="Erro ao deletar bases de dados relacionadas ao projeto"
-            )
-
-        db.session.delete(project)
-        db.session.commit()
-        return response.handle_success(
-            "Projeto deletado com sucesso!",
-            project_data,
-        )
-    except Exception as e:
-        db.session.rollback()
-        return response.handle_internal_server_error_response(
-            error=e, message="Erro ao deletar o projeto"
-        )
+    project = current_app.services["project"].delete(project_id, current_user.id)
+    body, status = success_payload(
+        "Projeto deletado com sucesso!", ProjectReadSchema.model_validate(project).model_dump()
+    )
+    return jsonify(body), status
