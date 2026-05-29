@@ -29,3 +29,16 @@ def test_normalization_endpoint(auth_client, s3, monkeypatch):
                        json={"features": ["idade"], "methods": "minmax"})
     assert resp.status_code == 200
     assert "normalized_dataset" in resp.get_json()["data"]
+
+
+def test_normalization_non_numeric_column(auth_client, s3, monkeypatch):
+    client, user = auth_client
+    from tests.factories import make_project, make_dataset
+    from app.services.data_mining import normalization_service as mod
+    df = pd.DataFrame({"nome": ["a", "b", "c"]})
+    monkeypatch.setattr(mod, "read_csv", lambda url: df.copy())
+    project = make_project(user)
+    ds = make_dataset(user, project)
+    resp = client.post(f"/api/preprocessing/data-normalization/{ds.id}",
+                       json={"features": ["nome"], "methods": "minmax"})
+    assert resp.status_code == 422
