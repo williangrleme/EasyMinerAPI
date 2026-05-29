@@ -34,6 +34,7 @@ def wire_services(app):
     from app.services.dataset_service import DatasetService
     from app.services.data_mining.cleaning_service import DataCleaningService
     from app.services.data_mining.normalization_service import DataNormalizationService
+    from app.services.data_mining.reduction_service import DataReductionService
     from app.services.project_service import ProjectService
     from app.services.user_service import UserService
 
@@ -55,6 +56,7 @@ def wire_services(app):
         "dataset": DatasetService(datasets, projects, storage),
         "cleaning": DataCleaningService(datasets, cleans, storage),
         "normalization": DataNormalizationService(datasets, cleans, storage),
+        "reduction": DataReductionService(datasets, cleans, storage),
     }
     app.services = services
 
