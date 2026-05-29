@@ -1,6 +1,5 @@
 def register_controllers(app):
-    """Registra os blueprints de cada domínio.
+    """Registra os blueprints de cada domínio."""
+    from app.controllers.auth_controller import auth_bp
 
-    Cada domínio adiciona aqui seu import e register_blueprint conforme é
-    implementado (auth, users, projects, datasets, data mining)."""
-    pass
+    app.register_blueprint(auth_bp, url_prefix="/api/auth")
