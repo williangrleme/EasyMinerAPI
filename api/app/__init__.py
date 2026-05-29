@@ -31,6 +31,7 @@ def wire_services(app):
     from app.repositories.project_repository import ProjectRepository
     from app.repositories.user_repository import UserRepository
     from app.services.auth_service import AuthService
+    from app.services.user_service import UserService
 
     session = db.session
     storage = StorageClient(
@@ -45,6 +46,7 @@ def wire_services(app):
     # Cada domínio registra seu serviço nesta tabela conforme é implementado.
     services = {
         "auth": AuthService(users),
+        "user": UserService(users, storage),
     }
     app.services = services
 
