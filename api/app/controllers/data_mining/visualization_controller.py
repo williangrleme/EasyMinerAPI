@@ -18,6 +18,23 @@ _ROUTES = {
 def _make_handler(group, label):
     @handle_errors
     def handler(dataset_id):
+        """Executa medida de visualização no dataset.
+        ---
+        tags:
+          - Visualization
+        requestBody:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VisualizationSchema'
+        responses:
+          200:
+            description: Visualização realizada com sucesso
+          401:
+            description: Não autorizado
+          404:
+            description: Dataset não encontrado
+        """
         data = VisualizationSchema.model_validate(request.get_json(silent=True) or {})
         results = current_app.services["visualization"].measure(group, dataset_id, data, current_user.id)
         body, status = success_payload(f"Visualização de medidas de {label} realizada com sucesso!", results)

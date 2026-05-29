@@ -12,6 +12,23 @@ classification_bp = Blueprint("classification", __name__)
 @login_required
 @handle_errors
 def classify(dataset_id):
+    """Executa algoritmo de classificação no dataset.
+    ---
+    tags:
+      - Classification
+    requestBody:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ClassificationSchema'
+    responses:
+      200:
+        description: Classificação executada com sucesso
+      401:
+        description: Não autorizado
+      404:
+        description: Dataset não encontrado
+    """
     data = ClassificationSchema.model_validate(request.get_json(silent=True) or {})
     results = current_app.services["classification"].classify(dataset_id, data, current_user.id)
     body, status = success_payload(

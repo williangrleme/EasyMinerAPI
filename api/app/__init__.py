@@ -14,6 +14,7 @@ def create_app(config_object=None):
     register_extensions(app)
     wire_services(app)
     register_controllers(app)
+    register_swagger(app)
     register_home_route(app)
     return app
 
@@ -63,6 +64,14 @@ def wire_services(app):
         "visualization": VisualizationService(datasets, cleans),
     }
     app.services = services
+
+
+def register_swagger(app):
+    from flasgger import Swagger
+
+    from app.docs.openapi import SWAGGER_CONFIG, build_swagger_template
+
+    Swagger(app, config=SWAGGER_CONFIG, template=build_swagger_template())
 
 
 def register_home_route(app):

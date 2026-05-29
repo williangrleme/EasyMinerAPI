@@ -12,6 +12,23 @@ auth_bp = Blueprint("auth", __name__)
 @auth_bp.post("/login")
 @handle_errors
 def login():
+    """Realiza login do usuário.
+    ---
+    tags:
+      - Auth
+    requestBody:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/LoginSchema'
+    responses:
+      200:
+        description: Login realizado com sucesso
+      401:
+        description: Credenciais inválidas
+      422:
+        description: Dados inválidos
+    """
     if current_user.is_authenticated:
         current_app.services["auth"].logout()
     data = LoginSchema.model_validate(request.get_json(silent=True) or {})
@@ -26,6 +43,16 @@ def login():
 @login_required
 @handle_errors
 def logout():
+    """Realiza logout do usuário.
+    ---
+    tags:
+      - Auth
+    responses:
+      200:
+        description: Logout realizado com sucesso
+      401:
+        description: Não autorizado
+    """
     current_app.services["auth"].logout()
     body, status = success_payload("Logout realizado com sucesso!")
     return jsonify(body), status
@@ -35,6 +62,16 @@ def logout():
 @login_required
 @handle_errors
 def me():
+    """Retorna dados do usuário autenticado.
+    ---
+    tags:
+      - Auth
+    responses:
+      200:
+        description: Usuário atual recuperado com sucesso
+      401:
+        description: Não autorizado
+    """
     body, status = success_payload(
         "Usuário atual recuperado com sucesso!",
         UserReadSchema.model_validate(current_user).model_dump(),

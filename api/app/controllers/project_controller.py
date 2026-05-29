@@ -13,6 +13,16 @@ project_bp = Blueprint("projects", __name__)
 @login_required
 @handle_errors
 def list_projects():
+    """Lista projetos do usuário autenticado.
+    ---
+    tags:
+      - Projects
+    responses:
+      200:
+        description: Projetos recuperados com sucesso
+      401:
+        description: Não autorizado
+    """
     projects = current_app.services["project"].list(current_user.id)
     data = [ProjectReadSchema.model_validate(p).model_dump() for p in projects]
     body, status = success_payload("Projetos recuperados com sucesso!", data)
@@ -23,6 +33,18 @@ def list_projects():
 @login_required
 @handle_errors
 def get_project(project_id):
+    """Retorna um projeto pelo ID.
+    ---
+    tags:
+      - Projects
+    responses:
+      200:
+        description: Projeto recuperado com sucesso
+      401:
+        description: Não autorizado
+      404:
+        description: Projeto não encontrado
+    """
     project = current_app.services["project"].get(project_id, current_user.id)
     body, status = success_payload(
         "Projeto recuperado com sucesso!", ProjectDetailSchema.model_validate(project).model_dump()
@@ -34,6 +56,23 @@ def get_project(project_id):
 @login_required
 @handle_errors
 def create_project():
+    """Cria um novo projeto.
+    ---
+    tags:
+      - Projects
+    requestBody:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ProjectCreateSchema'
+    responses:
+      201:
+        description: Projeto criado com sucesso
+      401:
+        description: Não autorizado
+      422:
+        description: Dados inválidos
+    """
     data = ProjectCreateSchema.model_validate(request.get_json(silent=True) or {})
     project = current_app.services["project"].create(data, current_user.id)
     body, status = success_payload(
@@ -46,6 +85,23 @@ def create_project():
 @login_required
 @handle_errors
 def update_project(project_id):
+    """Atualiza um projeto pelo ID.
+    ---
+    tags:
+      - Projects
+    requestBody:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ProjectUpdateSchema'
+    responses:
+      200:
+        description: Projeto atualizado com sucesso
+      401:
+        description: Não autorizado
+      404:
+        description: Projeto não encontrado
+    """
     data = ProjectUpdateSchema.model_validate(request.get_json(silent=True) or {})
     project = current_app.services["project"].update(project_id, data, current_user.id)
     body, status = success_payload(
@@ -58,6 +114,18 @@ def update_project(project_id):
 @login_required
 @handle_errors
 def delete_project(project_id):
+    """Remove um projeto pelo ID.
+    ---
+    tags:
+      - Projects
+    responses:
+      200:
+        description: Projeto deletado com sucesso
+      401:
+        description: Não autorizado
+      404:
+        description: Projeto não encontrado
+    """
     project = current_app.services["project"].delete(project_id, current_user.id)
     body, status = success_payload(
         "Projeto deletado com sucesso!", ProjectReadSchema.model_validate(project).model_dump()
