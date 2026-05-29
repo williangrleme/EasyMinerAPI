@@ -31,6 +31,7 @@ def wire_services(app):
     from app.repositories.project_repository import ProjectRepository
     from app.repositories.user_repository import UserRepository
     from app.services.auth_service import AuthService
+    from app.services.dataset_service import DatasetService
     from app.services.project_service import ProjectService
     from app.services.user_service import UserService
 
@@ -49,6 +50,7 @@ def wire_services(app):
         "auth": AuthService(users),
         "user": UserService(users, storage),
         "project": ProjectService(projects, storage),
+        "dataset": DatasetService(datasets, projects, storage),
     }
     app.services = services
 
