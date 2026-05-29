@@ -1,6 +1,6 @@
 from app.config import Config
 from app.controllers.s3_controller import S3Controller
-from app.extensions import cors, csrf, db, login_manager, migrate, swagger
+from app.extensions import cors, db, login_manager, migrate
 from app.response_handlers import register_response_errors
 from app.routes import init_routes
 from dotenv import load_dotenv
@@ -9,9 +9,9 @@ from flask import Flask, jsonify
 load_dotenv()
 
 
-def create_app():
+def create_app(config_object=None):
     app = Flask(__name__)
-    configure_app(app)
+    configure_app(app, config_object)
     register_extensions(app)
     register_blueprints(app)
     register_home_route(app)
@@ -20,8 +20,8 @@ def create_app():
     return app
 
 
-def configure_app(app):
-    app.config.from_object(Config)
+def configure_app(app, config_object=None):
+    app.config.from_object(config_object or Config)
 
 
 def register_extensions(app):
@@ -29,8 +29,6 @@ def register_extensions(app):
     migrate.init_app(app, db)
     cors.init_app(app, resources={r"/*": app.config["CORS_RESOURCES"]})
     login_manager.init_app(app)
-    swagger.init_app(app)
-    csrf.init_app(app)
 
 
 def register_blueprints(app):
