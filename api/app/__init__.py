@@ -1,8 +1,7 @@
 from app.config import Config
-from app.controllers.s3_controller import S3Controller
+from app.controllers import register_controllers
 from app.extensions import cors, db, login_manager, migrate
-from app.response_handlers import register_response_errors
-from app.routes import init_routes
+from app.storage.s3_client import StorageClient
 from dotenv import load_dotenv
 from flask import Flask, jsonify
 
@@ -11,17 +10,12 @@ load_dotenv()
 
 def create_app(config_object=None):
     app = Flask(__name__)
-    configure_app(app, config_object)
-    register_extensions(app)
-    register_blueprints(app)
-    register_home_route(app)
-    initialize_s3_controller(app)
-    register_response_errors(app)
-    return app
-
-
-def configure_app(app, config_object=None):
     app.config.from_object(config_object or Config)
+    register_extensions(app)
+    wire_services(app)
+    register_controllers(app)
+    register_home_route(app)
+    return app
 
 
 def register_extensions(app):
@@ -31,8 +25,25 @@ def register_extensions(app):
     login_manager.init_app(app)
 
 
-def register_blueprints(app):
-    init_routes(app)
+def wire_services(app):
+    from app.repositories.clean_dataset_repository import CleanDatasetRepository
+    from app.repositories.dataset_repository import DatasetRepository
+    from app.repositories.project_repository import ProjectRepository
+    from app.repositories.user_repository import UserRepository
+
+    session = db.session
+    storage = StorageClient(
+        app.config["S3_BUCKET"], app.config["S3_KEY"], app.config["S3_SECRET"]
+    )
+
+    users = UserRepository(session)
+    projects = ProjectRepository(session)
+    datasets = DatasetRepository(session)
+    cleans = CleanDatasetRepository(session)
+
+    services = {}
+    # --- serviços de domínio são registrados abaixo conforme implementados ---
+    app.services = services
 
 
 def register_home_route(app):
@@ -49,13 +60,13 @@ def register_home_route(app):
         )
 
 
-def initialize_s3_controller(app):
-    with app.app_context():
-        app.s3_controller = S3Controller()
-
-
 @login_manager.user_loader
 def load_user(user_id):
     from app.models import User
 
-    return User.query.get(int(user_id))
+    return db.session.get(User, int(user_id))
+
+
+@login_manager.unauthorized_handler
+def unauthorized():
+    return jsonify({"success": False, "message": "Não autorizado!", "errors": None}), 401
