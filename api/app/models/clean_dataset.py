@@ -1,8 +1,6 @@
 from datetime import datetime
 
-from app.controllers.s3_controller import S3Controller
 from app.extensions import db
-from sqlalchemy import event
 
 
 class CleanDataset(db.Model):
@@ -20,14 +18,3 @@ class CleanDataset(db.Model):
     # Relacionamentos
     dataset = db.relationship("Dataset", back_populates="clean_dataset")
     user = db.relationship("User", back_populates="clean_datasets")
-
-
-# Função que será chamada após a exclusão de um CleanDataset
-def delete_clean_dataset_file(mapper, connection, target):
-    if target.file_url:
-        s3Controller = S3Controller()
-        s3Controller.delete_file_from_s3(target.file_url)
-
-
-# Liga o evento `after_delete` ao modelo `CleanDataset`
-event.listen(CleanDataset, "after_delete", delete_clean_dataset_file)

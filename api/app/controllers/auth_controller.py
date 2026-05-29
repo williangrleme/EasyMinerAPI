@@ -1,70 +1,79 @@
-import app.response_handlers as response
-from flask_login import current_user, login_user, logout_user
+from flask import Blueprint, current_app, jsonify, request
+from flask_login import current_user, login_required
 
-from ..forms.login_form import LoginForm
-from ..models.user import User
+from app.common.decorators import handle_errors
+from app.common.responses import success_payload
+from app.schemas.auth import LoginSchema
+from app.schemas.user import UserReadSchema
 
-
-def format_user_data(user):
-    return {
-        "id": user.id,
-        "name": user.name,
-        "phone_number": user.phone_number,
-        "email": user.email,
-    }
+auth_bp = Blueprint("auth", __name__)
 
 
-def validate_user_credentials(email, password):
-    user = User.query.filter_by(email=email).first()
-    if user and user.check_password(password):
-        return user
-    return None
-
-
+@auth_bp.post("/login")
+@handle_errors
 def login():
+    """Realiza login do usuário.
+    ---
+    tags:
+      - Auth
+    requestBody:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/LoginSchema'
+    responses:
+      200:
+        description: Login realizado com sucesso
+      401:
+        description: Credenciais inválidas
+      422:
+        description: Dados inválidos
+    """
     if current_user.is_authenticated:
-        logout_user()
-
-    form = LoginForm()
-    if not form.validate_on_submit():
-        return response.handle_unprocessable_entity(form.errors)
-
-    user = validate_user_credentials(form.email.data, form.password.data)
-
-    if not user:
-        return response.handle_not_authorized_response("Credenciais inválidas!")
-
-    login_user(user)
-
-    return response.handle_success(
-        "Login realizado com sucesso!",
-        format_user_data(user),
+        current_app.services["auth"].logout()
+    data = LoginSchema.model_validate(request.get_json(silent=True) or {})
+    user = current_app.services["auth"].login(data)
+    body, status = success_payload(
+        "Login realizado com sucesso!", UserReadSchema.model_validate(user).model_dump()
     )
+    return jsonify(body), status
 
 
+@auth_bp.post("/logout")
+@login_required
+@handle_errors
 def logout():
-    logout_user()
-    return response.handle_success(
-        "Logout realizado com sucesso!",
+    """Realiza logout do usuário.
+    ---
+    tags:
+      - Auth
+    responses:
+      200:
+        description: Logout realizado com sucesso
+      401:
+        description: Não autorizado
+    """
+    current_app.services["auth"].logout()
+    body, status = success_payload("Logout realizado com sucesso!")
+    return jsonify(body), status
+
+
+@auth_bp.get("/me")
+@login_required
+@handle_errors
+def me():
+    """Retorna dados do usuário autenticado.
+    ---
+    tags:
+      - Auth
+    responses:
+      200:
+        description: Usuário atual recuperado com sucesso
+      401:
+        description: Não autorizado
+    """
+    body, status = success_payload(
+        "Usuário atual recuperado com sucesso!",
+        UserReadSchema.model_validate(current_user).model_dump(),
     )
-
-
-def get_current_user():
-    if current_user.is_authenticated:
-        user_data = format_user_data(current_user)
-        return response.handle_success(
-            "Usuário atual recuperado com sucesso!",
-            user_data,
-        )
-
-
-def get_csrf_token():
-    from flask_wtf.csrf import generate_csrf
-
-    token = generate_csrf()
-    return response.create_response(
-        "Token CSRF gerado com sucesso!",
-        True,
-        {"csrf_token": token},
-        200,
-    )
+    return jsonify(body), status
