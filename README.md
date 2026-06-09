@@ -78,7 +78,7 @@ HTTP Request
 | **Service** | Regra de negócio e orquestração de repositórios, storage e strategies. Decorado com `@transactional`. |
 | **Repository** | Único ponto de contato com o SQLAlchemy. Isola as queries do resto do sistema. |
 | **Model** | Declaração das tabelas ORM (Flask-SQLAlchemy). Sem lógica de negócio. |
-| **StorageClient** | Encapsula boto3; responsável por upload/download/delete no S3. |
+| **StorageClient** | Encapsula boto3; responsável por upload/download/delete no S3. | 
 | **Strategy** | Implementação de cada algoritmo de data mining (limpeza, normalização, redução, classificação). Registrado em `_REGISTRY`; selecionado por nome em tempo de execução. |
 | **common/** | Erros de domínio, envelope de resposta, decorators (`@handle_errors`, `@transactional`), helpers de arquivos. |
 
@@ -422,15 +422,3 @@ O Swagger UI é gerado automaticamente em tempo de execução a partir das docst
 - **Spec OpenAPI (JSON):** `/apispec.json`
 
 ---
-
-## Mudanças de contrato na v2
-
-Esta versão introduziu as seguintes quebras de compatibilidade em relação à v1:
-
-| Mudança | Detalhe |
-|---|---|
-| **Envelope de resposta padronizado** | Todos os endpoints agora retornam `{"success": ..., "message": ..., "data"/"errors": ...}`. Alguns endpoints na v1 retornavam formatos distintos. |
-| **Erros de validação no formato Pydantic** | Antes os erros vinham no formato WTForms. Agora são `{"campo": ["mensagem"]}` produzido pelo Pydantic v2. |
-| **CSRF removido** | O endpoint `GET /api/auth/csrf-token` foi removido. A API JSON usa autenticação por sessão sem CSRF. |
-| **WTForms/Flask-WTF removidos** | Toda validação de entrada migrou para Pydantic v2. |
-| **Ponto de entrada alterado** | O comando correto é `flask --app wsgi run` (não `flask run` com `FLASK_APP=run.py`). |
