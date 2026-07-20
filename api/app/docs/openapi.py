@@ -46,6 +46,9 @@ def build_swagger_template() -> dict:
 
 
 SWAGGER_CONFIG = {
+    # o Flasgger lê a versão do config; sem isso ele injeta "swagger: 2.0"
+    # junto do "openapi" do template e o Swagger UI rejeita o spec
+    "openapi": "3.0.0",
     "headers": [],
     "specs": [{"endpoint": "apispec", "route": "/apispec.json"}],
     "static_url_path": "/flasgger_static",
